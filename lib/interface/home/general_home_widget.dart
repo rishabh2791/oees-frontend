@@ -91,64 +91,70 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     ], (element) {})
         .then(
       (value) async {
-        lineSelectionFormField = DropdownFormField(
-          formField: "line_id",
-          controller: selectedLine,
-          dropdownItems: lines,
-          hint: "Select Line",
-        );
-        selectedLine.text = lines[0].id;
-        if (lines.isEmpty || shifts.isEmpty) {
+        if (lines.isNotEmpty) {
+          lineSelectionFormField = DropdownFormField(
+            formField: "line_id",
+            controller: selectedLine,
+            dropdownItems: lines,
+            hint: "Select Line",
+          );
+          selectedLine.text = lines[0].id;
+          if (lines.isEmpty || shifts.isEmpty) {
+            setState(() {
+              isLoading = false;
+            });
+          } else {
+            await Future.forEach([
+              await getHours(),
+            ], (element) {})
+                .then((value) async {
+              await Future.forEach([
+                await getDowntimes(),
+                await getTasks(),
+              ], (element) async {});
+            }).then(
+              (value) async {
+                if (skuIDs.isEmpty) {
+                  setState(() {
+                    isLoading = false;
+                  });
+                } else {
+                  await Future.forEach([
+                    await getRunSpeeds(),
+                    await getDevices(),
+                  ], (element) async {})
+                      .then(
+                    (value) async {
+                      if (skuSpeeds.isEmpty || deviceIDs.isEmpty) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      } else {
+                        await Future.forEach(
+                          [
+                            await getDeviceData(),
+                          ],
+                          (element) {},
+                        ).then((value) async {
+                          getRunEfficiency();
+                        }).then((value) {
+                          getChartsData();
+                          setState(() {
+                            isDataLoaded = true;
+                            isLoading = false;
+                          });
+                        });
+                      }
+                    },
+                  );
+                }
+              },
+            );
+          }
+        } else {
           setState(() {
             isLoading = false;
           });
-        } else {
-          await Future.forEach([
-            await getHours(),
-          ], (element) {})
-              .then((value) async {
-            await Future.forEach([
-              await getDowntimes(),
-              await getTasks(),
-            ], (element) async {});
-          }).then(
-            (value) async {
-              if (skuIDs.isEmpty) {
-                setState(() {
-                  isLoading = false;
-                });
-              } else {
-                await Future.forEach([
-                  await getRunSpeeds(),
-                  await getDevices(),
-                ], (element) async {})
-                    .then(
-                  (value) async {
-                    if (skuSpeeds.isEmpty || deviceIDs.isEmpty) {
-                      setState(() {
-                        isLoading = false;
-                      });
-                    } else {
-                      await Future.forEach(
-                        [
-                          await getDeviceData(),
-                        ],
-                        (element) {},
-                      ).then((value) async {
-                        getRunEfficiency();
-                      }).then((value) {
-                        getChartsData();
-                        setState(() {
-                          isDataLoaded = true;
-                          isLoading = false;
-                        });
-                      });
-                    }
-                  },
-                );
-              }
-            },
-          );
         }
       },
     );
@@ -218,7 +224,9 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         }
       }
     });
-    selectedLine.text = lines[0].id;
+    if (lines.isNotEmpty) {
+      selectedLine.text = lines[0].id;
+    }
   }
 
   Future<void> getHours() async {
@@ -339,12 +347,12 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
             tasksByLine[task.line.id] = [task];
           }
           if (skusByLine.containsKey(task.line.id)) {
-            skusByLine[task.line.id]!.add(task.sku);
+            skusByLine[task.line.id]!.add(task.job.sku);
           } else {
-            skusByLine[task.line.id] = [task.sku];
+            skusByLine[task.line.id] = [task.job.sku];
           }
-          if (!skuIDs.contains(task.sku.id)) {
-            skuIDs.add(task.sku.id);
+          if (!skuIDs.contains(task.job.sku.id)) {
+            skuIDs.add(task.job.sku.id);
           }
         }
       }
@@ -491,7 +499,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           int totalPlannedDowntime = getTotalDowntime(startTime, endTime, lineID, "Planned");
           int totalUnplannedDowntime = getTotalDowntime(startTime, endTime, lineID, "Unplanned");
           int totalProductionTime = 3600 - totalControlledDowntime - totalPlannedDowntime - totalUnplannedDowntime;
-          var speed = skuSpeeds[lineID + "_" + task.sku.id] ?? 0;
+          var speed = skuSpeeds[lineID + "_" + task.job.sku.id] ?? 0;
           production += speed * double.parse(totalProductionTime.toString()) / 60;
         }
       }

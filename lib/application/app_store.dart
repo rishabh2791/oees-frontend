@@ -6,7 +6,6 @@ import 'package:oees/application/downtime_app.dart';
 import 'package:oees/application/downtime_preset_app.dart';
 import 'package:oees/application/job_app.dart';
 import 'package:oees/application/line_app.dart';
-import 'package:oees/application/plant_app.dart';
 import 'package:oees/application/shift_app.dart';
 import 'package:oees/application/sku_app.dart';
 import 'package:oees/application/sku_speed_app.dart';
@@ -27,7 +26,6 @@ class AppStore {
   final downtimePresetApp = DowntimePresetApp(downtimePresetRepository: repoStore.downtimePresetRepo);
   final jobApp = JobApp(jobRepository: repoStore.jobRepo);
   final lineApp = LineApp(lineRepository: repoStore.lineRepo);
-  final plantApp = PlantApp(plantRepository: repoStore.plantRepo);
   final shiftApp = ShiftApp(shiftRepository: repoStore.shiftRepo);
   final skuApp = SKUApp(skuRepository: repoStore.skuRepo);
   final skuSpeedApp = SKUSpeedApp(skuSpeedRepository: repoStore.skuSpeedRepo);

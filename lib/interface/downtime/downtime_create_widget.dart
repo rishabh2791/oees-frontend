@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/downtime_Preset.dart';
 import 'package:oees/domain/entity/line.dart';
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
@@ -28,12 +27,10 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
   bool isLoading = true;
   bool isDataLoaded = false;
   int period = 0;
-  List<Plant> plants = [];
   List<Line> lines = [];
   List<DowntimePreset> presetDowntimes = [];
   Map<String, dynamic> map = {};
-  late TextEditingController plantController,
-      lineController,
+  late TextEditingController lineController,
       descriptionController,
       startDateController,
       startTimeController,
@@ -43,15 +40,14 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
       controlledController,
       presetController;
   late BoolFormField plannedFormField, controlledFormField;
-  late FormFieldWidget plantFormWidget, mainFormWidget;
-  late DropdownFormField plantFormField, lineFormField, presetFormField;
+  late FormFieldWidget mainFormWidget;
+  late DropdownFormField lineFormField, presetFormField;
   late TextFormFielder descriptionFormField;
   late DateFormField startDateFormField, endDateFormField;
   late TimeFormField startTimeFormField, endTimeFormField;
 
   @override
   void initState() {
-    plantController = TextEditingController();
     lineController = TextEditingController();
     descriptionController = TextEditingController();
     startDateController = TextEditingController();
@@ -61,9 +57,8 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
     plannedController = TextEditingController();
     controlledController = TextEditingController();
     presetController = TextEditingController();
-    getPlants();
+    getDetails();
     super.initState();
-    plantController.addListener(getDetails);
     presetController.addListener(autoFill);
     startTimeController.addListener(changeEndTime);
   }
@@ -71,43 +66,6 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> getPlants() async {
-    plants = [];
-    await appStore.plantApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Plant plant = Plant.fromJSON(item);
-          plants.add(plant);
-        }
-      } else {
-        setState(() {
-          errorMessage = response["message"];
-          isError = true;
-        });
-      }
-    }).then((value) {
-      initPlantForm();
-    });
-  }
-
-  void initPlantForm() {
-    plantFormField = DropdownFormField(
-      formField: "plant_code",
-      controller: plantController,
-      dropdownItems: plants,
-      hint: "Select Plant",
-      primaryKey: "code",
-    );
-    plantFormWidget = FormFieldWidget(
-      formFields: [
-        plantFormField,
-      ],
-    );
-    setState(() {
-      isLoading = false;
-    });
   }
 
   Future<void> getDetails() async {
@@ -127,13 +85,7 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
   }
 
   Future<void> getLines() async {
-    Map<String, dynamic> conditions = {
-      "EQUALS": {
-        "Field": "plant_code",
-        "Value": plantController.text,
-      }
-    };
-    await appStore.lineApp.list(conditions).then((response) {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
           Line line = Line.fromJSON(item);
@@ -307,7 +259,7 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
                               child: presetFormField.render(),
                             )
                           : Container(),
-                      isDataLoaded ? mainFormWidget.render() : plantFormWidget.render(),
+                      isDataLoaded ? mainFormWidget.render() : Container(),
                       isDataLoaded
                           ? Row(
                               children: [

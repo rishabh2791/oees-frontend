@@ -1,9 +1,7 @@
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/domain/entity/user.dart';
 
 class Line {
   final String id;
-  final Plant plant;
   final String code;
   String ipAddress;
   final String name;
@@ -20,7 +18,6 @@ class Line {
     required this.id,
     required this.ipAddress,
     required this.name,
-    required this.plant,
     required this.updatedAt,
     required this.updatedBy,
   });
@@ -38,7 +35,6 @@ class Line {
       "id": id,
       "ip_address": ipAddress,
       "name": name,
-      "plant": plant.toJSON(),
       "updated_at": updatedAt,
       "updated_by": updatedBy.toJSON(),
     };
@@ -52,7 +48,6 @@ class Line {
       id: jsonObject["id"],
       ipAddress: jsonObject["ip_address"] ?? "",
       name: jsonObject["name"],
-      plant: Plant.fromJSON(jsonObject["plant"]),
       updatedAt: DateTime.parse(jsonObject["updated_at"]),
       updatedBy: User.fromJSON(jsonObject["updated_by"]),
     );

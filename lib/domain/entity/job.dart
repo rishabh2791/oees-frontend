@@ -1,11 +1,9 @@
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/domain/entity/sku.dart';
 import 'package:oees/domain/entity/user.dart';
 
 class Job {
   final String id;
   final String code;
-  final Plant plant;
   final SKU sku;
   final int plan;
   final User createdBy;
@@ -19,7 +17,6 @@ class Job {
     required this.createdBy,
     required this.id,
     required this.plan,
-    required this.plant,
     required this.sku,
     required this.updatedAt,
     required this.updatedBy,
@@ -27,7 +24,7 @@ class Job {
 
   @override
   String toString() {
-    return code + "-" + plant.description + "-" + sku.description;
+    return code + "-" + sku.description;
   }
 
   Map<String, dynamic> toJSON() {
@@ -37,7 +34,6 @@ class Job {
       "created_by": createdBy.toJSON(),
       "id": id,
       "plan": plan,
-      "plant": plant.toJSON(),
       "sku": sku.toJSON(),
       "updated_at": updatedAt,
       "updated_by": updatedBy.toJSON(),
@@ -51,7 +47,6 @@ class Job {
       createdBy: User.fromJSON(jsonObject["created_by"]),
       id: jsonObject["id"],
       plan: int.parse(jsonObject["plan"].toString()),
-      plant: Plant.fromJSON(jsonObject["plant"]),
       sku: SKU.fromJSON(jsonObject["sku"]),
       updatedAt: DateTime.parse(jsonObject["updated_at"]),
       updatedBy: User.fromJSON(jsonObject["updated_by"]),

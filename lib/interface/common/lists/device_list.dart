@@ -40,40 +40,33 @@ class _DeviceListState extends State<DeviceList> {
         break;
       case 1:
         if (ascending) {
-          widget.devices.sort((a, b) => a.line.plant.description.compareTo(b.line.plant.description));
-        } else {
-          widget.devices.sort((a, b) => b.line.plant.description.compareTo(a.line.plant.description));
-        }
-        break;
-      case 2:
-        if (ascending) {
           widget.devices.sort((a, b) => a.line.name.compareTo(b.line.name));
         } else {
           widget.devices.sort((a, b) => b.line.name.compareTo(a.line.name));
         }
         break;
-      case 3:
+      case 2:
         if (ascending) {
           widget.devices.sort((a, b) => a.code.compareTo(b.code));
         } else {
           widget.devices.sort((a, b) => b.code.compareTo(a.code));
         }
         break;
-      case 4:
+      case 3:
         if (ascending) {
           widget.devices.sort((a, b) => a.description.compareTo(b.description));
         } else {
           widget.devices.sort((a, b) => b.description.compareTo(a.description));
         }
         break;
-      case 5:
+      case 4:
         if (ascending) {
           widget.devices.sort((a, b) => a.id.toString().compareTo(b.id.toString()));
         } else {
           widget.devices.sort((a, b) => b.id.toString().compareTo(a.id.toString()));
         }
         break;
-      case 6:
+      case 5:
         if (ascending) {
           widget.devices.sort((a, b) => a.useForOEE.toString().compareTo(b.useForOEE.toString()));
         } else {
@@ -118,24 +111,6 @@ class _DeviceListState extends State<DeviceList> {
                           DataColumn(
                             label: Text(
                               "Device Type",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Text(
-                              "Plant",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -284,16 +259,6 @@ class _DataSource extends DataTableSource {
         DataCell(
           Text(
             device.deviceType,
-            style: TextStyle(
-              fontSize: 16.0,
-              color: isDarkTheme.value ? foregroundColor : backgroundColor,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-        ),
-        DataCell(
-          Text(
-            device.line.plant.description,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,

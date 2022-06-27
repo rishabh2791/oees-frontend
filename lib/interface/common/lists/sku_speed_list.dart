@@ -33,26 +33,19 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
     switch (columnIndex) {
       case 0:
         if (ascending) {
-          widget.skuSpeeds.sort((a, b) => a.sku.plant.description.compareTo(b.sku.plant.description));
-        } else {
-          widget.skuSpeeds.sort((a, b) => b.sku.plant.description.compareTo(a.sku.plant.description));
-        }
-        break;
-      case 1:
-        if (ascending) {
           widget.skuSpeeds.sort((a, b) => a.sku.code.compareTo(b.sku.code));
         } else {
           widget.skuSpeeds.sort((a, b) => b.sku.code.compareTo(a.sku.code));
         }
         break;
-      case 2:
+      case 1:
         if (ascending) {
           widget.skuSpeeds.sort((a, b) => a.sku.description.compareTo(b.sku.description));
         } else {
           widget.skuSpeeds.sort((a, b) => b.sku.description.compareTo(a.sku.description));
         }
         break;
-      case 3:
+      case 2:
         if (ascending) {
           widget.skuSpeeds.sort((a, b) => a.speed.compareTo(b.speed));
         } else {
@@ -94,24 +87,6 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
                         sortColumnIndex: sortingColumnIndex,
                         columnSpacing: 20.0,
                         columns: [
-                          DataColumn(
-                            label: Text(
-                              "Plant",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
                           DataColumn(
                             label: Text(
                               "Material Code",
@@ -207,16 +182,6 @@ class _DataSource extends DataTableSource {
     return DataRow.byIndex(
       index: index,
       cells: [
-        DataCell(
-          Text(
-            skuSpeed.sku.plant.description,
-            style: TextStyle(
-              fontSize: 16.0,
-              color: isDarkTheme.value ? foregroundColor : backgroundColor,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-        ),
         DataCell(
           Text(
             skuSpeed.sku.code,

@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/line.dart';
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/domain/entity/sku.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
@@ -23,67 +22,26 @@ class SKUSpeedCreateWidget extends StatefulWidget {
 
 class _SKUSpeedCreateWidgetState extends State<SKUSpeedCreateWidget> {
   bool isLoading = true;
-  bool isDataLoaded = false;
-  List<Plant> plants = [];
   List<SKU> skus = [];
   List<Line> lines = [];
   late Map<String, dynamic> map;
-  late FormFieldWidget plantFormFieldWidget, formFieldWidget;
-  late DropdownFormField plantFormField, skuFormField, lineFormField;
+  late FormFieldWidget formFieldWidget;
+  late DropdownFormField skuFormField, lineFormField;
   late IntFormFielder speedFormWidget;
-  late TextEditingController plantController, lineController, skuController, speedController;
+  late TextEditingController lineController, skuController, speedController;
 
   @override
   void initState() {
-    plantController = TextEditingController();
     lineController = TextEditingController();
     speedController = TextEditingController();
     skuController = TextEditingController();
-    getPlants();
+    getData();
     super.initState();
-    plantController.addListener(getData);
   }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> getPlants() async {
-    plants = [];
-    await appStore.plantApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Plant plant = Plant.fromJSON(item);
-          plants.add(plant);
-        }
-      } else {
-        setState(() {
-          errorMessage = response["message"];
-          isError = true;
-        });
-      }
-    }).then((value) {
-      initPlantForm();
-    });
-  }
-
-  void initPlantForm() {
-    plantFormField = DropdownFormField(
-      formField: "plant_code",
-      controller: plantController,
-      dropdownItems: plants,
-      hint: "Select Plant",
-      primaryKey: "code",
-    );
-    plantFormFieldWidget = FormFieldWidget(
-      formFields: [
-        plantFormField,
-      ],
-    );
-    setState(() {
-      isLoading = false;
-    });
   }
 
   void initForm() {
@@ -116,13 +74,7 @@ class _SKUSpeedCreateWidgetState extends State<SKUSpeedCreateWidget> {
   }
 
   Future<void> getLines() async {
-    Map<String, dynamic> conditions = {
-      "EQUALS": {
-        "Field": "plant_code",
-        "Value": plantController.text,
-      }
-    };
-    await appStore.lineApp.list(conditions).then((response) {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
           Line line = Line.fromJSON(item);
@@ -138,13 +90,7 @@ class _SKUSpeedCreateWidgetState extends State<SKUSpeedCreateWidget> {
   }
 
   Future<void> getSKUs() async {
-    Map<String, dynamic> conditions = {
-      "EQUALS": {
-        "Field": "plant_code",
-        "Value": plantController.text,
-      }
-    };
-    await appStore.skuApp.list(conditions).then((response) {
+    await appStore.skuApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
           SKU sku = SKU.fromJSON(item);
@@ -166,9 +112,6 @@ class _SKUSpeedCreateWidgetState extends State<SKUSpeedCreateWidget> {
     await Future.forEach([await getLines(), await getSKUs()], (element) {
       if (errorMessage.isEmpty && errorMessage == "") {
         initForm();
-        setState(() {
-          isDataLoaded = true;
-        });
       }
       setState(() {
         isLoading = false;
@@ -205,75 +148,69 @@ class _SKUSpeedCreateWidgetState extends State<SKUSpeedCreateWidget> {
                         color: Colors.transparent,
                         height: 50.0,
                       ),
-                      isDataLoaded ? formFieldWidget.render() : plantFormFieldWidget.render(),
-                      isDataLoaded
-                          ? Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: MaterialButton(
-                                    onPressed: () async {
-                                      if (formFieldWidget.validate()) {
-                                        map = formFieldWidget.toJSON();
-                                        map["speed"] = double.parse(map["speed"].toString());
-                                        map["created_by_username"] = currentUser.username;
-                                        map["updated_by_username"] = currentUser.username;
-                                        await appStore.skuSpeedApp.create(map).then((response) {
-                                          if (response.containsKey("status") && response["status"]) {
-                                            setState(() {
-                                              errorMessage = "SKU Speed Created";
-                                              isError = true;
-                                            });
-                                            navigationService.pushReplacement(
-                                              CupertinoPageRoute(
-                                                builder: (BuildContext context) => const SKUSpeedCreateWidget(),
-                                              ),
-                                            );
-                                          } else {
-                                            if (!response.containsKey("status")) {
-                                              setState(() {
-                                                errorMessage = "Unable to Create SKU Speed.";
-                                                isError = true;
-                                              });
-                                            } else {
-                                              setState(() {
-                                                errorMessage = response["message"];
-                                                isError = true;
-                                              });
-                                            }
-                                          }
+                      formFieldWidget.render(),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: MaterialButton(
+                              onPressed: () async {
+                                if (formFieldWidget.validate()) {
+                                  map = formFieldWidget.toJSON();
+                                  map["speed"] = double.parse(map["speed"].toString());
+                                  map["created_by_username"] = currentUser.username;
+                                  map["updated_by_username"] = currentUser.username;
+                                  await appStore.skuSpeedApp.create(map).then((response) {
+                                    if (response.containsKey("status") && response["status"]) {
+                                      setState(() {
+                                        errorMessage = "SKU Speed Created";
+                                        isError = true;
+                                      });
+                                      formFieldWidget.clear();
+                                    } else {
+                                      if (!response.containsKey("status")) {
+                                        setState(() {
+                                          errorMessage = "Unable to Create SKU Speed.";
+                                          isError = true;
                                         });
                                       } else {
                                         setState(() {
+                                          errorMessage = response["message"];
                                           isError = true;
                                         });
                                       }
-                                    },
-                                    color: foregroundColor,
-                                    height: 60.0,
-                                    minWidth: 50.0,
-                                    child: checkButton(),
+                                    }
+                                  });
+                                } else {
+                                  setState(() {
+                                    isError = true;
+                                  });
+                                }
+                              },
+                              color: foregroundColor,
+                              height: 60.0,
+                              minWidth: 50.0,
+                              child: checkButton(),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: MaterialButton(
+                              onPressed: () {
+                                navigationService.pushReplacement(
+                                  CupertinoPageRoute(
+                                    builder: (BuildContext context) => const SKUSpeedCreateWidget(),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: MaterialButton(
-                                    onPressed: () {
-                                      navigationService.pushReplacement(
-                                        CupertinoPageRoute(
-                                          builder: (BuildContext context) => const SKUSpeedCreateWidget(),
-                                        ),
-                                      );
-                                    },
-                                    color: foregroundColor,
-                                    height: 60.0,
-                                    minWidth: 50.0,
-                                    child: clearButton(),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Container(),
+                                );
+                              },
+                              color: foregroundColor,
+                              height: 60.0,
+                              minWidth: 50.0,
+                              child: clearButton(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

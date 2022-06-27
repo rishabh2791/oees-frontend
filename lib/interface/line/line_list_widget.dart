@@ -1,17 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/line.dart';
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/infrastructure/constants.dart';
-import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
-import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
 import 'package:oees/interface/common/lists/line_list.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
-import 'package:oees/interface/common/ui_elements/check_button.dart';
-import 'package:oees/interface/common/ui_elements/clear_button.dart';
 
 class LineListWidget extends StatefulWidget {
   const LineListWidget({Key? key}) : super(key: key);
@@ -23,16 +17,13 @@ class LineListWidget extends StatefulWidget {
 class _LineListWidgetState extends State<LineListWidget> {
   bool isLoading = true;
   bool isLinesLoaded = false;
-  List<Plant> plants = [];
   List<Line> lines = [];
   Map<String, dynamic> map = {};
   late FormFieldWidget formFieldWidget;
-  late DropdownFormField plantFormField;
-  late TextEditingController plantController;
 
   @override
   void initState() {
-    getPlants();
+    getLines();
     super.initState();
   }
 
@@ -41,41 +32,25 @@ class _LineListWidgetState extends State<LineListWidget> {
     super.dispose();
   }
 
-  void initForm() {
-    plantController = TextEditingController();
-    plantFormField = DropdownFormField(
-      formField: "plant_code",
-      controller: plantController,
-      dropdownItems: plants,
-      hint: "Select Plant",
-      primaryKey: "code",
-    );
-    formFieldWidget = FormFieldWidget(
-      formFields: [
-        plantFormField,
-      ],
-    );
+  Future<void> getLines() async {
     setState(() {
-      isLoading = false;
+      isLoading = true;
     });
-  }
-
-  Future<void> getPlants() async {
-    plants = [];
-    await appStore.plantApp.list({}).then((response) {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Plant plant = Plant.fromJSON(item);
-          plants.add(plant);
+          Line line = Line.fromJSON(item);
+          lines.add(line);
         }
+        setState(() {
+          isLoading = false;
+        });
       } else {
         setState(() {
-          errorMessage = response["message"];
+          errorMessage = "Unable to get Lines.";
           isError = true;
         });
       }
-    }).then((value) {
-      initForm();
     });
   }
 
@@ -91,137 +66,36 @@ class _LineListWidgetState extends State<LineListWidget> {
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
-            : isLinesLoaded
-                ? SuperWidget(
-                    childWidget: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "All Lines",
-                          style: TextStyle(
-                            color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                            fontSize: 40.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Divider(
-                          color: Colors.transparent,
-                          height: 50.0,
-                        ),
-                        lines.isNotEmpty
-                            ? LineList(lines: lines)
-                            : Text(
-                                "No Lines Found",
-                                style: TextStyle(
-                                  color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                  fontSize: 30.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ],
+            : SuperWidget(
+                childWidget: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "All Lines",
+                      style: TextStyle(
+                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        fontSize: 40.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    errorCallback: () {},
-                  )
-                : SuperWidget(
-                    childWidget: Center(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Create Line",
+                    const Divider(
+                      color: Colors.transparent,
+                      height: 50.0,
+                    ),
+                    lines.isNotEmpty
+                        ? LineList(lines: lines)
+                        : Text(
+                            "No Lines Found",
                             style: TextStyle(
                               color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                              fontSize: 40.0,
+                              fontSize: 30.0,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const Divider(
-                            color: Colors.transparent,
-                            height: 50.0,
-                          ),
-                          formFieldWidget.render(),
-                          Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: MaterialButton(
-                                  onPressed: () async {
-                                    map = formFieldWidget.toJSON();
-                                    Map<String, dynamic> conditions = {};
-                                    if (map["plant_code"].isNotEmpty) {
-                                      conditions = {
-                                        "EQUALS": {
-                                          "Field": "plant_code",
-                                          "Value": map["plant_code"],
-                                        }
-                                      };
-                                    }
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-                                    await appStore.lineApp.list(conditions).then((response) {
-                                      if (response.containsKey("status") && response["status"]) {
-                                        for (var item in response["payload"]) {
-                                          Line line = Line.fromJSON(item);
-                                          lines.add(line);
-                                        }
-                                        setState(() {
-                                          isLoading = false;
-                                          isLinesLoaded = true;
-                                        });
-                                      } else {
-                                        if (response.containsKey("status")) {
-                                          setState(() {
-                                            errorMessage = response["message"];
-                                            isError = true;
-                                            isLoading = false;
-                                          });
-                                        } else {
-                                          setState(() {
-                                            errorMessage = "Unable to Get Lines";
-                                            isError = true;
-                                            isLoading = false;
-                                          });
-                                        }
-                                      }
-                                    });
-                                  },
-                                  color: foregroundColor,
-                                  height: 60.0,
-                                  minWidth: 50.0,
-                                  child: checkButton(),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: MaterialButton(
-                                  onPressed: () {
-                                    navigationService.pushReplacement(
-                                      CupertinoPageRoute(
-                                        builder: (BuildContext context) => const LineListWidget(),
-                                      ),
-                                    );
-                                  },
-                                  color: foregroundColor,
-                                  height: 60.0,
-                                  minWidth: 50.0,
-                                  child: clearButton(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    errorCallback: () {
-                      setState(
-                        () {
-                          isError = false;
-                          errorMessage = "";
-                        },
-                      );
-                    },
-                  );
+                  ],
+                ),
+                errorCallback: () {},
+              );
       },
     );
   }

@@ -1,11 +1,10 @@
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/domain/entity/user.dart';
 
 class SKU {
   final String id;
-  final Plant plant;
   final String code;
   final String description;
+  final int caseLot;
   final User createdBy;
   final DateTime createdAt;
   final User updatedBy;
@@ -18,7 +17,7 @@ class SKU {
     required this.createdBy,
     required this.id,
     required this.description,
-    required this.plant,
+    required this.caseLot,
     required this.updatedAt,
     required this.updatedBy,
   });
@@ -35,7 +34,7 @@ class SKU {
       "created_by": createdBy.toJSON(),
       "id": id,
       "description": description,
-      "plant": plant.toJSON(),
+      "case_lot": caseLot,
       "updated_at": updatedAt,
       "updated_by": updatedBy.toJSON(),
     };
@@ -48,7 +47,7 @@ class SKU {
       createdBy: User.fromJSON(jsonObject["created_by"]),
       id: jsonObject["id"],
       description: jsonObject["description"],
-      plant: Plant.fromJSON(jsonObject["plant"]),
+      caseLot: jsonObject["case_lot"],
       updatedAt: DateTime.parse(jsonObject["updated_at"]),
       updatedBy: User.fromJSON(jsonObject["updated_by"]),
     );

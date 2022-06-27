@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-String baseURL = "http://172.22.224.92:8080/";
+String baseURL = "http://172.19.190.100:8080/";
 // String baseURL = "http://10.19.1.183/backend/";
 const backgroundColor = Colors.black;
 const foregroundColor = Colors.green;

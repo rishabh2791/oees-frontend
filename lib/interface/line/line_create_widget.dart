@@ -1,11 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
-import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
 import 'package:oees/interface/common/form_fields/text_form_field.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
@@ -21,17 +19,18 @@ class LineCreateWidget extends StatefulWidget {
 
 class _LineCreateWidgetState extends State<LineCreateWidget> {
   bool isLoading = true;
-  List<Plant> plants = [];
   late Map<String, dynamic> map;
   late FormFieldWidget formFieldWidget;
-  late DropdownFormField plantFormField;
   late TextFormFielder codeFormWidget, nameFormWidget;
-  late TextEditingController codeController, nameController, plantController;
+  late TextEditingController codeController, nameController;
 
   @override
   void initState() {
-    getPlants();
     super.initState();
+    initForm();
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -39,42 +38,15 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
     super.dispose();
   }
 
-  Future<void> getPlants() async {
-    plants = [];
-    await appStore.plantApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Plant plant = Plant.fromJSON(item);
-          plants.add(plant);
-        }
-      } else {
-        setState(() {
-          errorMessage = response["message"];
-          isError = true;
-        });
-      }
-    }).then((value) {
-      initForm();
-    });
-  }
-
   void initForm() {
     codeController = TextEditingController();
     nameController = TextEditingController();
-    plantController = TextEditingController();
     codeFormWidget = TextFormFielder(
       controller: codeController,
       formField: "code",
       label: "Line Code",
       minSize: 2,
       maxSize: 4,
-    );
-    plantFormField = DropdownFormField(
-      formField: "plant_code",
-      controller: plantController,
-      dropdownItems: plants,
-      hint: "Select Plant",
-      primaryKey: "code",
     );
     nameFormWidget = TextFormFielder(
       controller: nameController,
@@ -85,7 +57,6 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
     );
     formFieldWidget = FormFieldWidget(
       formFields: [
-        plantFormField,
         codeFormWidget,
         nameFormWidget,
       ],

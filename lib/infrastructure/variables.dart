@@ -7,7 +7,6 @@ import 'package:oees/interface/downtime_preset/downtime_preset_widget.dart';
 import 'package:oees/interface/home/home_widget.dart';
 import 'package:oees/interface/job/job_widget.dart';
 import 'package:oees/interface/line/line_widget.dart';
-import 'package:oees/interface/plant/plant_widget.dart';
 import 'package:oees/interface/shift/shift_widget.dart';
 import 'package:oees/interface/sku/sku_widget.dart';
 import 'package:oees/interface/sku_speed/sku_speed_widget.dart';
@@ -58,10 +57,6 @@ Map<String, Map<String, dynamic>> menuMapping = {
   "Line": {
     "table": "lines",
     "widget": const LineWidget(),
-  },
-  "Plant": {
-    "table": "plants",
-    "widget": const PlantWidget(),
   },
   "Preset Downtimes": {
     "table": "preset_downtimes",

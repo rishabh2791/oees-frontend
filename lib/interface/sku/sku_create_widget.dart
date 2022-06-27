@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
-import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
+import 'package:oees/interface/common/form_fields/int_form_field.dart';
 import 'package:oees/interface/common/form_fields/text_form_field.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
 import 'package:oees/interface/common/ui_elements/check_button.dart';
@@ -21,17 +20,18 @@ class SKUCreateWidget extends StatefulWidget {
 
 class _SKUCreateWidgetState extends State<SKUCreateWidget> {
   bool isLoading = true;
-  List<Plant> plants = [];
   late Map<String, dynamic> map;
   late FormFieldWidget formFieldWidget;
-  late DropdownFormField plantFormField;
   late TextFormFielder codeFormWidget, descriptionFormWidget;
-  late TextEditingController codeController, descriptionController, plantController;
+  late IntFormFielder caseLotFormWidget;
+  late TextEditingController codeController, descriptionController, caseLotController;
 
   @override
   void initState() {
-    getPlants();
     super.initState();
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -39,42 +39,16 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
     super.dispose();
   }
 
-  Future<void> getPlants() async {
-    plants = [];
-    await appStore.plantApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Plant plant = Plant.fromJSON(item);
-          plants.add(plant);
-        }
-      } else {
-        setState(() {
-          errorMessage = response["message"];
-          isError = true;
-        });
-      }
-    }).then((value) {
-      initForm();
-    });
-  }
-
   void initForm() {
     codeController = TextEditingController();
     descriptionController = TextEditingController();
-    plantController = TextEditingController();
+    caseLotController = TextEditingController();
     codeFormWidget = TextFormFielder(
       controller: codeController,
       formField: "code",
       label: "Material Code",
       minSize: 4,
       maxSize: 10,
-    );
-    plantFormField = DropdownFormField(
-      formField: "plant_code",
-      controller: plantController,
-      dropdownItems: plants,
-      hint: "Select Plant",
-      primaryKey: "code",
     );
     descriptionFormWidget = TextFormFielder(
       controller: descriptionController,
@@ -83,11 +57,18 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
       obscureText: false,
       minSize: 10,
     );
+    caseLotFormWidget = IntFormFielder(
+      controller: caseLotController,
+      formField: "case_lot",
+      label: "Units/Case",
+      isRequired: true,
+      min: 1,
+    );
     formFieldWidget = FormFieldWidget(
       formFields: [
-        plantFormField,
         codeFormWidget,
         descriptionFormWidget,
+        caseLotFormWidget,
       ],
     );
     setState(() {
@@ -147,7 +128,7 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                                         ),
                                       );
                                     } else {
-                                      errorMessage = "Unable to Create Line";
+                                      errorMessage = "Unable to Create SKU";
                                       isError = true;
                                     }
                                   });

@@ -30,4 +30,11 @@ class JobRepo implements JobRepository {
     var response = await networkAPIProvider.post(url, conditions, TokenType.accessToken);
     return response;
   }
+
+  @override
+  Future<Map<String, dynamic>> pullFromSyspro() async {
+    String url = "job/";
+    var response = await networkAPIProvider.get(url, TokenType.accessToken);
+    return response;
+  }
 }

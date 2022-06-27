@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/line.dart';
-import 'package:oees/domain/entity/plant.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
@@ -22,69 +21,30 @@ class DeviceCreateWidget extends StatefulWidget {
 }
 
 class _DeviceCreateWidgetState extends State<DeviceCreateWidget> {
-  bool isLoading = true, isPlantLoaded = false;
-  List<Plant> plants = [];
+  bool isLoading = true;
   List<Line> lines = [];
   late Map<String, dynamic> map;
   late BoolFormField useForOEEFormField;
-  late FormFieldWidget plantFormFieldWidget, formFieldWidget;
-  late DropdownFormField plantFormField, lineFormField;
+  late FormFieldWidget formFieldWidget;
+  late DropdownFormField lineFormField;
   late TextFormFielder codeFormWidget, nameFormWidget, deviceTypeFormWidget;
-  late TextEditingController codeController, descriptionController, plantController, lineController, deviceTypeController, userForOEEController;
+  late TextEditingController codeController, descriptionController, lineController, deviceTypeController, userForOEEController;
 
   @override
   void initState() {
-    plantController = TextEditingController();
     codeController = TextEditingController();
     descriptionController = TextEditingController();
     lineController = TextEditingController();
     deviceTypeController = TextEditingController();
     userForOEEController = TextEditingController();
-    getPlants();
+    getLines();
+    initForm();
     super.initState();
-    plantController.addListener(getLines);
   }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> getPlants() async {
-    plants = [];
-    await appStore.plantApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Plant plant = Plant.fromJSON(item);
-          plants.add(plant);
-        }
-      } else {
-        setState(() {
-          errorMessage = response["message"];
-          isError = true;
-        });
-      }
-    }).then((value) {
-      initPlantForm();
-    });
-  }
-
-  void initPlantForm() {
-    plantFormField = DropdownFormField(
-      formField: "plant_code",
-      controller: plantController,
-      dropdownItems: plants,
-      hint: "Select Plant",
-      primaryKey: "code",
-    );
-    plantFormFieldWidget = FormFieldWidget(
-      formFields: [
-        plantFormField,
-      ],
-    );
-    setState(() {
-      isLoading = false;
-    });
   }
 
   void initForm() {
@@ -135,13 +95,7 @@ class _DeviceCreateWidgetState extends State<DeviceCreateWidget> {
     setState(() {
       isLoading = true;
     });
-    Map<String, dynamic> conditions = {
-      "EQUALS": {
-        "Field": "plant_code",
-        "Value": plantController.text,
-      }
-    };
-    await appStore.lineApp.list(conditions).then((response) {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
           Line line = Line.fromJSON(item);
@@ -150,7 +104,6 @@ class _DeviceCreateWidgetState extends State<DeviceCreateWidget> {
         initForm();
         setState(() {
           isLoading = false;
-          isPlantLoaded = true;
         });
       } else {
         setState(() {
@@ -190,75 +143,73 @@ class _DeviceCreateWidgetState extends State<DeviceCreateWidget> {
                         color: Colors.transparent,
                         height: 50.0,
                       ),
-                      isPlantLoaded ? formFieldWidget.render() : plantFormFieldWidget.render(),
-                      isPlantLoaded
-                          ? Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: MaterialButton(
-                                    onPressed: () async {
-                                      if (formFieldWidget.validate()) {
-                                        map = formFieldWidget.toJSON();
-                                        map["created_by_username"] = currentUser.username;
-                                        map["updated_by_username"] = currentUser.username;
-                                        map["use_for_oee"] = map["use_for_oee"] == "1" ? true : false;
-                                        await appStore.deviceApp.create(map).then((response) {
-                                          if (response.containsKey("status") && response["status"]) {
-                                            setState(() {
-                                              errorMessage = "Device Created";
-                                              isError = true;
-                                            });
-                                            navigationService.pushReplacement(
-                                              CupertinoPageRoute(
-                                                builder: (BuildContext context) => const DeviceCreateWidget(),
-                                              ),
-                                            );
-                                          } else {
-                                            if (!response.containsKey("status")) {
-                                              setState(() {
-                                                errorMessage = "Unable to Create Device";
-                                                isError = true;
-                                              });
-                                            } else {
-                                              setState(() {
-                                                errorMessage = response["message"];
-                                                isError = true;
-                                              });
-                                            }
-                                          }
-                                        });
-                                      } else {
-                                        setState(() {
-                                          isError = true;
-                                        });
-                                      }
-                                    },
-                                    color: foregroundColor,
-                                    height: 60.0,
-                                    minWidth: 50.0,
-                                    child: checkButton(),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: MaterialButton(
-                                    onPressed: () {
+                      formFieldWidget.render(),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: MaterialButton(
+                              onPressed: () async {
+                                if (formFieldWidget.validate()) {
+                                  map = formFieldWidget.toJSON();
+                                  map["created_by_username"] = currentUser.username;
+                                  map["updated_by_username"] = currentUser.username;
+                                  map["use_for_oee"] = map["use_for_oee"] == "1" ? true : false;
+                                  await appStore.deviceApp.create(map).then((response) {
+                                    if (response.containsKey("status") && response["status"]) {
+                                      setState(() {
+                                        errorMessage = "Device Created";
+                                        isError = true;
+                                      });
                                       navigationService.pushReplacement(
                                         CupertinoPageRoute(
                                           builder: (BuildContext context) => const DeviceCreateWidget(),
                                         ),
                                       );
-                                    },
-                                    color: foregroundColor,
-                                    height: 60.0,
-                                    minWidth: 50.0,
-                                    child: clearButton(),
+                                    } else {
+                                      if (!response.containsKey("status")) {
+                                        setState(() {
+                                          errorMessage = "Unable to Create Device";
+                                          isError = true;
+                                        });
+                                      } else {
+                                        setState(() {
+                                          errorMessage = response["message"];
+                                          isError = true;
+                                        });
+                                      }
+                                    }
+                                  });
+                                } else {
+                                  setState(() {
+                                    isError = true;
+                                  });
+                                }
+                              },
+                              color: foregroundColor,
+                              height: 60.0,
+                              minWidth: 50.0,
+                              child: checkButton(),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: MaterialButton(
+                              onPressed: () {
+                                navigationService.pushReplacement(
+                                  CupertinoPageRoute(
+                                    builder: (BuildContext context) => const DeviceCreateWidget(),
                                   ),
-                                ),
-                              ],
-                            )
-                          : Container(),
+                                );
+                              },
+                              color: foregroundColor,
+                              height: 60.0,
+                              minWidth: 50.0,
+                              child: clearButton(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

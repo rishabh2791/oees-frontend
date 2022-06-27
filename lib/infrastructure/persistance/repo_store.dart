@@ -6,7 +6,6 @@ import 'package:oees/infrastructure/persistance/downtime_preset_repo.dart';
 import 'package:oees/infrastructure/persistance/downtime_repo.dart';
 import 'package:oees/infrastructure/persistance/job_repo.dart';
 import 'package:oees/infrastructure/persistance/line_repo.dart';
-import 'package:oees/infrastructure/persistance/plant_repo.dart';
 import 'package:oees/infrastructure/persistance/shift_repo.dart';
 import 'package:oees/infrastructure/persistance/sku_repo.dart';
 import 'package:oees/infrastructure/persistance/sku_speed_repo.dart';
@@ -26,7 +25,6 @@ class RepoStore {
   final downtimePresetRepo = DowntimePresetRepo();
   final jobRepo = JobRepo();
   final lineRepo = LineRepo();
-  final plantRepo = PlantRepo();
   final shiftRepo = ShiftRepo();
   final skuRepo = SKURepo();
   final skuSpeedRepo = SKUSpeedRepo();

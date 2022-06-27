@@ -34,26 +34,19 @@ class _LineListState extends State<LineList> {
     switch (columnIndex) {
       case 0:
         if (ascending) {
-          widget.lines.sort((a, b) => a.plant.description.compareTo(b.plant.description));
-        } else {
-          widget.lines.sort((a, b) => b.plant.description.compareTo(a.plant.description));
-        }
-        break;
-      case 1:
-        if (ascending) {
           widget.lines.sort((a, b) => a.code.compareTo(b.code));
         } else {
           widget.lines.sort((a, b) => b.code.compareTo(a.code));
         }
         break;
-      case 2:
+      case 1:
         if (ascending) {
           widget.lines.sort((a, b) => a.name.compareTo(b.name));
         } else {
           widget.lines.sort((a, b) => b.name.compareTo(a.name));
         }
         break;
-      case 3:
+      case 2:
         if (ascending) {
           widget.lines.sort((a, b) => a.ipAddress.compareTo(b.ipAddress));
         } else {
@@ -95,24 +88,6 @@ class _LineListState extends State<LineList> {
                         sortColumnIndex: sortingColumnIndex,
                         columnSpacing: 20.0,
                         columns: [
-                          DataColumn(
-                            label: Text(
-                              "Plant",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
                           DataColumn(
                             label: Text(
                               "Line Code",
@@ -262,16 +237,6 @@ class _DataSource extends DataTableSource {
     return DataRow.byIndex(
       index: index,
       cells: [
-        DataCell(
-          Text(
-            line.plant.description,
-            style: TextStyle(
-              fontSize: 16.0,
-              color: isDarkTheme.value ? foregroundColor : backgroundColor,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-        ),
         DataCell(
           Text(
             line.code,

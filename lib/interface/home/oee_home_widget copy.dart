@@ -368,9 +368,9 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
             tasksByLineID[task.line.id] = [task];
           }
           if (skusByLineID.containsKey(task.line.id)) {
-            skusByLineID[task.line.id]!.add(task.sku.id);
+            skusByLineID[task.line.id]!.add(task.job.sku.id);
           } else {
-            skusByLineID[task.line.id] = [task.sku.id];
+            skusByLineID[task.line.id] = [task.job.sku.id];
           }
         }
       }
@@ -517,7 +517,7 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
                 ? task.endTime
                 : shiftEndTime;
         int taskTime = taskShiftEndTime.difference(taskShiftStartTime).inSeconds;
-        double speed = skuLlineSpeed[task.line.id + "_" + task.sku.id] ?? 0;
+        double speed = skuLlineSpeed[task.line.id + "_" + task.job.sku.id] ?? 0;
         totalTaskPlannedDowntime += getTaskDowntime(task, plannedDowntimesByLineID[line.id] ?? []);
         totalTaskControlledDowntime += getTaskDowntime(task, controlledDowntimesByLineID[line.id] ?? []);
         theoreticalCount += (taskTime - totalTaskPlannedDowntime - totalTaskControlledDowntime) * speed / 60;

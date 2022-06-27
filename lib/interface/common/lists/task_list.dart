@@ -34,48 +34,41 @@ class _TaskListState extends State<TaskList> {
     switch (columnIndex) {
       case 0:
         if (ascending) {
-          widget.tasks.sort((a, b) => a.sku.plant.description.compareTo(b.sku.plant.description));
-        } else {
-          widget.tasks.sort((a, b) => b.sku.plant.description.compareTo(a.sku.plant.description));
-        }
-        break;
-      case 1:
-        if (ascending) {
           widget.tasks.sort((a, b) => a.line.name.compareTo(b.line.name));
         } else {
           widget.tasks.sort((a, b) => b.line.name.compareTo(a.line.name));
         }
         break;
+      case 1:
+        if (ascending) {
+          widget.tasks.sort((a, b) => a.job.code.compareTo(b.job.code));
+        } else {
+          widget.tasks.sort((a, b) => b.job.code.compareTo(a.job.code));
+        }
+        break;
       case 2:
         if (ascending) {
-          widget.tasks.sort((a, b) => a.code.compareTo(b.code));
+          widget.tasks.sort((a, b) => a.job.sku.code.compareTo(b.job.sku.code));
         } else {
-          widget.tasks.sort((a, b) => b.code.compareTo(a.code));
+          widget.tasks.sort((a, b) => b.job.sku.code.compareTo(a.job.sku.code));
         }
         break;
       case 3:
         if (ascending) {
-          widget.tasks.sort((a, b) => a.sku.code.compareTo(b.sku.code));
+          widget.tasks.sort((a, b) => a.job.sku.description.compareTo(b.job.sku.description));
         } else {
-          widget.tasks.sort((a, b) => b.sku.code.compareTo(a.sku.code));
-        }
-        break;
-      case 4:
-        if (ascending) {
-          widget.tasks.sort((a, b) => a.sku.description.compareTo(b.sku.description));
-        } else {
-          widget.tasks.sort((a, b) => b.sku.description.compareTo(a.sku.description));
+          widget.tasks.sort((a, b) => b.job.sku.description.compareTo(a.job.sku.description));
         }
         break;
 
-      case 5:
+      case 4:
         if (ascending) {
           widget.tasks.sort((a, b) => a.startTime.compareTo(b.startTime));
         } else {
           widget.tasks.sort((a, b) => b.startTime.compareTo(a.startTime));
         }
         break;
-      case 6:
+      case 5:
         if (ascending) {
           widget.tasks.sort((a, b) => a.endTime.compareTo(b.endTime));
         } else {
@@ -117,24 +110,6 @@ class _TaskListState extends State<TaskList> {
                         sortColumnIndex: sortingColumnIndex,
                         columnSpacing: 20.0,
                         columns: [
-                          DataColumn(
-                            label: Text(
-                              "Plant",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
                           DataColumn(
                             label: Text(
                               "Line",
@@ -309,16 +284,6 @@ class _DataSource extends DataTableSource {
       cells: [
         DataCell(
           Text(
-            task.line.plant.description,
-            style: TextStyle(
-              fontSize: 16.0,
-              color: isDarkTheme.value ? foregroundColor : backgroundColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        DataCell(
-          Text(
             task.line.name,
             style: TextStyle(
               fontSize: 16.0,
@@ -329,7 +294,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.code.toString(),
+            task.job.code.toString(),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -339,7 +304,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.sku.code.toString(),
+            task.job.sku.code.toString(),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -349,7 +314,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.sku.description,
+            task.job.sku.description,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
