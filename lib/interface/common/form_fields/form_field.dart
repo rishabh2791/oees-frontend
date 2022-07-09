@@ -26,18 +26,27 @@ class FormFieldWidget implements FormFielder {
   }
 
   @override
-  Widget render() {
+  Widget render([String direction = "vertical"]) {
     List<Widget> fields = [];
     for (var formField in formFields) {
-      fields.add(formField.render());
+      fields.add(
+        SizedBox(
+          width: width,
+          child: formField.render(),
+        ),
+      );
     }
     return SizedBox(
-      width: width,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: fields,
-      ),
+      child: direction == "horizontal"
+          ? Wrap(
+              direction: Axis.horizontal,
+              children: fields,
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: fields,
+            ),
     );
   }
 

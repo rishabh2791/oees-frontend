@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/task.dart';
 import 'package:oees/infrastructure/constants.dart';
+import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
+import 'package:oees/interface/task/task_details_widget.dart';
 
 class TaskList extends StatefulWidget {
   final List<Task> tasks;
@@ -60,15 +62,21 @@ class _TaskListState extends State<TaskList> {
           widget.tasks.sort((a, b) => b.job.sku.description.compareTo(a.job.sku.description));
         }
         break;
-
       case 4:
+        if (ascending) {
+          widget.tasks.sort((a, b) => a.job.plan.compareTo(b.job.plan));
+        } else {
+          widget.tasks.sort((a, b) => b.job.plan.compareTo(a.job.plan));
+        }
+        break;
+      case 5:
         if (ascending) {
           widget.tasks.sort((a, b) => a.startTime.compareTo(b.startTime));
         } else {
           widget.tasks.sort((a, b) => b.startTime.compareTo(a.startTime));
         }
         break;
-      case 5:
+      case 6:
         if (ascending) {
           widget.tasks.sort((a, b) => a.endTime.compareTo(b.endTime));
         } else {
@@ -184,6 +192,24 @@ class _TaskListState extends State<TaskList> {
                           ),
                           DataColumn(
                             label: Text(
+                              "Plan (Units)",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
                               "Start Time",
                               style: TextStyle(
                                 fontSize: 20.0,
@@ -203,24 +229,6 @@ class _TaskListState extends State<TaskList> {
                           DataColumn(
                             label: Text(
                               "End Time",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Text(
-                              " ",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -267,20 +275,29 @@ class _DataSource extends DataTableSource {
 
   final BuildContext context;
   List<Task> _tasks;
-  TextEditingController ipAddressController = TextEditingController();
 
   @override
   DataRow getRow(int index) {
     assert(index >= 0);
     final task = _tasks[index];
+    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
 
     return DataRow.byIndex(
-      color: task.running
-          ? MaterialStateProperty.all(Colors.red.withOpacity(0.5))
-          : MaterialStateProperty.all(
-              isDarkTheme.value ? backgroundColor : foregroundColor,
-            ),
       index: index,
+      selected: task.selected,
+      onSelectChanged: (value) {
+        if (task.selected != value) {
+          task.selected = value!;
+          notifyListeners();
+          navigationService.pushReplacement(
+            CupertinoPageRoute(
+              builder: (BuildContext context) => TaskDetailsWidget(
+                task: task,
+              ),
+            ),
+          );
+        }
+      },
       cells: [
         DataCell(
           Text(
@@ -324,7 +341,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.startTime.toLocal().toString().split(".")[0],
+            task.job.plan.toStringAsFixed(0).replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -334,7 +351,9 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.running ? " " : task.endTime.toLocal().toString().split(".")[0],
+            task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds > 0
+                ? task.startTime.toLocal().toString().split(".")[0]
+                : "",
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -344,26 +363,15 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.running ? "End Task" : "",
+            task.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
+                ? task.endTime.toLocal().toString().split(".")[0]
+                : "",
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
               fontWeight: FontWeight.bold,
             ),
           ),
-          onTap: task.running
-              ? () async {
-                  //TODO check authorization
-                  Map<String, dynamic> update = {"end_time": DateTime.now().toUtc().toIso8601String().toString().split(".")[0] + "Z"};
-                  await appStore.taskApp.update(task.id, update).then((value) {
-                    if (value.containsKey("status") && value["status"]) {
-                      task.running = false;
-                      task.endTime = DateTime.now();
-                      notifyListeners();
-                    }
-                  });
-                }
-              : () {},
         ),
       ],
     );

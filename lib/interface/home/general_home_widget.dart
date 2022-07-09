@@ -514,8 +514,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         if (deviceData.createdAt.difference(startTime).inSeconds > 0 && deviceData.createdAt.difference(endTime).inSeconds < 0) {
           if (forOEE && deviceData.device.useForOEE) {
             production += deviceData.value;
-          } else {
-            production += deviceData.value;
           }
         }
       }

@@ -1,17 +1,15 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/line.dart';
+import 'package:oees/domain/entity/shift.dart';
 import 'package:oees/domain/entity/task.dart';
 import 'package:oees/infrastructure/constants.dart';
-import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
+import 'package:oees/interface/common/form_fields/bool_form_field.dart';
 import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
 import 'package:oees/interface/common/lists/task_list.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
-import 'package:oees/interface/common/ui_elements/check_button.dart';
-import 'package:oees/interface/common/ui_elements/clear_button.dart';
 
 class TaskListWidget extends StatefulWidget {
   const TaskListWidget({Key? key}) : super(key: key);
@@ -25,15 +23,22 @@ class _TaskListWidgetState extends State<TaskListWidget> {
   bool isPlantLoaded = false;
   bool isDataLoaded = false;
   List<Line> lines = [];
-  List<Task> tasks = [];
+  List<Shift> shifts = [];
+  List<Task> tasks = [], filteredTasks = [];
   Map<String, dynamic> map = {};
-  late DropdownFormField lineFormField;
-  late TextEditingController lineController;
-  late FormFieldWidget lineFormFieldWidget;
+  late BoolFormField onlyIncompleteFormField;
+  late DropdownFormField lineFormField, shiftFormField;
+  late TextEditingController lineController, shiftController, onlyIncompleteController;
+  late FormFieldWidget formFieldWidget;
 
   @override
   void initState() {
     lineController = TextEditingController();
+    shiftController = TextEditingController();
+    onlyIncompleteController = TextEditingController();
+    lineController.addListener(filterTasks);
+    shiftController.addListener(filterTasks);
+    onlyIncompleteController.addListener(filterTasks);
     getData();
     super.initState();
   }
@@ -57,6 +62,24 @@ class _TaskListWidgetState extends State<TaskListWidget> {
         });
       }
     });
+    lines.sort((a, b) => a.name.compareTo(b.name));
+  }
+
+  Future<void> getShifts() async {
+    await appStore.shiftApp.list({}).then((response) {
+      if (response.containsKey("status") && response["status"]) {
+        for (var item in response["payload"]) {
+          Shift shift = Shift.fromJSON(item);
+          shifts.add(shift);
+        }
+      } else {
+        setState(() {
+          errorMessage = "Unable to get Shifts.";
+          isError = true;
+        });
+      }
+    });
+    shifts.sort((a, b) => a.description.compareTo(b.description));
   }
 
   Future<void> getData() async {
@@ -64,10 +87,37 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       isLoading = true;
       isPlantLoaded = true;
     });
-    await Future.forEach([await getLines()], (element) {
+    await Future.forEach([await getLines(), await getShifts()], (element) {
       if (errorMessage.isEmpty && errorMessage == "") {
         initForm();
       }
+    }).then((value) async {
+      tasks = [];
+      await appStore.taskApp.list({}).then((response) {
+        if (response.containsKey("status") && response["status"]) {
+          for (var item in response["payload"]) {
+            Task task = Task.fromJSON(item);
+            tasks.add(task);
+          }
+          filteredTasks = tasks;
+          filteredTasks.sort((a, b) => a.line.name.compareTo(b.line.name));
+          setState(() {
+            isDataLoaded = true;
+          });
+        } else {
+          if (response.containsKey("status")) {
+            setState(() {
+              errorMessage = response["message"];
+              isError = true;
+            });
+          } else {
+            setState(() {
+              errorMessage = "Unable to get Devices";
+              isError = true;
+            });
+          }
+        }
+      });
       setState(() {
         isLoading = false;
       });
@@ -81,11 +131,38 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       dropdownItems: lines,
       hint: "Select Line",
     );
-    lineFormFieldWidget = FormFieldWidget(
+    shiftFormField = DropdownFormField(
+      formField: "shift_id",
+      controller: shiftController,
+      dropdownItems: shifts,
+      hint: "Select Shift",
+    );
+    onlyIncompleteFormField = BoolFormField(
+      label: "Show Only Incomplete",
+      formField: "only_complete",
+      selectedController: onlyIncompleteController,
+    );
+    formFieldWidget = FormFieldWidget(
       formFields: [
         lineFormField,
+        shiftFormField,
+        onlyIncompleteFormField,
       ],
     );
+  }
+
+  void filterTasks() {
+    filteredTasks = tasks;
+    if (onlyIncompleteController.text == "1") {
+      filteredTasks.removeWhere((element) => element.complete);
+    }
+    if (lineController.text.isNotEmpty) {
+      filteredTasks = filteredTasks.where((element) => element.line.id == lineController.text).toList();
+    }
+    if (shiftController.text.isNotEmpty) {
+      filteredTasks = filteredTasks.where((element) => element.shift.id == shiftController.text).toList();
+    }
+    setState(() {});
   }
 
   @override
@@ -117,10 +194,10 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                         color: Colors.transparent,
                         height: 50.0,
                       ),
-                      isDataLoaded ? Container() : lineFormFieldWidget.render(),
+                      isDataLoaded ? formFieldWidget.render("horizontal") : Container(),
                       isDataLoaded
                           ? tasks.isNotEmpty
-                              ? TaskList(tasks: tasks)
+                              ? TaskList(tasks: filteredTasks)
                               : Text(
                                   "No Tasks Found",
                                   style: TextStyle(
@@ -129,82 +206,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 )
-                          : Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: MaterialButton(
-                                    onPressed: () async {
-                                      Map<String, dynamic> lineConditions = {};
-                                      map = lineFormFieldWidget.toJSON();
-                                      if (lineController.text.isNotEmpty) {
-                                        lineConditions = {
-                                          "EQUALS": {
-                                            "Field": "line_id",
-                                            "Value": map["line_id"],
-                                          }
-                                        };
-                                      } else {
-                                        List<String> lineIDs = [];
-                                        for (var line in lines) {
-                                          lineIDs.add(line.id);
-                                        }
-                                        lineConditions = {
-                                          "IN": {
-                                            "Field": "line_id",
-                                            "Value": lineIDs,
-                                          }
-                                        };
-                                      }
-                                      tasks = [];
-                                      await appStore.taskApp.list(lineConditions).then((response) {
-                                        if (response.containsKey("status") && response["status"]) {
-                                          for (var item in response["payload"]) {
-                                            Task task = Task.fromJSON(item);
-                                            tasks.add(task);
-                                          }
-                                          setState(() {
-                                            isDataLoaded = true;
-                                          });
-                                        } else {
-                                          if (response.containsKey("status")) {
-                                            setState(() {
-                                              errorMessage = response["message"];
-                                              isError = true;
-                                            });
-                                          } else {
-                                            setState(() {
-                                              errorMessage = "Unable to get Devices";
-                                              isError = true;
-                                            });
-                                          }
-                                        }
-                                      });
-                                    },
-                                    color: foregroundColor,
-                                    height: 60.0,
-                                    minWidth: 50.0,
-                                    child: checkButton(),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: MaterialButton(
-                                    onPressed: () {
-                                      navigationService.pushReplacement(
-                                        CupertinoPageRoute(
-                                          builder: (BuildContext context) => const TaskListWidget(),
-                                        ),
-                                      );
-                                    },
-                                    color: foregroundColor,
-                                    height: 60.0,
-                                    minWidth: 50.0,
-                                    child: clearButton(),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          : Container(),
                     ],
                   ),
                 ),

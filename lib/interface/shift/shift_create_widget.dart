@@ -52,7 +52,7 @@ class _ShiftCreateWidgetState extends State<ShiftCreateWidget> {
       label: "Shift Description",
       obscureText: false,
       isRequired: true,
-      minSize: 10,
+      minSize: 5,
     );
     startTimeFormWidget = TextFormFielder(
       controller: startTimeController,

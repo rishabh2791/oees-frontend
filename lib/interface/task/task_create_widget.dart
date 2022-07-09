@@ -1,18 +1,22 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:csv/csv.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/job.dart';
 import 'package:oees/domain/entity/line.dart';
-import 'package:oees/domain/entity/sku_speed.dart';
+import 'package:oees/domain/entity/shift.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
-import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
-import 'package:oees/interface/common/form_fields/form_field.dart';
-import 'package:oees/interface/common/form_fields/text_form_field.dart';
+import 'package:oees/interface/common/form_fields/file_form_field.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
 import 'package:oees/interface/common/ui_elements/check_button.dart';
 import 'package:oees/interface/common/ui_elements/clear_button.dart';
+import 'package:flutter/foundation.dart' as foundation;
 
 class TaskCreateWidget extends StatefulWidget {
   const TaskCreateWidget({Key? key}) : super(key: key);
@@ -25,17 +29,16 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
   bool isLoading = true;
   bool isDataLoaded = false;
   List<Line> lines = [];
-  late Map<String, dynamic> map;
-  late FormFieldWidget formFieldWidget;
-  late DropdownFormField skuFormField, lineFormField;
-  late TextFormFielder taskFormWidget;
-  late TextEditingController lineController, codeController;
+  List<Job> jobs = [];
+  List<Shift> shifts = [];
+  late FileFormField fileFormField;
+  late FilePickerResult? file;
+  late TextEditingController fileFieldControlled;
 
   @override
   void initState() {
     getData();
-    lineController = TextEditingController();
-    codeController = TextEditingController();
+    fileFieldControlled = TextEditingController();
     super.initState();
   }
 
@@ -44,25 +47,11 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
     super.dispose();
   }
 
-  void initForm() {
-    lineFormField = DropdownFormField(
-      formField: "line_id",
-      controller: lineController,
-      dropdownItems: lines,
-      hint: "Select Line",
-    );
-    taskFormWidget = TextFormFielder(
-      controller: codeController,
-      formField: "code",
-      label: "Job Code",
-      isRequired: true,
-    );
-    formFieldWidget = FormFieldWidget(
-      formFields: [
-        taskFormWidget,
-        lineFormField,
-      ],
-    );
+  getFile(FilePickerResult? result) {
+    setState(() {
+      file = result;
+      fileFieldControlled.text = result!.files.single.name;
+    });
   }
 
   Future<void> getLines() async {
@@ -81,13 +70,51 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
     });
   }
 
+  Future<void> getJobs() async {
+    await appStore.jobApp.list({}).then((response) {
+      if (response.containsKey("status") && response["status"]) {
+        for (var item in response["payload"]) {
+          Job job = Job.fromJSON(item);
+          jobs.add(job);
+        }
+      } else {
+        setState(() {
+          errorMessage = "Unable to get Jobs.";
+          isError = true;
+        });
+      }
+    });
+  }
+
+  Future<void> getShifts() async {
+    await appStore.shiftApp.list({}).then((response) {
+      if (response.containsKey("status") && response["status"]) {
+        for (var item in response["payload"]) {
+          Shift shift = Shift.fromJSON(item);
+          shifts.add(shift);
+        }
+      } else {
+        setState(() {
+          errorMessage = "Unable to get Shifts.";
+          isError = true;
+        });
+      }
+    });
+  }
+
   Future<void> getData() async {
     setState(() {
       isLoading = true;
     });
-    await Future.forEach([await getLines()], (element) {
+    await Future.forEach([await getLines(), await getJobs(), await getShifts()], (element) {
       if (errorMessage.isEmpty && errorMessage == "") {
-        initForm();
+        fileFormField = FileFormField(
+          fileController: fileFieldControlled,
+          formField: "file",
+          hint: "Select File",
+          label: "Select File",
+          updateParent: getFile,
+        );
         setState(() {
           isDataLoaded = true;
         });
@@ -116,7 +143,7 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Create Task",
+                        "Create Tasks",
                         style: TextStyle(
                           color: isDarkTheme.value ? foregroundColor : backgroundColor,
                           fontSize: 40.0,
@@ -127,122 +154,76 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                         color: Colors.transparent,
                         height: 50.0,
                       ),
-                      formFieldWidget.render(),
+                      SizedBox(
+                        width: 400,
+                        child: fileFormField.render(),
+                      ),
                       Row(
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(10.0),
                             child: MaterialButton(
                               onPressed: () async {
-                                if (formFieldWidget.validate()) {
-                                  map = formFieldWidget.toJSON();
-                                  map["created_by_username"] = currentUser.username;
-                                  map["updated_by_username"] = currentUser.username;
-                                  //Get Job Details
-                                  Map<String, dynamic> jobConditions = {
-                                    "EQUALS": {
-                                      "Field": "code",
-                                      "Value": map["code"],
-                                    }
-                                  };
-                                  await appStore.jobApp.list(jobConditions).then((response) async {
+                                if (jobs.isEmpty || lines.isEmpty || shifts.isEmpty) {
+                                  setState(() {
+                                    isError = true;
+                                    errorMessage = "Unable to Create Tasks at this time.";
+                                  });
+                                } else {
+                                  List<Map<String, dynamic>> tasks = [];
+                                  var csvData;
+                                  if (foundation.kIsWeb) {
+                                    final bytes = utf8.decode(file!.files.single.bytes!);
+                                    csvData = const CsvToListConverter().convert(bytes);
+                                  } else {
+                                    final csvFile = File(file!.files.single.path.toString()).openRead();
+                                    csvData = await csvFile
+                                        .transform(utf8.decoder)
+                                        .transform(
+                                          const CsvToListConverter(),
+                                        )
+                                        .toList();
+                                  }
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+                                  csvData.forEach((line) {
+                                    String jobID = jobs.firstWhere((element) => element.code.toString() == line[0].toString()).id;
+                                    String lineID = lines.firstWhere((element) => element.code == line[1]).id;
+                                    String shiftID = shifts.firstWhere((element) => element.code == line[3]).id;
+                                    Map<String, dynamic> task = {
+                                      "job_id": jobID,
+                                      "line_id": lineID,
+                                      "scheduled_date": DateTime.parse(line[2]).toString().substring(0, 10) + "T00:00:00.0Z",
+                                      "shift_id": shiftID,
+                                      "created_by_username": currentUser.username,
+                                      "updated_by_username": currentUser.username,
+                                    };
+                                    tasks.add(task);
+                                  });
+                                  await appStore.taskApp.createMultiple(tasks).then((response) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
                                     if (response.containsKey("status") && response["status"]) {
-                                      if (response["payload"].isNotEmpty) {
-                                        Job job = Job.fromJSON(response["payload"][0]);
-                                        // verify SKU Speed Exists
-                                        Map<String, dynamic> conditions = {};
-                                        map["job_id"] = job.id;
-                                        map["plan"] = job.plan;
-
-                                        conditions = {
-                                          "AND": [
-                                            {
-                                              "EQUALS": {
-                                                "Field": "line_id",
-                                                "Value": map["line_id"],
-                                              },
-                                            },
-                                            {
-                                              "EQUALS": {
-                                                "Field": "sku_id",
-                                                "Value": job.sku.id,
-                                              }
-                                            }
-                                          ],
-                                        };
+                                      setState(() {
+                                        errorMessage = "Tasks Created";
+                                        isError = true;
+                                      });
+                                      fileFormField.clear();
+                                    } else {
+                                      if (response.containsKey("status")) {
                                         setState(() {
-                                          isLoading = true;
-                                        });
-                                        List<SKUSpeed> skuSpeeds = [];
-                                        await appStore.skuSpeedApp.list(conditions).then((response) async {
-                                          if (response.containsKey("status") && response["status"]) {
-                                            for (var item in response["payload"]) {
-                                              SKUSpeed skuSpeed = SKUSpeed.fromJSON(item);
-                                              skuSpeeds.add(skuSpeed);
-                                            }
-                                            setState(() {
-                                              isLoading = false;
-                                            });
-                                          } else {
-                                            if (response.containsKey("status")) {
-                                              setState(() {
-                                                errorMessage = response["message"];
-                                                isError = true;
-                                              });
-                                            } else {
-                                              setState(() {
-                                                errorMessage = "Unable to get Devices";
-                                                isError = true;
-                                              });
-                                            }
-                                          }
-                                          if (skuSpeeds.isEmpty) {
-                                            setState(() {
-                                              errorMessage = "SKU Speed Not Defined for Line.";
-                                              isError = true;
-                                            });
-                                          } else {
-                                            DateTime startTime = DateTime.now();
-                                            map["start_time"] = startTime.toUtc().toIso8601String().toString().split(".")[0] + "Z";
-                                            await appStore.taskApp.create(map).then((value) {
-                                              if (value.containsKey("status") && value["status"]) {
-                                                setState(() {
-                                                  errorMessage = "Task Created";
-                                                  isError = true;
-                                                });
-                                                formFieldWidget.clear();
-                                              } else {
-                                                if (value.containsKey("status")) {
-                                                  setState(() {
-                                                    errorMessage = value["message"];
-                                                    isError = true;
-                                                  });
-                                                } else {
-                                                  setState(() {
-                                                    errorMessage = "Unable to Create Task";
-                                                    isError = true;
-                                                  });
-                                                }
-                                              }
-                                            });
-                                          }
+                                          errorMessage = response["message"];
+                                          isError = true;
                                         });
                                       } else {
                                         setState(() {
-                                          errorMessage = "Unable to Start Task";
+                                          errorMessage = "Unbale to Create Tasks.";
                                           isError = true;
                                         });
                                       }
-                                    } else {
-                                      setState(() {
-                                        errorMessage = "Unable to Start Task";
-                                        isError = true;
-                                      });
                                     }
-                                  });
-                                } else {
-                                  setState(() {
-                                    isError = true;
                                   });
                                 }
                               },

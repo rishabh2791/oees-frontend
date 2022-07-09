@@ -11,7 +11,7 @@ class TaskRepo implements TaskRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> createMultiple(Map<String, dynamic> skus) async {
+  Future<Map<String, dynamic>> createMultiple(List<Map<String, dynamic>> skus) async {
     String url = "task/create/multi/";
     var response = await networkAPIProvider.post(url, skus, TokenType.accessToken);
     return response;

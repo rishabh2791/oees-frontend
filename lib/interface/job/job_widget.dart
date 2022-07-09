@@ -67,40 +67,6 @@ class _JobWidgetState extends State<JobWidget> {
                                   table: "jobs",
                                 ),
                                 UserActionButton(
-                                  accessType: "create",
-                                  callback: () async {
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-                                    await appStore.jobApp.pullFromSyspro().then((response) {
-                                      setState(() {
-                                        isLoading = false;
-                                      });
-                                      if (response.containsKey("status") && response["status"]) {
-                                        setState(() {
-                                          errorMessage = "Jobs Created";
-                                          isError = true;
-                                        });
-                                      } else {
-                                        if (response.containsKey("status")) {
-                                          setState(() {
-                                            errorMessage = response["message"];
-                                            isError = true;
-                                          });
-                                        } else {
-                                          setState(() {
-                                            errorMessage = "Unbale to Create Jobs.";
-                                            isError = true;
-                                          });
-                                        }
-                                      }
-                                    });
-                                  },
-                                  icon: Icons.create,
-                                  label: "Pull Jobs",
-                                  table: "jobs",
-                                ),
-                                UserActionButton(
                                   accessType: "view",
                                   callback: () {
                                     navigationService.pushReplacement(
