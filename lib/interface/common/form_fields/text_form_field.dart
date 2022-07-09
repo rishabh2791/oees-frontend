@@ -67,6 +67,6 @@ class TextFormFielder implements FormFielder {
 
   @override
   void clear() {
-    controller.text = "";
+    controller.clear();
   }
 }

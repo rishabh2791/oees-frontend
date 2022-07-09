@@ -64,6 +64,6 @@ class IntFormFielder implements FormFielder {
 
   @override
   void clear() {
-    controller.text = "";
+    controller.clear();
   }
 }

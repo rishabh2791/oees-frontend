@@ -188,14 +188,17 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                     isLoading = true;
                                   });
                                   csvData.forEach((line) {
-                                    String jobID = jobs.firstWhere((element) => element.code.toString() == line[0].toString()).id;
+                                    Job job =
+                                        jobs.firstWhere((element) => element.code.toString() == line[0].toString());
                                     String lineID = lines.firstWhere((element) => element.code == line[1]).id;
                                     String shiftID = shifts.firstWhere((element) => element.code == line[3]).id;
                                     Map<String, dynamic> task = {
-                                      "job_id": jobID,
+                                      "job_id": job.id,
                                       "line_id": lineID,
-                                      "scheduled_date": DateTime.parse(line[2]).toString().substring(0, 10) + "T00:00:00.0Z",
+                                      "scheduled_date":
+                                          DateTime.parse(line[2]).toString().substring(0, 10) + "T00:00:00.0Z",
                                       "shift_id": shiftID,
+                                      "plan": job.plan,
                                       "created_by_username": currentUser.username,
                                       "updated_by_username": currentUser.username,
                                     };

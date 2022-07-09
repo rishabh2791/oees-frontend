@@ -20,10 +20,12 @@ class TaskDetailsWidget extends StatefulWidget {
 class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
   bool isLoading = true;
   List<Downtime> downtimes = [];
+  late TextEditingController batchController;
 
   @override
   void initState() {
     getTaskDetails();
+    batchController = TextEditingController();
     super.initState();
   }
 
@@ -36,6 +38,14 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  Widget batchWidget() {
+    Widget widget = AlertDialog(
+      title: Text("Enter Batch#"),
+      content: TextField(),
+    );
+    return widget;
   }
 
   Widget buildRow(String title, dynamic data) {
@@ -69,6 +79,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.task.startTime);
     return ValueListenableBuilder(
       valueListenable: isDarkTheme,
       builder: (context, darkTheme, child) {
@@ -99,42 +110,86 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                         ),
                         Row(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: MaterialButton(
-                                onPressed: () async {},
-                                color: foregroundColor,
-                                height: 60.0,
-                                minWidth: 50.0,
-                                child: const Padding(
-                                  padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                                  child: Text(
-                                    "Start Task",
-                                    style: TextStyle(
-                                      fontSize: 20.0,
+                            widget.task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z")).inSeconds == 0
+                                ? Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: MaterialButton(
+                                      onPressed: () async {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text('Enter Batch#'),
+                                              content: TextField(
+                                                onChanged: (value) {},
+                                                controller: batchController,
+                                                decoration: const InputDecoration(hintText: "Enter Batch#"),
+                                              ),
+                                              actions: <Widget>[
+                                                MaterialButton(
+                                                  color: Colors.green,
+                                                  textColor: Colors.white,
+                                                  child: const Padding(
+                                                    padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                                    child: Text('OK'),
+                                                  ),
+                                                  onPressed: () async {
+                                                    setState(() {
+                                                      batchController.clear();
+                                                      Navigator.pop(context);
+                                                    });
+                                                    String batchNo = batchController.text;
+                                                    if (batchNo.isEmpty || batchNo == "") {
+                                                      setState(() {
+                                                        isError = true;
+                                                        errorMessage = "Need Batch# to start Task";
+                                                      });
+                                                    } else {
+                                                      Map<String, dynamic> taskBatch = {
+                                                        "task_id": widget.task.id,
+                                                        "batch_number": batchNo,
+                                                        "start_time": DateTime.now().toLocal(),
+                                                      };
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                      color: foregroundColor,
+                                      height: 60.0,
+                                      minWidth: 50.0,
+                                      child: const Padding(
+                                        padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                        child: Text(
+                                          "Start Task",
+                                          style: TextStyle(
+                                            fontSize: 20.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: MaterialButton(
+                                      onPressed: () async {},
+                                      color: foregroundColor,
+                                      height: 60.0,
+                                      minWidth: 50.0,
+                                      child: const Padding(
+                                        padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                        child: Text(
+                                          "Change Batch",
+                                          style: TextStyle(
+                                            fontSize: 20.0,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: MaterialButton(
-                                onPressed: () async {},
-                                color: foregroundColor,
-                                height: 60.0,
-                                minWidth: 50.0,
-                                child: const Padding(
-                                  padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                                  child: Text(
-                                    "Change Batch",
-                                    style: TextStyle(
-                                      fontSize: 20.0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                         const Divider(
@@ -152,12 +207,16 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                         buildRow("Status", widget.task.running.toString().toUpperCase()),
                         buildRow(
                             "Production Started",
-                            widget.task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds > 0
+                            widget.task.startTime
+                                        .difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal())
+                                        .inSeconds >
+                                    0
                                 ? widget.task.startTime.toLocal().toString()
                                 : "-"),
                         buildRow(
                             "Production Completed",
-                            widget.task.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
+                            widget.task.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds <
+                                    0
                                 ? widget.task.endTime.toLocal().toString()
                                 : "-"),
                         const Divider(

@@ -10,6 +10,7 @@ import 'package:oees/application/shift_app.dart';
 import 'package:oees/application/sku_app.dart';
 import 'package:oees/application/sku_speed_app.dart';
 import 'package:oees/application/task_app.dart';
+import 'package:oees/application/task_batch_app.dart';
 import 'package:oees/application/user_app.dart';
 import 'package:oees/application/user_role_access_app.dart';
 import 'package:oees/application/user_role_app.dart';
@@ -30,6 +31,7 @@ class AppStore {
   final skuApp = SKUApp(skuRepository: repoStore.skuRepo);
   final skuSpeedApp = SKUSpeedApp(skuSpeedRepository: repoStore.skuSpeedRepo);
   final taskApp = TaskApp(taskRepository: repoStore.taskRepo);
+  final taskBatchApp = TaskBatchApp(taskBatchRepository: repoStore.taskBatchRepo);
   final userApp = UserApp(userRepository: repoStore.userRepo);
   final userRoleApp = UserRoleApp(userRoleRepository: repoStore.userRoleRepo);
   final userRoleAccessApp = UserRoleAccessApp(userRoleAccessRepository: repoStore.userRoleAccessRepo);
