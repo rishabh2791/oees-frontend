@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/auth/login_widget.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   accessTokenExpiryTime = DateTime.now();
+  numberFormat = NumberFormat.decimalPattern('en_US');
   WidgetsFlutterBinding.ensureInitialized();
   Future<SharedPreferences> store = SharedPreferences.getInstance();
   storage = await store;

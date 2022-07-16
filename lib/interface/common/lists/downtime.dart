@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:oees/domain/entity/task_batch.dart';
+import 'package:oees/application/app_store.dart';
+import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
 
-class TaskBatchesList extends StatefulWidget {
-  final List<TaskBatch> taskBatches;
-  final Map<String, dynamic> batchUnits;
-  const TaskBatchesList({
+class DowntimeList extends StatefulWidget {
+  final List<Downtime> downtimes;
+  const DowntimeList({
     Key? key,
-    required this.taskBatches,
-    required this.batchUnits,
+    required this.downtimes,
   }) : super(key: key);
 
   @override
-  State<TaskBatchesList> createState() => _TaskBatchesListState();
+  State<DowntimeList> createState() => _DowntimeListState();
 }
 
-class _TaskBatchesListState extends State<TaskBatchesList> {
+class _DowntimeListState extends State<DowntimeList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
 
@@ -35,23 +34,23 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
     switch (columnIndex) {
       case 0:
         if (ascending) {
-          widget.taskBatches.sort((a, b) => a.batchNumber.compareTo(b.batchNumber));
+          widget.downtimes.sort((a, b) => a.description.compareTo(b.description));
         } else {
-          widget.taskBatches.sort((a, b) => b.batchNumber.compareTo(a.batchNumber));
+          widget.downtimes.sort((a, b) => b.description.compareTo(a.description));
         }
         break;
       case 1:
         if (ascending) {
-          widget.taskBatches.sort((a, b) => a.startTime.compareTo(b.startTime));
+          widget.downtimes.sort((a, b) => a.startTime.compareTo(b.startTime));
         } else {
-          widget.taskBatches.sort((a, b) => b.startTime.compareTo(a.startTime));
+          widget.downtimes.sort((a, b) => b.startTime.compareTo(a.startTime));
         }
         break;
       case 2:
         if (ascending) {
-          widget.taskBatches.sort((a, b) => a.endTime.compareTo(b.endTime));
+          widget.downtimes.sort((a, b) => a.endTime.compareTo(b.endTime));
         } else {
-          widget.taskBatches.sort((a, b) => b.endTime.compareTo(a.endTime));
+          widget.downtimes.sort((a, b) => b.endTime.compareTo(a.endTime));
         }
         break;
       default:
@@ -65,7 +64,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.taskBatches.length <= 25 ? 156 + widget.taskBatches.length * 56 : 156 + 25 * 56,
+          height: widget.downtimes.length <= 25 ? 156 + widget.downtimes.length * 56 : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -92,7 +91,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                         columns: [
                           DataColumn(
                             label: Text(
-                              "Batch#",
+                              "Downtime",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -144,20 +143,9 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                               onSortColum(columnIndex, ascending);
                             },
                           ),
-                          DataColumn(
-                            label: Text(
-                              "Production",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
                         ],
-                        source: _DataSource(context, widget.taskBatches, widget.batchUnits),
-                        rowsPerPage: widget.taskBatches.length > 25 ? 25 : widget.taskBatches.length,
+                        source: _DataSource(context, widget.downtimes),
+                        rowsPerPage: widget.downtimes.length > 25 ? 25 : widget.downtimes.length,
                       )
                     ],
                   ),
@@ -180,27 +168,101 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
 }
 
 class _DataSource extends DataTableSource {
-  _DataSource(this.context, this._taskBatches, this._batchUnits) {
-    _taskBatches = _taskBatches;
-    _batchUnits = _batchUnits;
+  _DataSource(this.context, this._downtimes) {
+    _downtimes = _downtimes;
   }
 
   final BuildContext context;
-  List<TaskBatch> _taskBatches;
-  Map<String, dynamic> _batchUnits;
-  TextEditingController ipAddressController = TextEditingController();
+  List<Downtime> _downtimes;
+  TextEditingController downtimeController = TextEditingController();
+
+  Future<void> _displayTextInputDialog(BuildContext context, Downtime downtime) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Downtime Reason'),
+          content: TextField(
+            controller: downtimeController,
+            decoration: const InputDecoration(hintText: "Downtime Required"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Update'),
+              onPressed: () async {
+                var description = downtimeController.text;
+                if (description == "" || description.isEmpty) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return const AlertDialog(
+                        title: Text("Error"),
+                        content: Text("Downtime Required"),
+                      );
+                    },
+                  );
+                } else {
+                  Map<String, dynamic> update = {
+                    "description": description,
+                  };
+                  await appStore.downtimeApp.update(downtime.id, update).then((response) {
+                    if (response.containsKey("status") && response["status"]) {
+                      downtime.description = description;
+                    } else {
+                      isError = true;
+                      errorMessage = "Unable to Update Downtime";
+                    }
+                  });
+                  Navigator.of(context).pop();
+                  notifyListeners();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   DataRow getRow(int index) {
     assert(index >= 0);
-    final taskBatch = _taskBatches[index];
+    final downtime = _downtimes[index];
 
     return DataRow.byIndex(
       index: index,
       cells: [
         DataCell(
+          downtime.description == ""
+              ? MaterialButton(
+                  onPressed: () {
+                    _displayTextInputDialog(context, downtime);
+                  },
+                  color: foregroundColor,
+                  height: 50.0,
+                  minWidth: 50.0,
+                  child: const Padding(
+                    padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                    child: Text(
+                      "Update",
+                      style: TextStyle(
+                        fontSize: 20.0,
+                      ),
+                    ),
+                  ),
+                )
+              : Text(
+                  downtime.description,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+        ),
+        DataCell(
           Text(
-            taskBatch.batchNumber,
+            downtime.startTime.toLocal().toString().substring(0, 19),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -210,30 +272,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            taskBatch.startTime.toLocal().toString().toString().split(".")[0].substring(0, 16),
-            style: TextStyle(
-              fontSize: 16.0,
-              color: isDarkTheme.value ? foregroundColor : backgroundColor,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-        ),
-        DataCell(
-          Text(
-            taskBatch.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
-                ? taskBatch.endTime.toLocal().toString().split(".")[0].substring(0, 16)
-                : "",
-            style: TextStyle(
-              fontSize: 16.0,
-              color: isDarkTheme.value ? foregroundColor : backgroundColor,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-        ),
-        DataCell(
-          Text(
-            numberFormat.format(_batchUnits[taskBatch.id] ?? 0),
-            // _batchUnits[taskBatch.id].toStringAsFixed(0),
+            downtime.endTime.toLocal().toString().substring(0, 19),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -246,7 +285,7 @@ class _DataSource extends DataTableSource {
   }
 
   @override
-  int get rowCount => _taskBatches.length;
+  int get rowCount => _downtimes.length;
 
   @override
   bool get isRowCountApproximate => false;

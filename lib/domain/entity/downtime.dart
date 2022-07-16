@@ -6,7 +6,7 @@ class Downtime {
   final Line line;
   final bool planned;
   final bool controlled;
-  final String description;
+  String description;
   final DateTime startTime;
   final DateTime endTime;
   final User updatedBy;

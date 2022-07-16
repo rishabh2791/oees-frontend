@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:oees/domain/entity/user.dart';
 import 'package:oees/interface/device/device_widget.dart';
 import 'package:oees/interface/device_data/device_data_widget.dart';
@@ -32,6 +33,8 @@ String companyID = "";
 String factoryID = "";
 late DateTime accessTokenExpiryTime;
 String webSocketURL = "ws://localhost/";
+
+late NumberFormat numberFormat;
 
 Map<String, Map<String, dynamic>> menuMapping = {
   "Home": {

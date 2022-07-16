@@ -22,6 +22,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
   bool isLoading = true;
   bool isPlantLoaded = false;
   bool isDataLoaded = false;
+  bool isFirstLoading = true;
   List<Line> lines = [];
   List<Shift> shifts = [];
   List<Task> tasks = [], filteredTasks = [];
@@ -162,7 +163,11 @@ class _TaskListWidgetState extends State<TaskListWidget> {
     if (shiftController.text.isNotEmpty) {
       filteredTasks = filteredTasks.where((element) => element.shift.id == shiftController.text).toList();
     }
-    setState(() {});
+    if (isFirstLoading) {
+      isFirstLoading = false;
+    } else {
+      setState(() {});
+    }
   }
 
   @override
@@ -196,7 +201,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                       ),
                       isDataLoaded ? formFieldWidget.render("horizontal") : Container(),
                       isDataLoaded
-                          ? tasks.isNotEmpty
+                          ? filteredTasks.isNotEmpty
                               ? TaskList(tasks: filteredTasks)
                               : Text(
                                   "No Tasks Found",

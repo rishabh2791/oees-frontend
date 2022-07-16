@@ -171,6 +171,7 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                   });
                                 } else {
                                   List<Map<String, dynamic>> tasks = [];
+                                  // ignore: prefer_typing_uninitialized_variables
                                   var csvData;
                                   if (foundation.kIsWeb) {
                                     final bytes = utf8.decode(file!.files.single.bytes!);

@@ -45,7 +45,11 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
   late TextEditingController selectedLine;
   Map<String, List<DeviceData>> deviceDataByLine = {};
   Map<String, double> lineAvailability = {}, linePerformance = {}, lineQuality = {}, lineOEE = {};
-  Map<String, double> theoreticalProduction = {}, actualProduction = {}, controlledDowntimes = {}, plannedDowntimes = {}, unplannedDowntimes = {};
+  Map<String, double> theoreticalProduction = {},
+      actualProduction = {},
+      controlledDowntimes = {},
+      plannedDowntimes = {},
+      unplannedDowntimes = {};
   Map<String, List<ControlledDowntime>> controlledDowntimeSeries = {};
   Map<String, List<PlannedDowntime>> plannedDowntimeSeries = {};
   Map<String, List<UnplannedDowntime>> unplannedDowntimeSeries = {};
@@ -156,21 +160,21 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
           int shiftEndHour = int.parse(shift.endTime.split(":")[0].toString());
 
           if (shiftEndHour > shiftStartHour) {
-            shiftStart =
-                DateTime(now.year, now.month, now.day, int.parse(startTime.split(":")[0].toString()), int.parse(startTime.split(":")[1].toString()));
-            shiftEnd =
-                DateTime(now.year, now.month, now.day, int.parse(endTime.split(":")[0].toString()), int.parse(endTime.split(":")[1].toString()));
+            shiftStart = DateTime(now.year, now.month, now.day, int.parse(startTime.split(":")[0].toString()),
+                int.parse(startTime.split(":")[1].toString()));
+            shiftEnd = DateTime(now.year, now.month, now.day, int.parse(endTime.split(":")[0].toString()),
+                int.parse(endTime.split(":")[1].toString()));
           } else {
             if (hour < 12) {
-              shiftStart = DateTime(yesterday.year, yesterday.month, yesterday.day, int.parse(startTime.split(":")[0].toString()),
-                  int.parse(startTime.split(":")[1].toString()));
-              shiftEnd =
-                  DateTime(now.year, now.month, now.day, int.parse(endTime.split(":")[0].toString()), int.parse(endTime.split(":")[1].toString()));
-            } else {
-              shiftStart = DateTime(
-                  now.year, now.month, now.day, int.parse(startTime.split(":")[0].toString()), int.parse(startTime.split(":")[1].toString()));
-              shiftEnd = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, int.parse(endTime.split(":")[0].toString()),
+              shiftStart = DateTime(yesterday.year, yesterday.month, yesterday.day,
+                  int.parse(startTime.split(":")[0].toString()), int.parse(startTime.split(":")[1].toString()));
+              shiftEnd = DateTime(now.year, now.month, now.day, int.parse(endTime.split(":")[0].toString()),
                   int.parse(endTime.split(":")[1].toString()));
+            } else {
+              shiftStart = DateTime(now.year, now.month, now.day, int.parse(startTime.split(":")[0].toString()),
+                  int.parse(startTime.split(":")[1].toString()));
+              shiftEnd = DateTime(tomorrow.year, tomorrow.month, tomorrow.day,
+                  int.parse(endTime.split(":")[0].toString()), int.parse(endTime.split(":")[1].toString()));
             }
           }
 
@@ -316,18 +320,20 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
           Task task = Task.fromJSON(item);
-          if (tasksByLine.containsKey(task.line.id)) {
-            tasksByLine[task.line.id]!.add(task);
-          } else {
-            tasksByLine[task.line.id] = [task];
-          }
-          if (skusByLine.containsKey(task.line.id)) {
-            skusByLine[task.line.id]!.add(task.job.sku);
-          } else {
-            skusByLine[task.line.id] = [task.job.sku];
-          }
-          if (!skuIDs.contains(task.job.sku.id)) {
-            skuIDs.add(task.job.sku.id);
+          if (task.startTime.toLocal().difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds > 0) {
+            if (tasksByLine.containsKey(task.line.id)) {
+              tasksByLine[task.line.id]!.add(task);
+            } else {
+              tasksByLine[task.line.id] = [task];
+            }
+            if (skusByLine.containsKey(task.line.id)) {
+              skusByLine[task.line.id]!.add(task.job.sku);
+            } else {
+              skusByLine[task.line.id] = [task.job.sku];
+            }
+            if (!skuIDs.contains(task.job.sku.id)) {
+              skuIDs.add(task.job.sku.id);
+            }
           }
         }
       }
@@ -422,23 +428,29 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
 
   getRunEfficiency() {
     for (var lineID in lineIDs) {
-      double lineTotalTime = 0, lineTotalControlledDowntime = 0, lineTotalPlannedDowntime = 0, lineTotalUnplannedDowntime = 0;
+      double lineTotalTime = 0,
+          lineTotalControlledDowntime = 0,
+          lineTotalPlannedDowntime = 0,
+          lineTotalUnplannedDowntime = 0;
       double lineTheoreticalProduction = 0, lineActualProduction = 0;
       shiftHours.forEach((key, value) {
         if (DateTime.now().difference(DateTime.parse(value["start_time"]!)).inSeconds > 0) {
           if (!hours.contains(key)) {
             hours.add(key);
           }
-          double linePeriodControlledDowntime =
-              getTotalDowntime(DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, "Controlled").toDouble();
-          double linePeriodPlannedDowntime =
-              getTotalDowntime(DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, "Planned").toDouble();
-          double linePeriodUnplannedDowntime =
-              getTotalDowntime(DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, "Unplanned").toDouble();
-          double linePeriodProduction =
-              getTheoreticalTotalProduction(DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID);
-          double actualPeriodProduction =
-              getActualTotalDeviceData(DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, true);
+          double linePeriodControlledDowntime = getTotalDowntime(
+                  DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, "Controlled")
+              .toDouble();
+          double linePeriodPlannedDowntime = getTotalDowntime(
+                  DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, "Planned")
+              .toDouble();
+          double linePeriodUnplannedDowntime = getTotalDowntime(
+                  DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, "Unplanned")
+              .toDouble();
+          double linePeriodProduction = getTheoreticalTotalProduction(
+              DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID);
+          double actualPeriodProduction = getActualTotalDeviceData(
+              DateTime.parse(value["start_time"]!), DateTime.parse(value["end_time"]!), lineID, true);
           actualProduction[key.toString() + "_" + lineID] = actualPeriodProduction;
           theoreticalProduction[key.toString() + "_" + lineID] = linePeriodProduction;
           controlledDowntimes[key.toString() + "_" + lineID] = linePeriodControlledDowntime;
@@ -452,8 +464,9 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
           lineTotalUnplannedDowntime += linePeriodUnplannedDowntime;
         }
       });
-      lineAvailability[lineID] = (lineTotalTime - lineTotalControlledDowntime - lineTotalPlannedDowntime - lineTotalUnplannedDowntime) /
-          (lineTotalTime - lineTotalControlledDowntime);
+      lineAvailability[lineID] =
+          (lineTotalTime - lineTotalControlledDowntime - lineTotalPlannedDowntime - lineTotalUnplannedDowntime) /
+              (lineTotalTime - lineTotalControlledDowntime);
       linePerformance[lineID] = lineTheoreticalProduction == 0 ? 0 : (lineActualProduction / lineTheoreticalProduction);
       lineQuality[lineID] = 1;
       lineOEE[lineID] = lineTheoreticalProduction == 0
@@ -469,7 +482,8 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
     double production = 0;
     if (tasksByLine.containsKey(lineID)) {
       for (var task in tasksByLine[lineID]!) {
-        if (!(task.endTime.difference(startTime).inSeconds < 0) || !(task.startTime.difference(endTime).inSeconds > 0)) {
+        if (!(task.endTime.difference(startTime).inSeconds < 0) ||
+            !(task.startTime.difference(endTime).inSeconds > 0)) {
           int totalControlledDowntime = getTotalDowntime(startTime, endTime, lineID, "Controlled");
           int totalPlannedDowntime = getTotalDowntime(startTime, endTime, lineID, "Planned");
           int totalUnplannedDowntime = getTotalDowntime(startTime, endTime, lineID, "Unplanned");
@@ -486,7 +500,8 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
     double production = 0;
     if (deviceDataByLine.containsKey(lineID)) {
       for (var deviceData in deviceDataByLine[lineID]!) {
-        if (deviceData.createdAt.difference(startTime).inSeconds > 0 && deviceData.createdAt.difference(endTime).inSeconds < 0) {
+        if (deviceData.createdAt.difference(startTime).inSeconds > 0 &&
+            deviceData.createdAt.difference(endTime).inSeconds < 0) {
           if (forOEE && deviceData.device.useForOEE) {
             production += deviceData.value;
           } else {
@@ -505,10 +520,12 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
       return 0;
     } else {
       for (var downtime in downtimes) {
-        if ((downtime.endTime.difference(startTime).inSeconds < 0) || (downtime.startTime.difference(endTime).inSeconds > 0)) {
+        if ((downtime.endTime.difference(startTime).inSeconds < 0) ||
+            (downtime.startTime.difference(endTime).inSeconds > 0)) {
           //do nothing
         } else {
-          DateTime downtimeStartTime = downtime.startTime.difference(startTime).inSeconds < 0 ? startTime : downtime.startTime;
+          DateTime downtimeStartTime =
+              downtime.startTime.difference(startTime).inSeconds < 0 ? startTime : downtime.startTime;
           DateTime downtimeEndTime = downtime.endTime.difference(endTime).inSeconds < 0 ? downtime.endTime : endTime;
           int time = downtimeEndTime.difference(downtimeStartTime).inSeconds;
           switch (type) {
@@ -636,6 +653,19 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
     ];
   }
 
+  String getRunningTaks(String lineID) {
+    String sku = "";
+    List<Task> lineTasks = tasksByLine[lineID] ?? [];
+    if (lineTasks.isNotEmpty) {
+      for (var task in lineTasks) {
+        if (task.endTime.toLocal().difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds == 0) {
+          sku = task.job.sku.code + " - " + task.job.sku.description;
+        }
+      }
+    }
+    return sku;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -656,13 +686,32 @@ class _OEEHomeWidgetState extends State<OEEHomeWidget> {
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      "Line: " +
-                          lines.where((element) => element.id == storage!.getString("line_id")).toString().replaceAll("(", "").replaceAll(")", ""),
-                      style: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                        fontSize: 40.0,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          "Line: " +
+                              lines
+                                  .where((element) => element.id == storage!.getString("line_id"))
+                                  .toString()
+                                  .replaceAll("(", "")
+                                  .replaceAll(")", ""),
+                          style: TextStyle(
+                            color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                            fontSize: 40.0,
+                          ),
+                        ),
+                        Text(
+                          getRunningTaks(selectedLine.text) == ""
+                              ? "No Job Running"
+                              : "SKU: " + getRunningTaks(selectedLine.text),
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                            fontSize: 30.0,
+                          ),
+                        ),
+                      ],
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
