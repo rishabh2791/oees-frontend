@@ -77,9 +77,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
       if (taskEndTime.difference(DateTime.now().toLocal()).inSeconds > 0) {
         taskEndTime = DateTime.now().toLocal();
       }
-      await Future.forEach(
-              [await getDeviceData(taskStartTime, taskEndTime), await getDowntimeData(taskStartTime, taskEndTime)],
-              (element) {})
+      await Future.forEach([await getDeviceData(taskStartTime, taskEndTime), await getDowntimeData(taskStartTime, taskEndTime)], (element) {})
           .then((value) {
         for (var batch in taskBatches) {
           batchUnits[batch.id] = getBatchUnits(batch);
@@ -124,8 +122,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
               {
                 "BETWEEN": {
                   "Field": "created_at",
-                  "LowerValue":
-                      startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+                  "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
                   "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
                 }
               }
@@ -153,8 +150,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
         {
           "BETWEEN": {
             "Field": "start_time",
-            "LowerValue":
-                startTime.toUtc().toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+            "LowerValue": startTime.toUtc().toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
             "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
           }
         },
@@ -285,10 +281,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                       });
                                                     } else {
                                                       DateTime now = DateTime.now().toUtc();
-                                                      String time = now.toString().substring(0, 10) +
-                                                          "T" +
-                                                          now.toString().substring(11, 19) +
-                                                          "Z";
+                                                      String time = now.toString().substring(0, 10) + "T" + now.toString().substring(11, 19) + "Z";
                                                       Map<String, dynamic> taskBatch = {
                                                         "task_id": widget.task.id,
                                                         "batch_number": batchNo,
@@ -296,34 +289,68 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                         "created_by_username": currentUser.username,
                                                         "updated_by_username": currentUser.username,
                                                       };
-                                                      await appStore.taskBatchApp
-                                                          .create(taskBatch)
-                                                          .then((response) async {
-                                                        if (response.containsKey("status") && response["status"]) {
-                                                          TaskBatch newBatch = TaskBatch.fromJSON(response["payload"]);
-                                                          taskBatches.add(newBatch);
-                                                          Map<String, dynamic> update = {
-                                                            "start_time": time,
-                                                            "updated_by_username": currentUser.username,
-                                                          };
-                                                          await appStore.taskApp
-                                                              .update(widget.task.id, update)
-                                                              .then((taskResponse) {
-                                                            if (taskResponse.containsKey("status") &&
-                                                                taskResponse["status"]) {
-                                                              widget.task.startTime = now;
-                                                              setState(() {});
-                                                            } else {
-                                                              setState(() {
-                                                                isError = true;
-                                                                errorMessage = "Unable to start Task, please try later";
-                                                              });
+                                                      Map<String, dynamic> checkLineRunningTaskCondition = {
+                                                        "AND": [
+                                                          {
+                                                            "EQUALS": {
+                                                              "Field": "line_id",
+                                                              "Value": widget.task.line.id,
                                                             }
-                                                          });
+                                                          },
+                                                          {
+                                                            "EQUALS": {
+                                                              "Field": "complete",
+                                                              "Value": "0",
+                                                            },
+                                                          },
+                                                          {
+                                                            "IS": {
+                                                              "Field": "start_time",
+                                                              "Value": "NOT NULL",
+                                                            },
+                                                          },
+                                                        ]
+                                                      };
+                                                      await appStore.taskApp.list(checkLineRunningTaskCondition).then((value) async {
+                                                        if (value.containsKey("status") && value["status"]) {
+                                                          if (value["payload"].length != 0) {
+                                                            Task runningTask = Task.fromJSON(value["payload"][0]);
+                                                            setState(() {
+                                                              isError = true;
+                                                              errorMessage = "Job" + runningTask.job.code + " is already running on the line";
+                                                            });
+                                                          } else {
+                                                            await appStore.taskBatchApp.create(taskBatch).then((response) async {
+                                                              if (response.containsKey("status") && response["status"]) {
+                                                                TaskBatch newBatch = TaskBatch.fromJSON(response["payload"]);
+                                                                taskBatches.add(newBatch);
+                                                                Map<String, dynamic> update = {
+                                                                  "start_time": time,
+                                                                  "updated_by_username": currentUser.username,
+                                                                };
+                                                                await appStore.taskApp.update(widget.task.id, update).then((taskResponse) {
+                                                                  if (taskResponse.containsKey("status") && taskResponse["status"]) {
+                                                                    widget.task.startTime = now;
+                                                                    setState(() {});
+                                                                  } else {
+                                                                    setState(() {
+                                                                      isError = true;
+                                                                      errorMessage = "Unable to start Task, please try later";
+                                                                    });
+                                                                  }
+                                                                });
+                                                              } else {
+                                                                setState(() {
+                                                                  isError = true;
+                                                                  errorMessage = "Unable to start Task, please try later";
+                                                                });
+                                                              }
+                                                            });
+                                                          }
                                                         } else {
                                                           setState(() {
                                                             isError = true;
-                                                            errorMessage = "Unable to start Task, please try later";
+                                                            errorMessage = "Unable to Begin Task";
                                                           });
                                                         }
                                                       });
@@ -387,10 +414,8 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                           });
                                                         } else {
                                                           DateTime now = DateTime.now().toUtc();
-                                                          String time = now.toString().substring(0, 10) +
-                                                              "T" +
-                                                              now.toString().substring(11, 19) +
-                                                              "Z";
+                                                          String time =
+                                                              now.toString().substring(0, 10) + "T" + now.toString().substring(11, 19) + "Z";
                                                           Map<String, dynamic> taskBatch = {
                                                             "task_id": widget.task.id,
                                                             "batch_number": batchNo,
@@ -405,43 +430,33 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                           };
                                                           TaskBatch currentBatch = taskBatches.firstWhere((element) =>
                                                               element.endTime
-                                                                  .difference(
-                                                                      DateTime.parse("2099-12-31T23:59:59Z").toLocal())
+                                                                  .difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal())
                                                                   .inSeconds >=
                                                               0);
-
                                                           await appStore.taskBatchApp
                                                               .update(currentBatch.id, currentBatchUpdate)
                                                               .then((response) async {
                                                             if (response.containsKey("status") && response["status"]) {
-                                                              await appStore.taskBatchApp
-                                                                  .create(taskBatch)
-                                                                  .then((batchResponse) {
-                                                                if (batchResponse.containsKey("status") &&
-                                                                    batchResponse["status"]) {
+                                                              await appStore.taskBatchApp.create(taskBatch).then((batchResponse) {
+                                                                if (batchResponse.containsKey("status") && batchResponse["status"]) {
                                                                   currentBatch.endTime = now.toLocal();
-                                                                  taskBatches.removeWhere(
-                                                                      (element) => element.id == currentBatch.id);
+                                                                  taskBatches.removeWhere((element) => element.id == currentBatch.id);
                                                                   taskBatches.add(currentBatch);
-                                                                  TaskBatch newBatch =
-                                                                      TaskBatch.fromJSON(batchResponse["payload"]);
+                                                                  TaskBatch newBatch = TaskBatch.fromJSON(batchResponse["payload"]);
                                                                   taskBatches.add(newBatch);
-                                                                  taskBatches.sort(((a, b) =>
-                                                                      a.batchNumber.compareTo(b.batchNumber)));
+                                                                  taskBatches.sort(((a, b) => a.batchNumber.compareTo(b.batchNumber)));
                                                                   setState(() {});
                                                                 } else {
                                                                   setState(() {
                                                                     isError = true;
-                                                                    errorMessage =
-                                                                        "Unable to start new Batch, please try later";
+                                                                    errorMessage = "Unable to start new Batch, please try later";
                                                                   });
                                                                 }
                                                               });
                                                             } else {
                                                               setState(() {
                                                                 isError = true;
-                                                                errorMessage =
-                                                                    "Unable to start new Batch, please try later";
+                                                                errorMessage = "Unable to start new Batch, please try later";
                                                               });
                                                             }
                                                           });
@@ -480,33 +495,22 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                         child: MaterialButton(
                                           onPressed: () async {
                                             DateTime now = DateTime.now().toUtc();
-                                            String time = now.toString().substring(0, 10) +
-                                                "T" +
-                                                now.toString().substring(11, 19) +
-                                                "Z";
+                                            String time = now.toString().substring(0, 10) + "T" + now.toString().substring(11, 19) + "Z";
                                             Map<String, dynamic> currentBatchUpdate = {
                                               "end_time": time,
                                               "complete": true,
                                               "updated_by_username": currentUser.username,
                                             };
                                             TaskBatch currentBatch = taskBatches.firstWhere((element) =>
-                                                element.endTime
-                                                    .difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal())
-                                                    .inSeconds >=
-                                                0);
+                                                element.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds >= 0);
 
                                             if (allDowntimesUpdated()) {
-                                              await appStore.taskBatchApp
-                                                  .update(currentBatch.id, currentBatchUpdate)
-                                                  .then((response) async {
+                                              await appStore.taskBatchApp.update(currentBatch.id, currentBatchUpdate).then((response) async {
                                                 if (response.containsKey("status") && response["status"]) {
-                                                  await appStore.taskApp
-                                                      .update(widget.task.id, currentBatchUpdate)
-                                                      .then((newResponse) {
+                                                  await appStore.taskApp.update(widget.task.id, currentBatchUpdate).then((newResponse) {
                                                     if (newResponse.containsKey("status") && newResponse["status"]) {
                                                       currentBatch.endTime = now.toLocal();
-                                                      taskBatches
-                                                          .removeWhere((element) => element.id == currentBatch.id);
+                                                      taskBatches.removeWhere((element) => element.id == currentBatch.id);
                                                       taskBatches.add(currentBatch);
                                                       widget.task.endTime = now.toLocal();
                                                       widget.task.running = false;
@@ -563,16 +567,12 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                         buildRow("Status", widget.task.running.toString().toUpperCase()),
                         buildRow(
                             "Production Started",
-                            widget.task.startTime
-                                        .difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal())
-                                        .inSeconds >
-                                    0
+                            widget.task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds > 0
                                 ? widget.task.startTime.toLocal().toString().substring(0, 16)
                                 : "-"),
                         buildRow(
                             "Production Completed",
-                            widget.task.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds <
-                                    0
+                            widget.task.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
                                 ? widget.task.endTime.toLocal().toString().substring(0, 16)
                                 : "-"),
                         const Divider(
