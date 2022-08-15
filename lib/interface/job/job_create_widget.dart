@@ -63,6 +63,7 @@ class _JobCreateWidgetState extends State<JobCreateWidget> {
         isLoading = false;
       });
     });
+    skus.sort(((a, b) => a.code.compareTo(b.code)));
   }
 
   void initForm() {

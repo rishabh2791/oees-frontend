@@ -10,7 +10,7 @@ class SKUApp implements SKUAppInterface {
   }
 
   @override
-  Future<Map<String, dynamic>> createMultiple(Map<String, dynamic> skus) async {
+  Future<Map<String, dynamic>> createMultiple(List<Map<String, dynamic>> skus) async {
     return skuRepository.createMultiple(skus);
   }
 
@@ -32,7 +32,7 @@ class SKUApp implements SKUAppInterface {
 
 abstract class SKUAppInterface {
   Future<Map<String, dynamic>> create(Map<String, dynamic> sku);
-  Future<Map<String, dynamic>> createMultiple(Map<String, dynamic> skus);
+  Future<Map<String, dynamic>> createMultiple(List<Map<String, dynamic>> skus);
   Future<Map<String, dynamic>> getSKU(String id);
   Future<Map<String, dynamic>> list(Map<String, dynamic> conditions);
   Future<Map<String, dynamic>> update(String id, Map<String, dynamic> sku);

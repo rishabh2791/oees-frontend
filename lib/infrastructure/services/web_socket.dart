@@ -1,12 +1,12 @@
+import 'dart:io';
+
 import 'package:f_logs/f_logs.dart';
 import 'package:flutter/foundation.dart';
-import 'package:oees/infrastructure/variables.dart';
-import 'package:web_socket_channel/io.dart';
 
 WebSocketUtility socketUtility = WebSocketUtility();
 
-class WebSocketUtility {
-  late IOWebSocketChannel _channel;
+class WebSocketUtility extends ChangeNotifier {
+  late WebSocket webSocketChannel;
   bool _isConnected = false;
   int tries = 0;
   ObserverList<Function> listeners = ObserverList<Function>();
@@ -18,54 +18,42 @@ class WebSocketUtility {
 
   WebSocketUtility._internal();
 
-  initCommunication() async {
+  initCommunication(String url) async {
     try {
-      _channel = IOWebSocketChannel.connect(webSocketURL);
-      _isConnected = true;
-      _channel.stream.listen(
-        _onReceptionOfMessageFromServer,
-        onDone: () async {
-          if (_isConnected) {
-            await initCommunication();
-          }
-        },
-        onError: (error) async {
-          tries += 1;
-          if (tries < 10) {
-            await initCommunication();
-          } else {
-            _onReceptionOfMessageFromServer({"error": "Unable to Connect."});
-          }
-        },
-      );
+      await WebSocket.connect(url).then((value) {
+        if (value.readyState == 1) {
+          _isConnected = true;
+          webSocketChannel = value;
+          value.listen(listenToWebSocket);
+        }
+      });
     } catch (ex) {
-      FLog.info(text: "Unable to Connect.");
-      errorMessage = "Unable to Connect to Socket Server";
-      isError = true;
+      FLog.debug(text: ex.toString());
     }
   }
 
-  reset() {
-    _channel.sink.close();
-    _isConnected = false;
+  @override
+  addListener(Function listener) {
+    listeners.add(listener);
   }
 
-  send(String message) {
-    if (_isConnected) {
-      _channel.sink.add(message);
+  @override
+  removeListener(Function listener) {
+    listeners.remove(listener);
+  }
+
+  close() async {
+    try {
+      if (_isConnected) {
+        await webSocketChannel.close();
+      }
+      listeners = ObserverList<Function>();
+    } catch (e) {
+      FLog.debug(text: e.toString());
     }
   }
 
-  addListener(Function callback) {
-    listeners.add(callback);
-  }
-
-  removeListener(Function callback) {
-    listeners.remove(callback);
-  }
-
-  _onReceptionOfMessageFromServer(message) {
-    _isConnected = true;
+  void listenToWebSocket(message) {
     for (var listener in listeners) {
       listener(message);
     }

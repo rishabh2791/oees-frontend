@@ -16,4 +16,10 @@ class DeviceDataRepo implements DeviceDataRepository {
     var response = await networkAPIProvider.post(url, conditions, TokenType.accessToken);
     return response;
   }
+
+  @override
+  Future<Map<String, dynamic>> totalDeviceData(Map<String, dynamic> conditions) async {
+    String url = "device_data/total/";
+    return await networkAPIProvider.post(url, conditions, TokenType.accessToken);
+  }
 }

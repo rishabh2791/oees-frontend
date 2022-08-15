@@ -104,6 +104,7 @@ class _DropDownWidgetState extends State<DropDownWidget> {
             value: _chosenValue,
             elevation: 10,
             icon: const Icon(Icons.expand_more),
+            isExpanded: true,
             dropdownColor: isDarkTheme.value ? foregroundColor : backgroundColor,
             // menuMaxHeight: 300.0,
             style: const TextStyle(color: Colors.white),

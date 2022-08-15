@@ -10,10 +10,12 @@ abstract class FormFielder {
 class FormFieldWidget implements FormFielder {
   final List<FormFielder> formFields;
   final double? width;
+  final bool isVertical;
 
   FormFieldWidget({
     required this.formFields,
     this.width = 500,
+    this.isVertical = true,
   });
 
   @override
@@ -42,11 +44,16 @@ class FormFieldWidget implements FormFielder {
               direction: Axis.horizontal,
               children: fields,
             )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: fields,
-            ),
+          : isVertical
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: fields,
+                )
+              : Wrap(
+                  direction: Axis.horizontal,
+                  children: fields,
+                ),
     );
   }
 

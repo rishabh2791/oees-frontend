@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:oees/domain/entity/sku_speed.dart';
+import 'package:oees/domain/entity/job.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
 
-class SKUSpeedList extends StatefulWidget {
-  final List<SKUSpeed> skuSpeeds;
-  const SKUSpeedList({
+class JobList extends StatefulWidget {
+  final List<Job> jobs;
+  const JobList({
     Key? key,
-    required this.skuSpeeds,
+    required this.jobs,
   }) : super(key: key);
 
   @override
-  State<SKUSpeedList> createState() => _SKUSpeedListState();
+  State<JobList> createState() => _JobListState();
 }
 
-class _SKUSpeedListState extends State<SKUSpeedList> {
+class _JobListState extends State<JobList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
 
@@ -33,23 +33,30 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
     switch (columnIndex) {
       case 0:
         if (ascending) {
-          widget.skuSpeeds.sort((a, b) => a.sku.code.compareTo(b.sku.code));
+          widget.jobs.sort((a, b) => a.code.compareTo(b.code));
         } else {
-          widget.skuSpeeds.sort((a, b) => b.sku.code.compareTo(a.sku.code));
+          widget.jobs.sort((a, b) => b.code.compareTo(a.code));
         }
         break;
       case 1:
         if (ascending) {
-          widget.skuSpeeds.sort((a, b) => a.sku.description.compareTo(b.sku.description));
+          widget.jobs.sort((a, b) => a.sku.code.compareTo(b.sku.code));
         } else {
-          widget.skuSpeeds.sort((a, b) => b.sku.description.compareTo(a.sku.description));
+          widget.jobs.sort((a, b) => b.sku.code.compareTo(a.sku.code));
         }
         break;
       case 2:
         if (ascending) {
-          widget.skuSpeeds.sort((a, b) => a.speed.compareTo(b.speed));
+          widget.jobs.sort((a, b) => a.sku.description.compareTo(b.sku.description));
         } else {
-          widget.skuSpeeds.sort((a, b) => b.speed.compareTo(a.speed));
+          widget.jobs.sort((a, b) => b.sku.description.compareTo(a.sku.description));
+        }
+        break;
+      case 3:
+        if (ascending) {
+          widget.jobs.sort((a, b) => a.plan.compareTo(b.plan));
+        } else {
+          widget.jobs.sort((a, b) => b.plan.compareTo(a.plan));
         }
         break;
       default:
@@ -63,7 +70,7 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.skuSpeeds.length <= 25 ? 156 + widget.skuSpeeds.length * 56 : 156 + 25 * 56,
+          height: widget.jobs.length <= 25 ? 156 + widget.jobs.length * 56 : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -81,6 +88,7 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -89,7 +97,7 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
                         columns: [
                           DataColumn(
                             label: Text(
-                              "Material Code",
+                              "Job Code",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -107,7 +115,7 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
                           ),
                           DataColumn(
                             label: Text(
-                              "Material Description",
+                              "SKU Code",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -125,7 +133,25 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
                           ),
                           DataColumn(
                             label: Text(
-                              "Speed",
+                              "SKU Description",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Plan",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -142,8 +168,8 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
                             },
                           ),
                         ],
-                        source: _DataSource(context, widget.skuSpeeds),
-                        rowsPerPage: widget.skuSpeeds.length > 25 ? 25 : widget.skuSpeeds.length,
+                        source: _DataSource(context, widget.jobs),
+                        rowsPerPage: widget.jobs.length > 25 ? 25 : widget.jobs.length,
                       )
                     ],
                   ),
@@ -166,25 +192,25 @@ class _SKUSpeedListState extends State<SKUSpeedList> {
 }
 
 class _DataSource extends DataTableSource {
-  _DataSource(this.context, this._skuSpeeds) {
-    _skuSpeeds = _skuSpeeds;
+  _DataSource(this.context, this._jobs) {
+    _jobs = _jobs;
   }
 
   final BuildContext context;
-  List<SKUSpeed> _skuSpeeds;
+  List<Job> _jobs;
   TextEditingController ipAddressController = TextEditingController();
 
   @override
   DataRow getRow(int index) {
     assert(index >= 0);
-    final skuSpeed = _skuSpeeds[index];
+    final job = _jobs[index];
 
     return DataRow.byIndex(
       index: index,
       cells: [
         DataCell(
           Text(
-            skuSpeed.sku.code,
+            job.code,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -194,7 +220,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            skuSpeed.sku.description,
+            job.sku.code,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -204,7 +230,17 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            skuSpeed.speed.toString(),
+            job.sku.description,
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            job.plan.toStringAsFixed(0).replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -217,7 +253,7 @@ class _DataSource extends DataTableSource {
   }
 
   @override
-  int get rowCount => _skuSpeeds.length;
+  int get rowCount => _jobs.length;
 
   @override
   bool get isRowCountApproximate => false;

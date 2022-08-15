@@ -67,6 +67,7 @@ class _UserRoleListState extends State<UserRoleList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,

@@ -1,15 +1,19 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
+import 'package:oees/interface/downtime/downtime_update_widget.dart';
 
 class DowntimeList extends StatefulWidget {
   final List<Downtime> downtimes;
+  final Function notifyParent;
   const DowntimeList({
     Key? key,
     required this.downtimes,
+    required this.notifyParent,
   }) : super(key: key);
 
   @override
@@ -53,6 +57,29 @@ class _DowntimeListState extends State<DowntimeList> {
           widget.downtimes.sort((a, b) => b.endTime.compareTo(a.endTime));
         }
         break;
+      case 3:
+        if (ascending) {
+          widget.downtimes.sort(((a, b) {
+            int aDowntime = a.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds < 0
+                ? a.endTime.difference(a.startTime).inMinutes
+                : DateTime.now().toLocal().difference(a.startTime).inMinutes;
+            int bDowntime = b.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds < 0
+                ? b.endTime.difference(b.startTime).inMinutes
+                : DateTime.now().toLocal().difference(b.startTime).inMinutes;
+            return aDowntime.compareTo(bDowntime);
+          }));
+        } else {
+          widget.downtimes.sort(((a, b) {
+            int aDowntime = a.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds < 0
+                ? a.endTime.difference(a.startTime).inMinutes
+                : DateTime.now().toLocal().difference(a.startTime).inMinutes;
+            int bDowntime = b.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds < 0
+                ? b.endTime.difference(b.startTime).inMinutes
+                : DateTime.now().toLocal().difference(b.startTime).inMinutes;
+            return bDowntime.compareTo(aDowntime);
+          }));
+        }
+        break;
       default:
         break;
     }
@@ -72,8 +99,7 @@ class _DowntimeListState extends State<DowntimeList> {
                 child: Theme(
                   data: Theme.of(context).copyWith(
                     cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor:
-                        isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
                       caption: TextStyle(
                         color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -83,6 +109,7 @@ class _DowntimeListState extends State<DowntimeList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -143,8 +170,26 @@ class _DowntimeListState extends State<DowntimeList> {
                               onSortColum(columnIndex, ascending);
                             },
                           ),
+                          DataColumn(
+                            label: Text(
+                              "Duration (Min)",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
                         ],
-                        source: _DataSource(context, widget.downtimes),
+                        source: _DataSource(context, widget.downtimes, widget.notifyParent),
                         rowsPerPage: widget.downtimes.length > 25 ? 25 : widget.downtimes.length,
                       )
                     ],
@@ -168,57 +213,35 @@ class _DowntimeListState extends State<DowntimeList> {
 }
 
 class _DataSource extends DataTableSource {
-  _DataSource(this.context, this._downtimes) {
+  _DataSource(this.context, this._downtimes, this._notifyParent) {
     _downtimes = _downtimes;
+    _notifyParent = _notifyParent;
   }
 
   final BuildContext context;
   List<Downtime> _downtimes;
+  Function _notifyParent;
   TextEditingController downtimeController = TextEditingController();
 
   Future<void> _displayTextInputDialog(BuildContext context, Downtime downtime) async {
     return showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Downtime Reason'),
-          content: TextField(
-            controller: downtimeController,
-            decoration: const InputDecoration(hintText: "Downtime Required"),
+        return BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: 10.0,
+            sigmaY: 10.0,
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Update'),
-              onPressed: () async {
-                var description = downtimeController.text;
-                if (description == "" || description.isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return const AlertDialog(
-                        title: Text("Error"),
-                        content: Text("Downtime Required"),
-                      );
-                    },
-                  );
-                } else {
-                  Map<String, dynamic> update = {
-                    "description": description,
-                  };
-                  await appStore.downtimeApp.update(downtime.id, update).then((response) {
-                    if (response.containsKey("status") && response["status"]) {
-                      downtime.description = description;
-                    } else {
-                      isError = true;
-                      errorMessage = "Unable to Update Downtime";
-                    }
-                  });
-                  Navigator.of(context).pop();
-                  notifyListeners();
-                }
-              },
+          child: Container(
+            color: Colors.white.withOpacity(0.6),
+            child: Padding(
+              padding: const EdgeInsets.all(30.0),
+              child: DowntimeUpdateWidget(
+                downtime: downtime,
+                notifyParent: _notifyParent,
+              ),
             ),
-          ],
+          ),
         );
       },
     );
@@ -228,19 +251,15 @@ class _DataSource extends DataTableSource {
   DataRow getRow(int index) {
     assert(index >= 0);
     final downtime = _downtimes[index];
-
     return DataRow.byIndex(
       index: index,
       cells: [
         DataCell(
           downtime.description == ""
-              ? MaterialButton(
+              ? TextButton(
                   onPressed: () {
                     _displayTextInputDialog(context, downtime);
                   },
-                  color: foregroundColor,
-                  height: 50.0,
-                  minWidth: 50.0,
                   child: const Padding(
                     padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
                     child: Text(
@@ -262,7 +281,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            downtime.startTime.toLocal().toString().substring(0, 19),
+            downtime.startTime.toLocal().toString().substring(0, 16),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -272,7 +291,21 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            downtime.endTime.toLocal().toString().substring(0, 19),
+            downtime.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
+                ? downtime.endTime.toLocal().toString().substring(0, 16)
+                : "",
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            downtime.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds < 0
+                ? downtime.endTime.difference(downtime.startTime).inMinutes.toString().replaceAllMapped(reg, (Match match) => '${match[1]},')
+                : DateTime.now().toLocal().difference(downtime.startTime).inMinutes.toString().replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,

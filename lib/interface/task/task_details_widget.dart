@@ -30,12 +30,13 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
   List<DeviceData> deviceData = [];
   List<TaskBatch> taskBatches = [];
   Map<String, dynamic> batchUnits = {};
-  late TextEditingController batchController;
+  late TextEditingController batchController, batchSizeController;
 
   @override
   void initState() {
     getTaskDetails();
     batchController = TextEditingController();
+    batchSizeController = TextEditingController();
     super.initState();
   }
 
@@ -146,28 +147,38 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
     startTime = startTime.toUtc();
     endTime = endTime.toUtc();
     Map<String, dynamic> conditions = {
-      "OR": [
+      "AND": [
         {
-          "BETWEEN": {
-            "Field": "start_time",
-            "LowerValue": startTime.toUtc().toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
-            "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
-          }
-        },
-        {
-          "BETWEEN": {
-            "Field": "end_time",
-            "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
-            "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
-          }
-        },
-        {
-          "IS": {
-            "Field": "end_time",
-            "Value": "NULL",
+          "EQUALS": {
+            "Field": "line_id",
+            "Value": widget.task.line.id,
           },
         },
-      ],
+        {
+          "OR": [
+            {
+              "BETWEEN": {
+                "Field": "start_time",
+                "LowerValue": startTime.toUtc().toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+                "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
+              }
+            },
+            {
+              "BETWEEN": {
+                "Field": "end_time",
+                "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+                "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
+              }
+            },
+            {
+              "IS": {
+                "Field": "end_time",
+                "Value": "NULL",
+              },
+            },
+          ],
+        },
+      ]
     };
     await appStore.downtimeApp.list(conditions).then((response) {
       if (response.containsKey("status") && response["status"]) {
@@ -211,9 +222,15 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
   bool allDowntimesUpdated() {
     bool updated = true;
     for (var downtime in downtimes) {
-      updated = updated && downtime.description != "";
+      updated = updated && downtime.description != "" && downtime.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds < 0;
     }
     return updated;
+  }
+
+  refresh() {
+    if (updatingDowntime) {
+      setState(() {});
+    }
   }
 
   @override
@@ -257,11 +274,24 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                           context: context,
                                           builder: (context) {
                                             return AlertDialog(
-                                              title: const Text('Enter Batch#'),
-                                              content: TextField(
-                                                onChanged: (value) {},
-                                                controller: batchController,
-                                                decoration: const InputDecoration(hintText: "Enter Batch#"),
+                                              title: const Text('Enter Batch Details'),
+                                              content: SizedBox(
+                                                height: 400,
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    TextField(
+                                                      onChanged: (value) {},
+                                                      controller: batchController,
+                                                      decoration: const InputDecoration(hintText: "Enter Batch#"),
+                                                    ),
+                                                    TextField(
+                                                      onChanged: (value) {},
+                                                      controller: batchSizeController,
+                                                      decoration: const InputDecoration(hintText: "Enter Batch Size (KG)"),
+                                                    )
+                                                  ],
+                                                ),
                                               ),
                                               actions: <Widget>[
                                                 MaterialButton(
@@ -273,11 +303,19 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                   ),
                                                   onPressed: () async {
                                                     String batchNo = batchController.text;
+                                                    double batchSize = double.parse(batchSizeController.text.toString());
+                                                    String errors = "";
                                                     if (batchNo.isEmpty || batchNo == "") {
+                                                      errors += "Batch Number Missing\n";
+                                                    }
+                                                    if (batchSizeController.text.isEmpty || batchSizeController.text == "") {
+                                                      errors += "Batch SIze Missing\n";
+                                                    }
+                                                    if (errors.isNotEmpty) {
                                                       setState(() {
                                                         Navigator.pop(context);
                                                         isError = true;
-                                                        errorMessage = "Need Batch# to start Task";
+                                                        errorMessage = errors;
                                                       });
                                                     } else {
                                                       DateTime now = DateTime.now().toUtc();
@@ -285,6 +323,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                       Map<String, dynamic> taskBatch = {
                                                         "task_id": widget.task.id,
                                                         "batch_number": batchNo,
+                                                        "batch_size": batchSize,
                                                         "start_time": time,
                                                         "created_by_username": currentUser.username,
                                                         "updated_by_username": currentUser.username,
@@ -390,11 +429,21 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                               context: context,
                                               builder: (context) {
                                                 return AlertDialog(
-                                                  title: const Text('Enter New Batch#'),
-                                                  content: TextField(
-                                                    onChanged: (value) {},
-                                                    controller: batchController,
-                                                    decoration: const InputDecoration(hintText: "Enter New Batch#"),
+                                                  title: const Text('Enter Batch Details'),
+                                                  content: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      TextField(
+                                                        onChanged: (value) {},
+                                                        controller: batchController,
+                                                        decoration: const InputDecoration(hintText: "Enter Batch#"),
+                                                      ),
+                                                      TextField(
+                                                        onChanged: (value) {},
+                                                        controller: batchSizeController,
+                                                        decoration: const InputDecoration(hintText: "Enter Batch Size (KG)"),
+                                                      )
+                                                    ],
                                                   ),
                                                   actions: <Widget>[
                                                     MaterialButton(
@@ -406,11 +455,19 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                       ),
                                                       onPressed: () async {
                                                         String batchNo = batchController.text;
+                                                        double batchSize = double.parse(batchSizeController.text.toString());
+                                                        String errors = "";
                                                         if (batchNo.isEmpty || batchNo == "") {
+                                                          errors += "Batch Number Missing\n";
+                                                        }
+                                                        if (batchSizeController.text.isEmpty || batchSizeController.text == "") {
+                                                          errors += "Batch SIze Missing\n";
+                                                        }
+                                                        if (errors.isNotEmpty) {
                                                           setState(() {
                                                             Navigator.pop(context);
                                                             isError = true;
-                                                            errorMessage = "Need Batch# to start new Batch";
+                                                            errorMessage = errors;
                                                           });
                                                         } else {
                                                           DateTime now = DateTime.now().toUtc();
@@ -419,6 +476,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                           Map<String, dynamic> taskBatch = {
                                                             "task_id": widget.task.id,
                                                             "batch_number": batchNo,
+                                                            "batch_size": batchSize,
                                                             "start_time": time,
                                                             "created_by_username": currentUser.username,
                                                             "updated_by_username": currentUser.username,
@@ -532,7 +590,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                             } else {
                                               setState(() {
                                                 isError = true;
-                                                errorMessage = "Update All Downtimes";
+                                                errorMessage = "Update All Downtimes Before Ending Task";
                                               });
                                             }
                                           },
@@ -626,6 +684,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                         width: MediaQuery.of(context).size.width / 2 - 20,
                                         child: DowntimeList(
                                           downtimes: downtimes,
+                                          notifyParent: refresh,
                                         ),
                                       )
                                     : Container(),

@@ -5,12 +5,14 @@ import 'package:oees/interface/common/form_fields/form_field.dart';
 class BoolFormField implements FormFielder {
   final String label;
   final String formField;
+  bool isEnabled;
   TextEditingController selectedController;
 
   BoolFormField({
     required this.label,
     required this.formField,
     required this.selectedController,
+    this.isEnabled = true,
   });
 
   @override
@@ -26,6 +28,7 @@ class BoolFormField implements FormFielder {
       label: label,
       formField: formField,
       selectedController: selectedController,
+      isEnabled: isEnabled,
     );
   }
 

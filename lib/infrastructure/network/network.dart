@@ -18,7 +18,7 @@ class NetworkAPIProvider {
 
     try {
       isLoadingServerData = true;
-      int secondsToExpiry = accessTokenExpiryTime.difference(now).inSeconds;
+      int secondsToExpiry = accessTokenExpiryTime.toLocal().difference(now.toLocal()).inSeconds;
       if (secondsToExpiry < 2 && isLoggedIn && !isRefreshing) {
         await Future.forEach(
             ([
@@ -52,7 +52,7 @@ class NetworkAPIProvider {
 
     try {
       isLoadingServerData = true;
-      int secondsToExpiry = accessTokenExpiryTime.difference(now).inSeconds;
+      int secondsToExpiry = accessTokenExpiryTime.toLocal().difference(now.toLocal()).inSeconds;
       if (secondsToExpiry < 2 && isLoggedIn && !isRefreshing) {
         await Future.forEach(
             ([
@@ -82,7 +82,7 @@ class NetworkAPIProvider {
 
     try {
       isLoadingServerData = true;
-      int secondsToExpiry = accessTokenExpiryTime.difference(now).inSeconds;
+      int secondsToExpiry = accessTokenExpiryTime.toLocal().difference(now.toLocal()).inSeconds;
       if (secondsToExpiry < 2 && isLoggedIn && !isRefreshing) {
         await Future.forEach(
             ([
@@ -112,7 +112,7 @@ class NetworkAPIProvider {
 
     try {
       isLoadingServerData = true;
-      int secondsToExpiry = accessTokenExpiryTime.difference(now).inSeconds;
+      int secondsToExpiry = accessTokenExpiryTime.toLocal().difference(now.toLocal()).inSeconds;
       if (secondsToExpiry < 2 && isLoggedIn && !isRefreshing) {
         await Future.forEach(
             ([

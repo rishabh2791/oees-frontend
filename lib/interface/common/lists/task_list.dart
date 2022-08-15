@@ -112,6 +112,7 @@ class _TaskListState extends State<TaskList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -280,7 +281,6 @@ class _DataSource extends DataTableSource {
   DataRow getRow(int index) {
     assert(index >= 0);
     final task = _tasks[index];
-    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
 
     return DataRow.byIndex(
       index: index,

@@ -102,6 +102,7 @@ class _DeviceListState extends State<DeviceList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,

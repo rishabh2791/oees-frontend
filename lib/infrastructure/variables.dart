@@ -10,7 +10,6 @@ import 'package:oees/interface/job/job_widget.dart';
 import 'package:oees/interface/line/line_widget.dart';
 import 'package:oees/interface/shift/shift_widget.dart';
 import 'package:oees/interface/sku/sku_widget.dart';
-import 'package:oees/interface/sku_speed/sku_speed_widget.dart';
 import 'package:oees/interface/task/task_widget.dart';
 import 'package:oees/interface/user/user_widget.dart';
 import 'package:oees/interface/user_role/user_role_widget.dart';
@@ -32,7 +31,12 @@ String menuItemSelected = "Home";
 String companyID = "";
 String factoryID = "";
 late DateTime accessTokenExpiryTime;
-String webSocketURL = "ws://localhost/";
+String webSocketURL = "ws://10.19.0.70:8001/";
+Map<String, String> webSocketURLs = {
+  "8H": "ws://10.19.0.70:8001/",
+  "6H": "ws://10.19.0.70:8001/",
+};
+bool updatingDowntime = false;
 
 late NumberFormat numberFormat;
 
@@ -72,10 +76,6 @@ Map<String, Map<String, dynamic>> menuMapping = {
   "SKU": {
     "table": "skus",
     "widget": const SKUWidget(),
-  },
-  "SKU Speed": {
-    "table": "sku_speeds",
-    "widget": const SKUSpeedWidget(),
   },
   "Task": {
     "table": "tasks",

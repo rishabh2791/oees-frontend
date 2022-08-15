@@ -8,7 +8,6 @@ import 'package:oees/infrastructure/persistance/job_repo.dart';
 import 'package:oees/infrastructure/persistance/line_repo.dart';
 import 'package:oees/infrastructure/persistance/shift_repo.dart';
 import 'package:oees/infrastructure/persistance/sku_repo.dart';
-import 'package:oees/infrastructure/persistance/sku_speed_repo.dart';
 import 'package:oees/infrastructure/persistance/task_batch_repo.dart';
 import 'package:oees/infrastructure/persistance/task_repo.dart';
 import 'package:oees/infrastructure/persistance/user_repo.dart';
@@ -28,7 +27,6 @@ class RepoStore {
   final lineRepo = LineRepo();
   final shiftRepo = ShiftRepo();
   final skuRepo = SKURepo();
-  final skuSpeedRepo = SKUSpeedRepo();
   final taskRepo = TaskRepo();
   final taskBatchRepo = TaskBatchRepo();
   final userRoleRepo = UserRoleRepo();

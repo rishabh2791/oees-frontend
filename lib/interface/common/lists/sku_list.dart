@@ -45,6 +45,34 @@ class _SKUListState extends State<SKUList> {
           widget.skus.sort((a, b) => b.description.compareTo(a.description));
         }
         break;
+      case 2:
+        if (ascending) {
+          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+        } else {
+          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+        }
+        break;
+      case 3:
+        if (ascending) {
+          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+        } else {
+          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+        }
+        break;
+      case 4:
+        if (ascending) {
+          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+        } else {
+          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+        }
+        break;
+      case 5:
+        if (ascending) {
+          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+        } else {
+          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+        }
+        break;
       default:
         break;
     }
@@ -74,6 +102,7 @@ class _SKUListState extends State<SKUList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -101,6 +130,78 @@ class _SKUListState extends State<SKUList> {
                           DataColumn(
                             label: Text(
                               "Material Description",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Min Weight",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Expected Weight",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Low Run Speed",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "High Run Speed",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -170,6 +271,46 @@ class _DataSource extends DataTableSource {
         DataCell(
           Text(
             sku.description,
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            sku.minWeight.toStringAsFixed(2),
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            sku.expectedWeight.toStringAsFixed(2),
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            sku.lowRunSpeed.toString(),
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            sku.highRunSpeed.toString(),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,

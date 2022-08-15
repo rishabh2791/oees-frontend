@@ -81,6 +81,7 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -89,7 +90,7 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                         columns: [
                           DataColumn(
                             label: Text(
-                              "Device Type",
+                              "Downtime Type",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -107,7 +108,7 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                           ),
                           DataColumn(
                             label: Text(
-                              "Plant",
+                              "Description",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -125,7 +126,7 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                           ),
                           DataColumn(
                             label: Text(
-                              "Line",
+                              "Default Time",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,

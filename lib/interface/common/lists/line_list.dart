@@ -53,6 +53,13 @@ class _LineListState extends State<LineList> {
           widget.lines.sort((a, b) => b.ipAddress.compareTo(a.ipAddress));
         }
         break;
+      case 3:
+        if (ascending) {
+          widget.lines.sort((a, b) => a.speedType.compareTo(b.speedType));
+        } else {
+          widget.lines.sort((a, b) => b.speedType.compareTo(a.speedType));
+        }
+        break;
       default:
         break;
     }
@@ -82,6 +89,7 @@ class _LineListState extends State<LineList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -127,6 +135,24 @@ class _LineListState extends State<LineList> {
                           DataColumn(
                             label: Text(
                               "IP Address",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Speed Type",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -282,6 +308,16 @@ class _DataSource extends DataTableSource {
               : () {
                   _unAssignIPAddress(context, line);
                 },
+        ),
+        DataCell(
+          Text(
+            line.speedType == 1 ? "Low" : "High",
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
         ),
       ],
     );

@@ -50,11 +50,27 @@ class Downtime {
       controlled: jsonObject["controlled"],
       createdAt: DateTime.parse(jsonObject["created_at"]),
       description: jsonObject["description"],
-      endTime: DateTime.parse(jsonObject["end_time"] ?? "2099-12-31T23:59:59Z").toLocal(),
+      endTime: jsonObject["end_time"].toString().toUpperCase() == "NULL"
+          ? DateTime.parse("2099-12-31T23:59:59Z")
+          : DateTime(
+              DateTime.parse(jsonObject["end_time"]).toLocal().year,
+              DateTime.parse(jsonObject["end_time"]).toLocal().month,
+              DateTime.parse(jsonObject["end_time"]).toLocal().day,
+              DateTime.parse(jsonObject["end_time"]).toLocal().hour,
+              DateTime.parse(jsonObject["end_time"]).toLocal().minute,
+              0,
+            ),
       id: jsonObject["id"],
       planned: jsonObject["planned"],
       line: Line.fromJSON(jsonObject["line"]),
-      startTime: DateTime.parse(jsonObject["start_time"]).toLocal(),
+      startTime: DateTime(
+        DateTime.parse(jsonObject["start_time"]).toLocal().year,
+        DateTime.parse(jsonObject["start_time"]).toLocal().month,
+        DateTime.parse(jsonObject["start_time"]).toLocal().day,
+        DateTime.parse(jsonObject["start_time"]).toLocal().hour,
+        DateTime.parse(jsonObject["start_time"]).toLocal().minute,
+        0,
+      ),
       updatedAt: DateTime.parse(jsonObject["updated_at"]),
       updatedBy: User.fromJSON(jsonObject["updated_by"]),
     );

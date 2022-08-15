@@ -242,7 +242,7 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Create Line",
+                        "Create Downtime",
                         style: TextStyle(
                           color: isDarkTheme.value ? foregroundColor : backgroundColor,
                           fontSize: 40.0,

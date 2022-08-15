@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:flutter/material.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
@@ -6,11 +8,13 @@ class BoolFieldWidget extends StatefulWidget {
   final String label;
   final String formField;
   final TextEditingController selectedController;
-  const BoolFieldWidget({
+  bool isEnabled;
+  BoolFieldWidget({
     Key? key,
     required this.formField,
     required this.label,
     required this.selectedController,
+    this.isEnabled = true,
   }) : super(key: key);
 
   @override

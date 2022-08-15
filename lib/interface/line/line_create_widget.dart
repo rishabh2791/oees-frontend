@@ -4,11 +4,33 @@ import 'package:oees/application/app_store.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
+import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
 import 'package:oees/interface/common/form_fields/text_form_field.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
 import 'package:oees/interface/common/ui_elements/check_button.dart';
 import 'package:oees/interface/common/ui_elements/clear_button.dart';
+
+class SpeedType {
+  final String id;
+  final String type;
+
+  SpeedType({
+    required this.id,
+    required this.type,
+  });
+
+  @override
+  String toString() {
+    return type;
+  }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      "id": id,
+    };
+  }
+}
 
 class LineCreateWidget extends StatefulWidget {
   const LineCreateWidget({Key? key}) : super(key: key);
@@ -22,7 +44,12 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
   late Map<String, dynamic> map;
   late FormFieldWidget formFieldWidget;
   late TextFormFielder codeFormWidget, nameFormWidget;
-  late TextEditingController codeController, nameController;
+  late DropdownFormField speedTypeFormField;
+  late TextEditingController codeController, nameController, speedTypeController;
+  List<SpeedType> speedTypeOptions = [
+    SpeedType(id: "1", type: "Low Speed"),
+    SpeedType(id: "2", type: "High Speed"),
+  ];
 
   @override
   void initState() {
@@ -41,6 +68,7 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
   void initForm() {
     codeController = TextEditingController();
     nameController = TextEditingController();
+    speedTypeController = TextEditingController();
     codeFormWidget = TextFormFielder(
       controller: codeController,
       formField: "code",
@@ -55,10 +83,18 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
       obscureText: false,
       minSize: 10,
     );
+    speedTypeFormField = DropdownFormField(
+      formField: "speed_type",
+      controller: speedTypeController,
+      dropdownItems: speedTypeOptions,
+      hint: "Select Speed Type",
+      isRequired: true,
+    );
     formFieldWidget = FormFieldWidget(
       formFields: [
         codeFormWidget,
         nameFormWidget,
+        speedTypeFormField,
       ],
     );
     setState(() {
@@ -106,6 +142,7 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
                                   map = formFieldWidget.toJSON();
                                   map["created_by_username"] = currentUser.username;
                                   map["updated_by_username"] = currentUser.username;
+                                  map["speed_type"] = int.parse(map["speed_type"]);
                                   await appStore.lineApp.create(map).then((response) {
                                     if (response.containsKey("status") && response["status"]) {
                                       setState(() {

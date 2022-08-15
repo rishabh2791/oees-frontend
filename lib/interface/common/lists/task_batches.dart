@@ -73,8 +73,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                 child: Theme(
                   data: Theme.of(context).copyWith(
                     cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor:
-                        isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
                       caption: TextStyle(
                         color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -84,6 +83,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                   child: ListView(
                     children: [
                       PaginatedDataTable(
+                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -93,6 +93,24 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                           DataColumn(
                             label: Text(
                               "Batch#",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Batch Size (KG)",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -201,6 +219,16 @@ class _DataSource extends DataTableSource {
         DataCell(
           Text(
             taskBatch.batchNumber,
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            taskBatch.batchSize.toStringAsFixed(1).replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,

@@ -7,7 +7,6 @@ import 'package:oees/interface/common/super_widget/super_widget.dart';
 import 'package:oees/interface/common/super_widget/user_action_button.dart';
 import 'package:oees/interface/downtime/downtime_create_widget.dart';
 import 'package:oees/interface/downtime/downtime_list_widget.dart';
-import 'package:oees/interface/downtime/downtime_update_widget.dart';
 
 class DowntimeWidget extends StatefulWidget {
   const DowntimeWidget({Key? key}) : super(key: key);
@@ -45,19 +44,19 @@ class _DowntimeWidgetState extends State<DowntimeWidget> {
                       label: "Create",
                       table: "downtimes",
                     ),
-                    UserActionButton(
-                      accessType: "update",
-                      callback: () {
-                        navigationService.pushReplacement(
-                          CupertinoPageRoute(
-                            builder: (BuildContext context) => const DowntimeUpdateWidget(),
-                          ),
-                        );
-                      },
-                      icon: Icons.list_alt,
-                      label: "Update",
-                      table: "downtimes",
-                    ),
+                    // UserActionButton(
+                    //   accessType: "update",
+                    //   callback: () {
+                    //     navigationService.pushReplacement(
+                    //       CupertinoPageRoute(
+                    //         builder: (BuildContext context) => const DowntimeUpdateWidget(),
+                    //       ),
+                    //     );
+                    //   },
+                    //   icon: Icons.list_alt,
+                    //   label: "Update",
+                    //   table: "downtimes",
+                    // ),
                     UserActionButton(
                       accessType: "view",
                       callback: () {

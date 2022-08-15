@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/device.dart';
@@ -9,9 +11,10 @@ import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/domain/entity/line.dart';
 import 'package:oees/domain/entity/shift.dart';
 import 'package:oees/domain/entity/sku.dart';
-import 'package:oees/domain/entity/sku_speed.dart';
 import 'package:oees/domain/entity/task.dart';
+import 'package:oees/domain/entity/task_batch.dart';
 import 'package:oees/infrastructure/constants.dart';
+import 'package:oees/infrastructure/services/web_socket.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/hourly_series/bad.dart';
@@ -38,6 +41,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   List<String> lineIDs = [];
   List<String> skuIDs = [];
   List<String> deviceIDs = [];
+  Map<String, String> lineIP = {};
   Map<String, double> skuSpeeds = {};
   Map<String, List<Task>> tasksByLine = {};
   Map<String, List<SKU>> skusByLine = {};
@@ -46,6 +50,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   Map<String, List<Device>> devicesByLine = {};
   late TextEditingController selectedLine;
   Map<String, List<DeviceData>> deviceDataByLine = {};
+  Map<String, TaskBatch> runningTaskBatchByLine = {};
+  Map<String, List<DeviceData>> otherDeviceDataByLine = {};
   Map<String, double> lineAvailability = {}, linePerformance = {}, lineQuality = {}, lineOEE = {};
   Map<String, double> theoreticalProduction = {}, actualProduction = {}, controlledDowntimes = {}, plannedDowntimes = {}, unplannedDowntimes = {};
   Map<String, List<ControlledDowntime>> controlledDowntimeSeries = {};
@@ -55,6 +61,10 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   Map<String, List<BadRateProduction>> badRateSeries = {};
   DateTime shiftStartTime = DateTime.now(), shiftEndTime = DateTime.now(), oldShiftStartTime = DateTime.now();
   late DropdownFormField lineSelectionFormField;
+  double runningTaskCount = 0;
+  List<double> weights = [];
+  Map<String, List<double>> weightsByLineID = {};
+  int unitsWeighed = 0;
 
   @override
   void initState() {
@@ -66,18 +76,38 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     if (storage!.getString("line_id") != "") {
       selectedLine.text = storage!.getString("line_id") ?? "";
     }
-    selectedLine.addListener(() {
-      if (selectedLine.text.isNotEmpty) {
-        setState(() {});
-      }
-    });
     super.initState();
   }
 
   @override
   void dispose() {
     timer.cancel();
+    socketUtility.close();
     super.dispose();
+  }
+
+  void listenToWeighingScale(String data) {
+    Map<String, dynamic> scannerData =
+        jsonDecode(data.replaceAll(";", ":").replaceAll("[", "{").replaceAll("]", "}").replaceAll("'", "\"").replaceAll("-", "_"));
+    try {
+      if (scannerData.containsKey("error")) {
+      } else {
+        double currentWeight = double.parse((scannerData["data"]).toString());
+        var tempList = weightsByLineID[selectedLine.text]!;
+        weightsByLineID[selectedLine.text] = [];
+        weightsByLineID[selectedLine.text]!.add(currentWeight);
+        if (tempList.isNotEmpty) {
+          int last = min(4, tempList.length);
+          for (int i = 0; i < last; i++) {
+            weightsByLineID[selectedLine.text]!.add(tempList[i]);
+          }
+        }
+        unitsWeighed += 1;
+        setState(() {});
+      }
+    } catch (e) {
+      FLog.info(text: "Unable to Connect to Scale");
+    }
   }
 
   Future<void> getBackendData() async {
@@ -85,6 +115,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       isLoading = true;
       isDataLoaded = false;
     });
+    socketUtility.close();
     await Future.forEach([
       await getShifts(),
       await getLines(),
@@ -99,6 +130,24 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
             hint: "Select Line",
           );
           selectedLine.text = lines[0].id;
+          selectedLine.addListener(() async {
+            if (selectedLine.text.isNotEmpty && runningTaskBatchByLine.containsKey(selectedLine.text)) {
+              await Future.forEach([await socketUtility.close()], (element) => null).then((value) async {
+                await Future.forEach([await socketUtility.initCommunication(lineIP[selectedLine.text] ?? webSocketURL)], (element) => null)
+                    .then((value) async {
+                  socketUtility.addListener(listenToWeighingScale);
+                });
+              });
+              await getRunningBatchUnits(runningTaskBatchByLine[selectedLine.text]!);
+              setState(() {});
+            } else {
+              setState(() {});
+            }
+          });
+          await Future.forEach([await socketUtility.initCommunication(lineIP[selectedLine.text] ?? webSocketURL)], (element) => null)
+              .then((value) async {
+            socketUtility.addListener(listenToWeighingScale);
+          });
           if (lines.isEmpty || shifts.isEmpty) {
             setState(() {
               isLoading = false;
@@ -120,7 +169,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                   });
                 } else {
                   await Future.forEach([
-                    await getRunSpeeds(),
+                    await getRunningTaskBatches(),
                     await getDevices(),
                   ], (element) async {})
                       .then(
@@ -130,20 +179,42 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                           isLoading = false;
                         });
                       } else {
-                        await Future.forEach(
-                          [
-                            await getDeviceData(),
-                          ],
-                          (element) {},
-                        ).then((value) async {
-                          getRunEfficiency();
-                        }).then((value) {
-                          getChartsData();
-                          setState(() {
-                            isDataLoaded = true;
-                            isLoading = false;
+                        if (runningTaskBatchByLine.containsKey(selectedLine.text)) {
+                          await Future.forEach(
+                            [
+                              await getDeviceData(),
+                              await getRunningBatchUnits(runningTaskBatchByLine[selectedLine.text]!),
+                            ],
+                            (element) {},
+                          ).then((value) async {
+                            getRunEfficiency();
+                          }).then((value) {
+                            getOtherDeviceData();
+                            getChartsData();
+                            getUnitsWeighed();
+                            setState(() {
+                              isDataLoaded = true;
+                              isLoading = false;
+                            });
                           });
-                        });
+                        } else {
+                          await Future.forEach(
+                            [
+                              await getDeviceData(),
+                            ],
+                            (element) {},
+                          ).then((value) async {
+                            getRunEfficiency();
+                          }).then((value) {
+                            socketUtility.initCommunication(lineIP[selectedLine.text] ?? webSocketURL);
+                            socketUtility.addListener(listenToWeighingScale);
+                            getChartsData();
+                            setState(() {
+                              isDataLoaded = true;
+                              isLoading = false;
+                            });
+                          });
+                        }
                       }
                     },
                   );
@@ -220,6 +291,13 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           lines.add(line);
           if (!lineIDs.contains(line.id)) {
             lineIDs.add(line.id);
+          }
+          if (!lineIP.containsKey(line.id)) {
+            if (line.ipAddress != "" || line.ipAddress.isNotEmpty) {
+              lineIP[line.id] = "ws://" + line.ipAddress + ":8001/";
+            } else {
+              lineIP[line.id] = webSocketURL;
+            }
           }
         }
       }
@@ -302,6 +380,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   Future<void> getTasks() async {
     tasksByLine = {};
     skusByLine = {};
+    skuSpeeds = {};
 
     Map<String, dynamic> conditions = {
       "AND": [
@@ -341,6 +420,10 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
           Task task = Task.fromJSON(item);
+          if (!skuSpeeds.containsKey(task.line.id + "_" + task.job.sku.id)) {
+            skuSpeeds[task.line.id + "_" + task.job.sku.id] =
+                double.parse(task.line.speedType == 1 ? task.job.sku.lowRunSpeed.toString() : task.job.sku.highRunSpeed.toString());
+          }
           if (task.startTime.toLocal().difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds > 0) {
             if (tasksByLine.containsKey(task.line.id)) {
               tasksByLine[task.line.id]!.add(task);
@@ -361,32 +444,25 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     });
   }
 
-  Future<void> getRunSpeeds() async {
-    skuSpeeds = {};
-    Map<String, dynamic> conditions = {
-      "AND": [
-        {
-          "IN": {
-            "Field": "line_id",
-            "Value": lineIDs,
+  Future<void> getRunningTaskBatches() async {
+    for (var key in tasksByLine.entries) {
+      bool runningTasks =
+          tasksByLine[key.key]!.any((task) => task.endTime.toLocal().difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds == 0);
+      if (runningTasks) {
+        var lineRunningTask = tasksByLine[key.key]!
+            .firstWhere((task) => task.endTime.toLocal().difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds == 0);
+        await appStore.taskBatchApp.list(lineRunningTask.id).then((response) {
+          if (response.containsKey("status") && response["status"]) {
+            for (var item in response["payload"]) {
+              TaskBatch taskBatch = TaskBatch.fromJSON(item);
+              if (!taskBatch.complete) {
+                runningTaskBatchByLine[lineRunningTask.line.id] = taskBatch;
+              }
+            }
           }
-        },
-        {
-          "IN": {
-            "Field": "sku_id",
-            "Value": skuIDs,
-          }
-        },
-      ],
-    };
-    await appStore.skuSpeedApp.list(conditions).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          SKUSpeed skuSpeed = SKUSpeed.fromJSON(item);
-          skuSpeeds[skuSpeed.line.id + "_" + skuSpeed.sku.id] = skuSpeed.speed;
-        }
+        });
       }
-    });
+    }
   }
 
   Future<void> getDevices() async {
@@ -416,6 +492,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Future<void> getDeviceData() async {
     deviceDataByLine = {};
+    otherDeviceDataByLine = {};
     Map<String, dynamic> conditions = {
       "AND": [
         {
@@ -516,11 +593,104 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         if (deviceData.createdAt.difference(startTime).inSeconds > 0 && deviceData.createdAt.difference(endTime).inSeconds < 0) {
           if (forOEE && deviceData.device.useForOEE) {
             production += deviceData.value;
+          } else {
+            if (otherDeviceDataByLine.containsKey(lineID + "_" + deviceData.device.id)) {
+              otherDeviceDataByLine[lineID + "_" + deviceData.device.id]!.add(deviceData);
+            } else {
+              otherDeviceDataByLine[lineID + "_" + deviceData.device.id] = [deviceData];
+            }
           }
         }
       }
     }
     return production;
+  }
+
+  Widget getOtherDeviceData() {
+    List<Widget> thisWidgets = [];
+    var lineID = selectedLine.text;
+    otherDeviceDataByLine.forEach((key, value) {
+      value.sort(((a, b) => b.createdAt.compareTo(a.createdAt)));
+      int last = min(5, value.length);
+      if (deviceDataByLine.containsKey(lineID)) {
+        var exists = devicesByLine[lineID]!.any((element) => element.id == key.split("_")[1]);
+        if (exists) {
+          Device device = devicesByLine[lineID]!.firstWhere((element) => element.id == key.split("_")[1]);
+          if (device.deviceType.toUpperCase() == "WEIGHING SCALE") {
+            if (!weightsByLineID.containsKey(lineID)) {
+              weightsByLineID[lineID] = [];
+              for (int i = 0; i < last; i++) {
+                weightsByLineID[lineID]!.add(value[i].value);
+              }
+            }
+            thisWidgets.add(
+              const Text(
+                "Weights",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 30.0,
+                ),
+              ),
+            );
+            last = min(5, weightsByLineID[lineID]!.length);
+            for (int i = 0; i < last; i++) {
+              thisWidgets.add(Text(
+                weightsByLineID[selectedLine.text]![i].toStringAsFixed(1),
+                style: TextStyle(
+                  fontSize: 30.0,
+                  color: weightsByLineID[selectedLine.text]![i] < getRunningTaks(selectedLine.text).minWeight ? Colors.red : Colors.green,
+                ),
+              ));
+            }
+          } else {
+            if (key.split("_")[0] == lineID) {
+              thisWidgets.add(
+                Text(
+                  devicesByLine[lineID]!.firstWhere((element) => element.id == key.split("_")[1]).description,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 30.0,
+                  ),
+                ),
+              );
+              value.sort(((a, b) => b.createdAt.compareTo(a.createdAt)));
+              for (int i = 0; i < last; i++) {
+                thisWidgets.add(Text(
+                  value[i].value.toStringAsFixed(1),
+                  style: TextStyle(
+                    fontSize: 30.0,
+                    color: value[i].value < getRunningTaks(selectedLine.text).minWeight ? Colors.red : Colors.green,
+                  ),
+                ));
+              }
+            }
+          }
+        }
+      }
+    });
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: thisWidgets,
+    );
+  }
+
+  void getUnitsWeighed() {
+    unitsWeighed = 0;
+    var lineID = selectedLine.text;
+    otherDeviceDataByLine.forEach((key, value) {
+      if (key.split("_")[0] == lineID) {
+        if (deviceDataByLine.containsKey(lineID)) {
+          var exists = devicesByLine[lineID]!.any((element) => element.id == key.split("_")[1]);
+          if (exists) {
+            Device device = devicesByLine[lineID]!.firstWhere((element) => element.id == key.split("_")[1]);
+            if (device.deviceType.toUpperCase() == "WEIGHING SCALE") {
+              unitsWeighed = value.length;
+            }
+          }
+        }
+      }
+    });
+    setState(() {});
   }
 
   int getTotalDowntime(DateTime startTime, DateTime endTime, String lineID, String type) {
@@ -534,7 +704,11 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           //do nothing
         } else {
           DateTime downtimeStartTime = downtime.startTime.difference(startTime).inSeconds < 0 ? startTime : downtime.startTime;
-          DateTime downtimeEndTime = downtime.endTime.difference(endTime).inSeconds < 0 ? downtime.endTime : endTime;
+          DateTime downtimeEndTime = downtime.endTime.difference(DateTime.now()).inSeconds < 0
+              ? downtime.endTime.difference(endTime).inSeconds < 0
+                  ? downtime.endTime
+                  : endTime
+              : DateTime.now();
           int time = downtimeEndTime.difference(downtimeStartTime).inSeconds;
           switch (type) {
             case "Controlled":
@@ -661,17 +835,76 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     ];
   }
 
-  String getRunningTaks(String lineID) {
+  dynamic getRunningTaks(String lineID) {
     String sku = "";
     List<Task> lineTasks = tasksByLine[lineID] ?? [];
     if (lineTasks.isNotEmpty) {
       for (var task in lineTasks) {
         if (task.endTime.toLocal().difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds == 0) {
-          sku = task.job.sku.code + " - " + task.job.sku.description;
+          return task.job.sku;
         }
       }
     }
     return sku;
+  }
+
+  Future<void> getRunningBatchUnits(TaskBatch runningTaskBatch) async {
+    var lineID = runningTaskBatch.task.line.id;
+    double counts = 0;
+    Map<String, dynamic> deviceCondition = {
+      "AND": [
+        {
+          "EQUALS": {
+            "Field": "line_id",
+            "Value": lineID,
+          }
+        },
+        {
+          "EQUALS": {
+            "Field": "use_for_oee",
+            "Value": "1",
+          }
+        },
+      ],
+    };
+    setState(() {
+      isLoading = true;
+    });
+    await appStore.deviceApp.list(deviceCondition).then((response) async {
+      if (response.containsKey("status") && response["status"]) {
+        Device device = Device.fromJSON(response["payload"][0]);
+        Map<String, dynamic> deviceDataCondition = {
+          "AND": [
+            {
+              "EQUALS": {
+                "Field": "device_id",
+                "Value": device.id,
+              },
+            },
+            {
+              "GREATEREQUAL": {
+                "Field": "created_at",
+                "Value": runningTaskBatch.startTime.toUtc().toString().substring(0, 10) +
+                    "T" +
+                    runningTaskBatch.startTime.toUtc().toString().substring(11, 19) +
+                    "Z",
+              },
+            },
+          ],
+        };
+        await appStore.deviceDataApp.totalDeviceData(deviceDataCondition).then((value) {
+          if (value.containsKey("status") && value["status"]) {
+            counts += value["payload"]["value"];
+            setState(() {
+              runningTaskCount = counts;
+            });
+          }
+          setState(() {
+            isLoading = false;
+          });
+        });
+      }
+    });
   }
 
   @override
@@ -721,7 +954,12 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                       SizedBox(
                                         width: (MediaQuery.of(context).size.width - 500) / 2,
                                         child: Text(
-                                          getRunningTaks(selectedLine.text) == "" ? "No Job Running" : "SKU: " + getRunningTaks(selectedLine.text),
+                                          getRunningTaks(selectedLine.text).runtimeType == String
+                                              ? "No Job Running"
+                                              : "SKU: " +
+                                                  getRunningTaks(selectedLine.text).code +
+                                                  " - " +
+                                                  getRunningTaks(selectedLine.text).description,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -735,35 +973,123 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Availability: " + lineAvailability[selectedLine.text]!.toStringAsFixed(2),
-                                        style: TextStyle(
-                                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                        lineAvailability.containsKey(selectedLine.text)
+                                            ? "Availability: " + lineAvailability[selectedLine.text]!.toStringAsFixed(2)
+                                            : "Availability: 0",
+                                        style: const TextStyle(
+                                          color: Colors.red,
                                           fontSize: 30.0,
                                         ),
                                       ),
                                       Text(
-                                        "Performance: " + linePerformance[selectedLine.text]!.toStringAsFixed(2),
-                                        style: TextStyle(
-                                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                        linePerformance.containsKey(selectedLine.text)
+                                            ? "Performance: " + linePerformance[selectedLine.text]!.toStringAsFixed(2)
+                                            : "Performance: 0",
+                                        style: const TextStyle(
+                                          color: Colors.red,
                                           fontSize: 30.0,
                                         ),
                                       ),
                                       Text(
-                                        "Quality: " + lineQuality[selectedLine.text]!.toStringAsFixed(2),
-                                        style: TextStyle(
-                                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                        lineQuality.containsKey(selectedLine.text)
+                                            ? "Quality: " + lineQuality[selectedLine.text]!.toStringAsFixed(2)
+                                            : "Quality: 0",
+                                        style: const TextStyle(
+                                          color: Colors.red,
                                           fontSize: 30.0,
                                         ),
                                       ),
                                       Text(
-                                        "OEE: " + lineOEE[selectedLine.text]!.toStringAsFixed(2),
-                                        style: TextStyle(
-                                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                        lineOEE.containsKey(selectedLine.text) ? "OEE: " + lineOEE[selectedLine.text]!.toStringAsFixed(2) : "OEE: 0",
+                                        style: const TextStyle(
+                                          color: Colors.red,
                                           fontSize: 30.0,
                                         ),
                                       ),
                                     ],
                                   ),
+                                  runningTaskBatchByLine.containsKey(selectedLine.text)
+                                      ? Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Running Batch: " + runningTaskBatchByLine[selectedLine.text]!.batchNumber,
+                                              style: TextStyle(
+                                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                                fontSize: 30.0,
+                                              ),
+                                            ),
+                                            Text(
+                                              "Batch Size: " +
+                                                  runningTaskBatchByLine[selectedLine.text]!
+                                                      .batchSize
+                                                      .toStringAsFixed(1)
+                                                      .replaceAllMapped(reg, (Match match) => '${match[1]},') +
+                                                  " KG",
+                                              style: TextStyle(
+                                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                                fontSize: 30.0,
+                                              ),
+                                            ),
+                                            getRunningTaks(selectedLine.text).runtimeType == String
+                                                ? Container()
+                                                : Text(
+                                                    "Minimum Weight: " + getRunningTaks(selectedLine.text).minWeight.toStringAsFixed(0),
+                                                    style: TextStyle(
+                                                      color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                                      fontSize: 30.0,
+                                                    ),
+                                                  ),
+                                            getRunningTaks(selectedLine.text).runtimeType == String
+                                                ? Container()
+                                                : Text(
+                                                    "Expected Weight: " + getRunningTaks(selectedLine.text).expectedWeight.toStringAsFixed(0),
+                                                    style: TextStyle(
+                                                      color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                                      fontSize: 30.0,
+                                                    ),
+                                                  ),
+                                          ],
+                                        )
+                                      : Container(),
+                                  runningTaskBatchByLine.containsKey(selectedLine.text)
+                                      ? Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Expected Batch Units: " +
+                                                  (runningTaskBatchByLine[selectedLine.text]!.batchSize *
+                                                          1000 /
+                                                          getRunningTaks(selectedLine.text).expectedWeight)
+                                                      .toStringAsFixed(0)
+                                                      .replaceAllMapped(reg, (Match match) => '${match[1]},'),
+                                              style: const TextStyle(
+                                                color: Colors.red,
+                                                fontSize: 30.0,
+                                              ),
+                                            ),
+                                            Text(
+                                              "Actual Batch Units: " + (runningTaskCount.toStringAsFixed(0)),
+                                              style: TextStyle(
+                                                color: (runningTaskCount <=
+                                                        runningTaskBatchByLine[selectedLine.text]!.batchSize *
+                                                            1000 /
+                                                            getRunningTaks(selectedLine.text).expectedWeight)
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                fontSize: 30.0,
+                                              ),
+                                            ),
+                                            Text(
+                                              "Batch Units Weighed: " + (unitsWeighed.toStringAsFixed(0)),
+                                              style: TextStyle(
+                                                color: (unitsWeighed < 50) ? Colors.red : Colors.green,
+                                                fontSize: 30.0,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Container(),
                                 ],
                               ),
                             ),
@@ -773,14 +1099,18 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                             ),
                           ],
                         ),
+                        getOtherDeviceData(),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height - 250,
+                          height: MediaQuery.of(context).size.height - 300,
+                          // width: MediaQuery.of(context).size.width / 2,
                           child: charts.BarChart(
                             buildChart(),
                             animate: true,
                             defaultRenderer: charts.BarRendererConfig(
                               groupingType: charts.BarGroupingType.stacked,
                               strokeWidthPx: 2.0,
+                              cornerStrategy: const charts.ConstCornerStrategy(10),
+                              maxBarWidthPx: 60,
                             ),
                             behaviors: [
                               charts.SeriesLegend(
