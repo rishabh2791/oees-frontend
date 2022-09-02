@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:f_logs/f_logs.dart';
 import 'package:flutter/foundation.dart';
@@ -7,6 +8,7 @@ WebSocketUtility socketUtility = WebSocketUtility();
 
 class WebSocketUtility extends ChangeNotifier {
   late WebSocket webSocketChannel;
+  late WebSocketChannel webWebSocketChannel;
   bool _isConnected = false;
   int tries = 0;
   ObserverList<Function> listeners = ObserverList<Function>();
@@ -20,13 +22,21 @@ class WebSocketUtility extends ChangeNotifier {
 
   initCommunication(String url) async {
     try {
-      await WebSocket.connect(url).then((value) {
-        if (value.readyState == 1) {
-          _isConnected = true;
-          webSocketChannel = value;
-          value.listen(listenToWebSocket);
-        }
-      });
+      if (kIsWeb) {
+        webWebSocketChannel = WebSocketChannel.connect(Uri.parse(url));
+        _isConnected = true;
+        webWebSocketChannel.stream.listen((event) {
+          listenToWebSocket(event);
+        });
+      } else {
+        await WebSocket.connect(url).then((value) {
+          if (value.readyState == 1) {
+            _isConnected = true;
+            webSocketChannel = value;
+            value.listen(listenToWebSocket);
+          }
+        });
+      }
     } catch (ex) {
       FLog.debug(text: ex.toString());
     }
@@ -44,8 +54,14 @@ class WebSocketUtility extends ChangeNotifier {
 
   close() async {
     try {
-      if (_isConnected) {
-        await webSocketChannel.close();
+      if (kIsWeb) {
+        if (_isConnected) {
+          await webWebSocketChannel.sink.close();
+        }
+      } else {
+        if (_isConnected) {
+          await webSocketChannel.close();
+        }
       }
       listeners = ObserverList<Function>();
     } catch (e) {

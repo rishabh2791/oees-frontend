@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/device.dart';
-import 'package:oees/domain/entity/device_data.dart';
 import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/domain/entity/task.dart';
 import 'package:oees/domain/entity/task_batch.dart';
@@ -27,8 +26,8 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
   bool isLoading = true;
   double taskUnits = 0;
   List<Downtime> downtimes = [];
-  List<DeviceData> deviceData = [];
   List<TaskBatch> taskBatches = [];
+  Map<String, double> taskBatchDeviceData = {};
   Map<String, dynamic> batchUnits = {};
   late TextEditingController batchController, batchSizeController;
 
@@ -47,11 +46,8 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
 
   double getBatchUnits(TaskBatch batch) {
     double batchCounts = 0;
-    var batchDeviceData = deviceData.where((element) =>
-        element.createdAt.toLocal().difference(batch.startTime.toLocal()).inSeconds >= 0 &&
-        element.createdAt.toLocal().difference(batch.endTime.toLocal()).inSeconds <= 0);
-    for (var data in batchDeviceData) {
-      batchCounts += data.value;
+    if (taskBatchDeviceData.containsKey(batch.id)) {
+      batchCounts = taskBatchDeviceData[batch.id] ?? 0;
     }
     return batchCounts;
   }
@@ -78,12 +74,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
       if (taskEndTime.difference(DateTime.now().toLocal()).inSeconds > 0) {
         taskEndTime = DateTime.now().toLocal();
       }
-      await Future.forEach([await getDeviceData(taskStartTime, taskEndTime), await getDowntimeData(taskStartTime, taskEndTime)], (element) {})
-          .then((value) {
-        for (var batch in taskBatches) {
-          batchUnits[batch.id] = getBatchUnits(batch);
-          taskUnits += batchUnits[batch.id];
-        }
+      await Future.wait([getDeviceData(), getDowntimeData(taskStartTime, taskEndTime)]).then((value) {
         setState(() {
           isLoading = false;
         });
@@ -91,10 +82,8 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
     });
   }
 
-  Future<void> getDeviceData(DateTime startTime, DateTime endTime) async {
-    startTime = startTime.toUtc();
-    endTime = endTime.toUtc();
-    deviceData = [];
+  Future<void> getDeviceData() async {
+    taskBatchDeviceData = {};
     String lineID = widget.task.line.id;
     String deviceID = "";
     Map<String, dynamic> lineConditions = {
@@ -112,31 +101,32 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
           }
         }
         if (deviceID != "") {
-          Map<String, dynamic> conditions = {
-            "AND": [
-              {
-                "EQUALS": {
-                  "Field": "device_id",
-                  "Value": deviceID,
+          await Future.wait(taskBatches.map((element) async {
+            Map<String, dynamic> conditions = {
+              "AND": [
+                {
+                  "EQUALS": {
+                    "Field": "device_id",
+                    "Value": deviceID,
+                  },
                 },
-              },
-              {
-                "BETWEEN": {
-                  "Field": "created_at",
-                  "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
-                  "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
+                {
+                  "BETWEEN": {
+                    "Field": "created_at",
+                    "LowerValue":
+                        element.startTime.toUtc().toString().substring(0, 10) + "T" + element.startTime.toUtc().toString().substring(11, 19) + "Z",
+                    "HigherValue":
+                        element.endTime.toUtc().toString().substring(0, 10) + "T" + element.endTime.toUtc().toString().substring(11, 19) + "Z",
+                  }
                 }
+              ],
+            };
+            await appStore.deviceDataApp.totalDeviceData(conditions).then((response) {
+              if (response.containsKey("status") && response["status"]) {
+                taskBatchDeviceData[element.id] = double.parse(response["payload"]["value"].toString());
               }
-            ],
-          };
-          await appStore.deviceDataApp.list(conditions).then((response) {
-            if (response.containsKey("status") && response["status"]) {
-              for (var item in response["payload"]) {
-                DeviceData thisDeviceData = DeviceData.fromJSON(item);
-                deviceData.add(thisDeviceData);
-              }
-            }
-          });
+            });
+          }));
         }
       }
     });
@@ -661,7 +651,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                         width: MediaQuery.of(context).size.width / 2 - 20,
                                         child: TaskBatchesList(
                                           taskBatches: taskBatches,
-                                          batchUnits: batchUnits,
+                                          batchUnits: taskBatchDeviceData,
                                         ),
                                       )
                                     : Container(),

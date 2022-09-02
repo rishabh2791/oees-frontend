@@ -32,10 +32,10 @@ class DeviceData {
 
   factory DeviceData.fromJSON(Map<String, dynamic> jsonObject) {
     DeviceData deviceData = DeviceData(
-      createdAt: DateTime.parse(jsonObject["created_at"]),
+      createdAt: DateTime.parse(jsonObject["created_at"]).toLocal(),
       device: Device.fromJSON(jsonObject["device"]),
       id: jsonObject["id"],
-      updatedAt: DateTime.parse(jsonObject["updated_at"]),
+      updatedAt: DateTime.parse(jsonObject["updated_at"]).toLocal(),
       value: double.parse(jsonObject["value"].toString()),
     );
     return deviceData;

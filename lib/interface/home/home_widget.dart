@@ -3,7 +3,6 @@ import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
 import 'package:oees/interface/home/general_home_widget.dart';
-import 'package:oees/interface/home/oee_home_widget.dart';
 
 class HomeWidget extends StatefulWidget {
   const HomeWidget({Key? key}) : super(key: key);
@@ -27,12 +26,6 @@ class _HomeWidgetState extends State<HomeWidget> {
   }
 
   Future<void> checkDevice() async {
-    String lineID = storage!.getString("line_id") ?? "";
-    if (lineID.isNotEmpty) {
-      setState(() {
-        isLine = true;
-      });
-    }
     setState(() {
       isLoading = false;
     });
@@ -50,9 +43,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
-            : isLine
-                ? SuperWidget(childWidget: const OEEHomeWidget(), errorCallback: () {})
-                : SuperWidget(childWidget: const GeneralHomeWidget(), errorCallback: () {});
+            : SuperWidget(childWidget: const GeneralHomeWidget(), errorCallback: () {});
       },
     );
   }
