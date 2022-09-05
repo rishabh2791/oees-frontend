@@ -46,7 +46,7 @@ class UserRoleAccess {
       createdAt: DateTime.parse(jsonObject["created_at"]),
       createdBy: User.fromJSON(jsonObject["created_by"]),
       id: jsonObject["id"],
-      table: jsonObject["table"],
+      table: jsonObject["tablename"],
       updatedAt: DateTime.parse(jsonObject["updated_at"]),
       updatedBy: User.fromJSON(jsonObject["updated_by"]),
       userRole: UserRole.fromJSON(jsonObject["user_role"]),

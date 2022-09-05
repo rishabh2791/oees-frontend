@@ -23,6 +23,7 @@ class DowntimeList extends StatefulWidget {
 class _DowntimeListState extends State<DowntimeList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -107,6 +108,7 @@ class _DowntimeListState extends State<DowntimeList> {
                     ),
                   ),
                   child: ListView(
+                    controller: scrollController,
                     children: [
                       PaginatedDataTable(
                         arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,

@@ -13,6 +13,7 @@ import 'package:oees/domain/entity/shift.dart';
 import 'package:oees/domain/entity/sku.dart';
 import 'package:oees/domain/entity/task.dart';
 import 'package:oees/domain/entity/task_batch.dart';
+import 'package:oees/domain/entity/user_role_access.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/web_socket.dart';
 import 'package:oees/infrastructure/variables.dart';
@@ -69,6 +70,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   @override
   void initState() {
+    getUserAuthorizations();
     selectedLine = TextEditingController();
     getBackendData();
     timer = Timer.periodic(const Duration(seconds: 120), (timer) {
@@ -109,6 +111,21 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     } catch (e) {
       FLog.info(text: "Unable to Connect to Scale");
     }
+  }
+
+  Future<void> getUserAuthorizations() async {
+    userRolePermissions = [];
+    await appStore.userRoleAccessApp.list(currentUser.userRole.id).then((response) {
+      if (response.containsKey("error")) {
+      } else {
+        if (response["status"]) {
+          for (var item in response["payload"]) {
+            UserRoleAccess userRoleAccess = UserRoleAccess.fromJSON(item);
+            userRolePermissions.add(userRoleAccess);
+          }
+        }
+      }
+    });
   }
 
   Future<void> getBackendData() async {

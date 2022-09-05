@@ -19,6 +19,7 @@ class LineList extends StatefulWidget {
 class _LineListState extends State<LineList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -87,6 +88,7 @@ class _LineListState extends State<LineList> {
                     ),
                   ),
                   child: ListView(
+                    controller: scrollController,
                     children: [
                       PaginatedDataTable(
                         arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,

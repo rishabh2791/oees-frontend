@@ -21,6 +21,7 @@ class TaskList extends StatefulWidget {
 class _TaskListState extends State<TaskList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -110,6 +111,7 @@ class _TaskListState extends State<TaskList> {
                     ),
                   ),
                   child: ListView(
+                    controller: scrollController,
                     children: [
                       PaginatedDataTable(
                         arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,

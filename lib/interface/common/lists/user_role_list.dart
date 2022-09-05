@@ -18,6 +18,7 @@ class UserRoleList extends StatefulWidget {
 class _UserRoleListState extends State<UserRoleList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -65,6 +66,7 @@ class _UserRoleListState extends State<UserRoleList> {
                     ),
                   ),
                   child: ListView(
+                    controller: scrollController,
                     children: [
                       PaginatedDataTable(
                         arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,

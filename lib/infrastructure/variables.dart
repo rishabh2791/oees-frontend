@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:oees/domain/entity/user.dart';
+import 'package:oees/domain/entity/user_role_access.dart';
 import 'package:oees/interface/device/device_widget.dart';
 import 'package:oees/interface/device_data/device_data_widget.dart';
 import 'package:oees/interface/downtime/downtime_widget.dart';
@@ -32,11 +33,9 @@ String companyID = "";
 String factoryID = "";
 late DateTime accessTokenExpiryTime;
 String webSocketURL = "ws://10.19.0.70:8001/";
-Map<String, String> webSocketURLs = {
-  "8H": "ws://10.19.0.70:8001/",
-  "6H": "ws://10.19.0.70:8001/",
-};
+String baseURL = "http://10.19.0.70/backend/";
 bool updatingDowntime = false;
+List<UserRoleAccess> userRolePermissions = [];
 
 late NumberFormat numberFormat;
 

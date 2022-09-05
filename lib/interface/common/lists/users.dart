@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:oees/domain/entity/task_batch.dart';
+import 'package:oees/domain/entity/user.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
 
-class TaskBatchesList extends StatefulWidget {
-  final List<TaskBatch> taskBatches;
-  final Map<String, dynamic> batchUnits;
-  const TaskBatchesList({
+class UserList extends StatefulWidget {
+  final List<User> users;
+  const UserList({
     Key? key,
-    required this.taskBatches,
-    required this.batchUnits,
+    required this.users,
   }) : super(key: key);
 
   @override
-  State<TaskBatchesList> createState() => _TaskBatchesListState();
+  State<UserList> createState() => _UserListState();
 }
 
-class _TaskBatchesListState extends State<TaskBatchesList> {
+class _UserListState extends State<UserList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
   ScrollController scrollController = ScrollController();
@@ -36,23 +34,30 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
     switch (columnIndex) {
       case 0:
         if (ascending) {
-          widget.taskBatches.sort((a, b) => a.batchNumber.compareTo(b.batchNumber));
+          widget.users.sort((a, b) => a.username.compareTo(b.username));
         } else {
-          widget.taskBatches.sort((a, b) => b.batchNumber.compareTo(a.batchNumber));
+          widget.users.sort((a, b) => b.username.compareTo(a.username));
         }
         break;
       case 1:
         if (ascending) {
-          widget.taskBatches.sort((a, b) => a.startTime.compareTo(b.startTime));
+          widget.users.sort((a, b) => a.firstName.compareTo(b.firstName));
         } else {
-          widget.taskBatches.sort((a, b) => b.startTime.compareTo(a.startTime));
+          widget.users.sort((a, b) => b.firstName.compareTo(a.firstName));
         }
         break;
       case 2:
         if (ascending) {
-          widget.taskBatches.sort((a, b) => a.endTime.compareTo(b.endTime));
+          widget.users.sort((a, b) => a.lastName.compareTo(b.lastName));
         } else {
-          widget.taskBatches.sort((a, b) => b.endTime.compareTo(a.endTime));
+          widget.users.sort((a, b) => b.lastName.compareTo(a.lastName));
+        }
+        break;
+      case 3:
+        if (ascending) {
+          widget.users.sort((a, b) => a.userRole.description.compareTo(b.userRole.description));
+        } else {
+          widget.users.sort((a, b) => b.userRole.description.compareTo(a.userRole.description));
         }
         break;
       default:
@@ -65,8 +70,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
       builder: (context, sizeInfo) {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-          width: sizeInfo.screenSize.width,
-          height: widget.taskBatches.length <= 25 ? 156 + widget.taskBatches.length * 56 : 156 + 25 * 56,
+          height: widget.users.length <= 25 ? 156 + widget.users.length * 56 : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -94,7 +98,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                         columns: [
                           DataColumn(
                             label: Text(
-                              "Batch#",
+                              "Username",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -112,7 +116,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                           ),
                           DataColumn(
                             label: Text(
-                              "Batch Size (KG)",
+                              "First Name",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -130,7 +134,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                           ),
                           DataColumn(
                             label: Text(
-                              "Start Time",
+                              "Last Name",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -148,7 +152,7 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                           ),
                           DataColumn(
                             label: Text(
-                              "End Time",
+                              "User Role",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -163,21 +167,10 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                               });
                               onSortColum(columnIndex, ascending);
                             },
-                          ),
-                          DataColumn(
-                            label: Text(
-                              "Production",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
                           ),
                         ],
-                        source: _DataSource(context, widget.taskBatches, widget.batchUnits),
-                        rowsPerPage: widget.taskBatches.length > 25 ? 25 : widget.taskBatches.length,
+                        source: _DataSource(context, widget.users),
+                        rowsPerPage: widget.users.length > 25 ? 25 : widget.users.length,
                       )
                     ],
                   ),
@@ -200,27 +193,24 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
 }
 
 class _DataSource extends DataTableSource {
-  _DataSource(this.context, this._taskBatches, this._batchUnits) {
-    _taskBatches = _taskBatches;
-    _batchUnits = _batchUnits;
+  _DataSource(this.context, this._users) {
+    _users = _users;
   }
 
   final BuildContext context;
-  List<TaskBatch> _taskBatches;
-  Map<String, dynamic> _batchUnits;
-  TextEditingController ipAddressController = TextEditingController();
+  List<User> _users;
 
   @override
   DataRow getRow(int index) {
     assert(index >= 0);
-    final taskBatch = _taskBatches[index];
+    final user = _users[index];
 
     return DataRow.byIndex(
       index: index,
       cells: [
         DataCell(
           Text(
-            taskBatch.batchNumber,
+            user.username,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -230,7 +220,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            taskBatch.batchSize.toStringAsFixed(1).replaceAllMapped(reg, (Match match) => '${match[1]},'),
+            user.firstName,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -240,7 +230,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            taskBatch.startTime.toLocal().toString().toString().split(".")[0].substring(0, 16),
+            user.lastName,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -250,20 +240,7 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            taskBatch.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
-                ? taskBatch.endTime.toLocal().toString().split(".")[0].substring(0, 16)
-                : "",
-            style: TextStyle(
-              fontSize: 16.0,
-              color: isDarkTheme.value ? foregroundColor : backgroundColor,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-        ),
-        DataCell(
-          Text(
-            numberFormat.format(_batchUnits[taskBatch.id] ?? 0),
-            // _batchUnits[taskBatch.id].toStringAsFixed(0),
+            user.userRole.description,
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -276,7 +253,7 @@ class _DataSource extends DataTableSource {
   }
 
   @override
-  int get rowCount => _taskBatches.length;
+  int get rowCount => _users.length;
 
   @override
   bool get isRowCountApproximate => false;

@@ -18,6 +18,7 @@ class SKUList extends StatefulWidget {
 class _SKUListState extends State<SKUList> {
   bool sort = true, ascending = true;
   int sortingColumnIndex = 0;
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -100,6 +101,7 @@ class _SKUListState extends State<SKUList> {
                     ),
                   ),
                   child: ListView(
+                    controller: scrollController,
                     children: [
                       PaginatedDataTable(
                         arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
@@ -23,6 +24,33 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    init();
+    super.initState();
+  }
+
+  void init() async {
+    await Future.forEach([await parseStringToMap()], (element) => null).then((value) {});
+  }
+
+  Future<void> parseStringToMap({String assetsFileName = '.env'}) async {
+    final lines = await rootBundle.loadString(assetsFileName);
+    Map<String, String> environment = {};
+    for (String line in lines.split('\n')) {
+      line = line.trim();
+      if (line.contains('=') //Set Key Value Pairs on lines separated by =
+          &&
+          !line.startsWith(RegExp(r'=|#'))) {
+        //No need to add emty keys and remove comments
+        List<String> contents = line.split('=');
+        environment[contents[0]] = contents.sublist(1).join('=');
+      }
+    }
+    baseURL = environment["baseURL"] ?? "http://10.19.0.70/backend/";
+    webSocketURL = environment["WEBSOCKET_URL"] ?? "ws://10.19.0.70:8001/";
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
