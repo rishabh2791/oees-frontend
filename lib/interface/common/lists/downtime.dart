@@ -60,6 +60,37 @@ class _DowntimeListState extends State<DowntimeList> {
         break;
       case 3:
         if (ascending) {
+          widget.downtimes.sort((a, b) {
+            String typeA = a.controlled
+                ? "Controlled"
+                : a.planned
+                    ? "Planned"
+                    : "Unplanned";
+            String typeB = b.controlled
+                ? "Controlled"
+                : b.planned
+                    ? "Planned"
+                    : "Unplanned";
+            return typeA.compareTo(typeB);
+          });
+        } else {
+          widget.downtimes.sort((a, b) {
+            String typeA = a.controlled
+                ? "Controlled"
+                : a.planned
+                    ? "Planned"
+                    : "Unplanned";
+            String typeB = b.controlled
+                ? "Controlled"
+                : b.planned
+                    ? "Planned"
+                    : "Unplanned";
+            return typeB.compareTo(typeA);
+          });
+        }
+        break;
+      case 4:
+        if (ascending) {
           widget.downtimes.sort(((a, b) {
             int aDowntime = a.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds < 0
                 ? a.endTime.difference(a.startTime).inMinutes
@@ -157,6 +188,24 @@ class _DowntimeListState extends State<DowntimeList> {
                           DataColumn(
                             label: Text(
                               "End Time",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Type",
                               style: TextStyle(
                                 fontSize: 20.0,
                                 color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -296,6 +345,20 @@ class _DataSource extends DataTableSource {
             downtime.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
                 ? downtime.endTime.toLocal().toString().substring(0, 16)
                 : "",
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            downtime.controlled
+                ? "Controlled"
+                : downtime.planned
+                    ? "Planned"
+                    : "Unplanned",
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,

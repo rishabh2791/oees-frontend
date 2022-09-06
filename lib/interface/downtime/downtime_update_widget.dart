@@ -430,6 +430,16 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       map["updated_by_username"] = currentUser.username;
                       map["planned"] = map["planned"] == "1" ? true : false;
                       map["controlled"] = map["controlled"] == "1" ? true : false;
+                      DateTime startDate = DateTime.parse(map["start_date"]);
+                      String startTime = ((map["start_time"].split("(")[1]).split(")")[0]);
+                      map["start_time"] = DateTime(
+                            startDate.year,
+                            startDate.month,
+                            startDate.day,
+                            int.parse(startTime.split(":")[0].toString()),
+                            int.parse(startTime.split(":")[1].toString()),
+                          ).toUtc().toIso8601String().toString().split(".")[0] +
+                          "Z";
                       DateTime endDate = DateTime.parse(map["end_date"]);
                       String endTime = ((map["end_time"].split("(")[1]).split(")")[0]);
                       map["end_time"] = DateTime(
@@ -443,7 +453,6 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
 
                       map.remove("start_date");
                       map.remove("end_date");
-                      map.remove("start_time");
                       if (map["preset"] == "" && map["description"] == "") {
                         setState(() {
                           isError = true;

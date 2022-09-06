@@ -347,7 +347,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getDowntimes() async {
-    downtimeByLine = {};
     await Future.wait(lines.map(
       (line) async {
         Map<String, dynamic> conditions = {
@@ -386,6 +385,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         };
         await appStore.downtimeApp.list(conditions).then((response) {
           if (response.containsKey("status") && response["status"]) {
+            downtimeByLine = {};
             for (var item in response["payload"]) {
               Downtime downtime = Downtime.fromJSON(item);
               if (downtimeByLine.containsKey(line.id)) {
@@ -401,10 +401,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getTasks() async {
-    tasksByLine = {};
-    skusByLine = {};
-    skuSpeeds = {};
-
     Map<String, dynamic> conditions = {
       "AND": [
         {
@@ -441,6 +437,9 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     };
     await appStore.taskApp.list(conditions).then((response) {
       if (response.containsKey("status") && response["status"]) {
+        tasksByLine = {};
+        skusByLine = {};
+        skuSpeeds = {};
         for (var item in response["payload"]) {
           Task task = Task.fromJSON(item);
           if (!skuSpeeds.containsKey(task.line.id + "_" + task.job.sku.id)) {
@@ -490,7 +489,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getDevices() async {
-    devicesByLine = {};
     Map<String, dynamic> conditions = {
       "IN": {
         "Field": "line_id",
@@ -499,6 +497,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     };
     await appStore.deviceApp.list(conditions).then((response) {
       if (response.containsKey("status") && response["status"]) {
+        devicesByLine = {};
         for (var item in response["payload"]) {
           Device device = Device.fromJSON(item);
           if (devicesByLine.containsKey(device.line.id)) {
@@ -515,8 +514,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getDeviceData() async {
-    deviceDataByLine = {};
-    otherDeviceDataByLine = {};
     Map<String, dynamic> conditions = {
       "AND": [
         {
@@ -536,6 +533,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     };
     await appStore.deviceDataApp.list(conditions).then((response) {
       if (response.containsKey("status") && response["status"]) {
+        deviceDataByLine = {};
+        otherDeviceDataByLine = {};
         for (var item in response["payload"]) {
           DeviceData deviceData = DeviceData.fromJSON(item);
           if (deviceDataByLine.containsKey(deviceData.device.line.id)) {
@@ -587,12 +586,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           (lineTotalTime - lineTotalControlledDowntime);
       linePerformance[lineID] = min(1, lineTheoreticalProduction == 0 ? 0 : (lineActualProduction / lineTheoreticalProduction));
       lineQuality[lineID] = 1;
-      lineOEE[lineID] = lineTheoreticalProduction == 0
-          ? 0
-          : ((lineTotalTime - lineTotalControlledDowntime - lineTotalPlannedDowntime - lineTotalUnplannedDowntime) /
-                  (lineTotalTime - lineTotalControlledDowntime)) *
-              (lineActualProduction / lineTheoreticalProduction) *
-              1;
+      lineOEE[lineID] = lineTheoreticalProduction == 0 ? 0 : lineAvailability[lineID]! * linePerformance[lineID]! * 1;
     }
   }
 
@@ -722,7 +716,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     //   }
     // });
     var lineID = selectedLine.text;
-    unitsWeighed = 0;
     Map<String, dynamic> deviceCondition = {
       "AND": [
         {
@@ -739,9 +732,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         },
       ],
     };
-    setState(() {
-      isLoading = true;
-    });
     await appStore.deviceApp.list(deviceCondition).then((response) async {
       if (response.containsKey("status") && response["status"]) {
         Device device = Device.fromJSON(response["payload"][0]);
@@ -933,7 +923,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Future<void> getRunningBatchUnits(TaskBatch runningTaskBatch) async {
     var lineID = runningTaskBatch.task.line.id;
-    double counts = 0;
     Map<String, dynamic> deviceCondition = {
       "AND": [
         {
@@ -950,11 +939,9 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         },
       ],
     };
-    setState(() {
-      isLoading = true;
-    });
     await appStore.deviceApp.list(deviceCondition).then((response) async {
       if (response.containsKey("status") && response["status"]) {
+        double counts = 0;
         Device device = Device.fromJSON(response["payload"][0]);
         Map<String, dynamic> deviceDataCondition = {
           "AND": [
@@ -1038,7 +1025,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                         width: (MediaQuery.of(context).size.width - 500) / 2,
                                         child: Text(
                                           getRunningTaks(selectedLine.text).runtimeType == String
-                                              ? "No Job Running"
+                                              ? "SKU: "
                                               : "SKU: " +
                                                   getRunningTaks(selectedLine.text).code +
                                                   " - " +
@@ -1143,7 +1130,9 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                               "Expected Batch Units: " +
                                                   (runningTaskBatchByLine[selectedLine.text]!.batchSize *
                                                           1000 /
-                                                          getRunningTaks(selectedLine.text).expectedWeight)
+                                                          (getRunningTaks(selectedLine.text).runtimeType.toString() == "String"
+                                                              ? 1
+                                                              : getRunningTaks(selectedLine.text).expectedWeight))
                                                       .toStringAsFixed(0)
                                                       .replaceAllMapped(reg, (Match match) => '${match[1]},'),
                                               style: const TextStyle(
@@ -1158,7 +1147,9 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                 color: (runningTaskCount <=
                                                         runningTaskBatchByLine[selectedLine.text]!.batchSize *
                                                             1000 /
-                                                            getRunningTaks(selectedLine.text).expectedWeight)
+                                                            (getRunningTaks(selectedLine.text).runtimeType.toString() == "String"
+                                                                ? 1
+                                                                : getRunningTaks(selectedLine.text).expectedWeight))
                                                     ? Colors.green
                                                     : Colors.red,
                                                 fontSize: 14.0,
@@ -1218,7 +1209,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                     ),
                     child: Center(
                       child: Text(
-                        "No Data Found.",
+                        " ",
                         style: TextStyle(
                           color: isDarkTheme.value ? backgroundColor : foregroundColor,
                           fontSize: 24.0,
