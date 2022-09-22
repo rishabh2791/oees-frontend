@@ -36,6 +36,8 @@ String webSocketURL = "ws://10.19.0.70:8001/";
 String baseURL = "http://10.19.0.70/backend/";
 bool updatingDowntime = false;
 List<UserRoleAccess> userRolePermissions = [];
+String username = "";
+String password = "";
 
 late NumberFormat numberFormat;
 

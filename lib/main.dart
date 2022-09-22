@@ -24,6 +24,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool isLoading = true;
   @override
   void initState() {
     init();
@@ -31,7 +32,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void init() async {
-    await Future.forEach([await parseStringToMap()], (element) => null).then((value) {});
+    await Future.forEach([await parseStringToMap()], (element) => null)
+        .then((value) {});
   }
 
   Future<void> parseStringToMap({String assetsFileName = '.env'}) async {
@@ -49,6 +51,11 @@ class _MyAppState extends State<MyApp> {
     }
     baseURL = environment["baseURL"] ?? "http://10.19.0.70/backend/";
     webSocketURL = environment["WEBSOCKET_URL"] ?? "ws://10.19.0.70:8001/";
+    username = environment["USERNAME"] ?? "";
+    password = environment["PASSWORD"] ?? "";
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -61,7 +68,13 @@ class _MyAppState extends State<MyApp> {
         canvasColor: Colors.transparent,
       ),
       navigatorKey: navigationService.navigatorKey,
-      home: isLoggedIn ? const HomeWidget() : const LoginWidget(),
+      home: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : isLoggedIn
+              ? const HomeWidget()
+              : const LoginWidget(),
     );
   }
 }

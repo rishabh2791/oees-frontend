@@ -30,13 +30,24 @@ class _LoginWidgetState extends State<LoginWidget> {
 
   @override
   void initState() {
-    initForm();
+    checkCredentials();
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> checkCredentials() async {
+    initForm();
+    if (username.isNotEmpty && password.isNotEmpty) {
+      Map<String, dynamic> data = {
+        "username": username,
+        "password": password,
+      };
+      handlerLogin(data);
+    }
   }
 
   void initForm() {
@@ -66,6 +77,54 @@ class _LoginWidgetState extends State<LoginWidget> {
     });
   }
 
+  Future<void> handlerLogin(Map<String, dynamic> data) async {
+    setState(() {
+      isLoading = true;
+    });
+    await appStore.authApp.login(data).then(
+      (response) async {
+        errorMessage = "";
+        if (response.containsKey("status") && response["status"]) {
+          var payload = response["payload"];
+          await storage!.setString("username", payload["username"]);
+          await storage!.setString("access_token", payload["access_token"]);
+          await storage!.setString('refresh_token', payload["refresh_token"]);
+          await storage!.setInt("access_validity", payload["at_duration"]);
+          await storage!.setBool("logged_in", true);
+          isLoggedIn = true;
+          await Future.forEach([await refreshAccessToken()], (element) {}).then(
+            (value) async {
+              await appStore.userApp.getUser(payload["username"]).then((value) {
+                if (value.containsKey("status") && value["status"]) {
+                  User user = User.fromJSON(value["payload"]);
+                  currentUser = user;
+                  navigationService.pushReplacement(
+                    CupertinoPageRoute(
+                      builder: (BuildContext context) => const HomeWidget(),
+                    ),
+                  );
+                } else {
+                  setState(() {
+                    errorMessage = "User Profile Not Found.";
+                    isError = true;
+                  });
+                }
+              });
+            },
+          );
+        } else {
+          setState(() {
+            errorMessage = "Invalid Credentials";
+            isError = true;
+          });
+        }
+        setState(() {
+          isLoading = false;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -74,7 +133,8 @@ class _LoginWidgetState extends State<LoginWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -98,45 +158,7 @@ class _LoginWidgetState extends State<LoginWidget> {
                                   onPressed: () async {
                                     if (formFieldWidget.validate()) {
                                       map = formFieldWidget.toJSON();
-                                      await appStore.authApp.login(map).then(
-                                        (response) async {
-                                          errorMessage = "";
-                                          if (response.containsKey("status") && response["status"]) {
-                                            var payload = response["payload"];
-                                            await storage!.setString("username", payload["username"]);
-                                            await storage!.setString("access_token", payload["access_token"]);
-                                            await storage!.setString('refresh_token', payload["refresh_token"]);
-                                            await storage!.setInt("access_validity", payload["at_duration"]);
-                                            await storage!.setBool("logged_in", true);
-                                            isLoggedIn = true;
-                                            await Future.forEach([await refreshAccessToken()], (element) {}).then(
-                                              (value) async {
-                                                await appStore.userApp.getUser(payload["username"]).then((value) {
-                                                  if (value.containsKey("status") && value["status"]) {
-                                                    User user = User.fromJSON(value["payload"]);
-                                                    currentUser = user;
-                                                    navigationService.pushReplacement(
-                                                      CupertinoPageRoute(
-                                                        builder: (BuildContext context) => const HomeWidget(),
-                                                      ),
-                                                    );
-                                                  } else {
-                                                    setState(() {
-                                                      errorMessage = "User Profile Not Found.";
-                                                      isError = true;
-                                                    });
-                                                  }
-                                                });
-                                              },
-                                            );
-                                          } else {
-                                            setState(() {
-                                              errorMessage = "Invalid Credentials";
-                                              isError = true;
-                                            });
-                                          }
-                                        },
-                                      );
+                                      handlerLogin(map);
                                     } else {
                                       setState(() {
                                         isError = true;
