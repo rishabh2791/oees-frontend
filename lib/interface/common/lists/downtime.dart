@@ -16,7 +16,7 @@ class DowntimeList extends StatefulWidget {
     Key? key,
     required this.downtimes,
     required this.notifyParent,
-    this.action = "view",
+    this.action = "create",
   }) : super(key: key);
 
   @override
@@ -486,17 +486,35 @@ class _DataSource extends DataTableSource {
                   ),
                 ),
               )
-            : DataCell(
-                Text(
-                  " ",
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color:
-                        isDarkTheme.value ? foregroundColor : backgroundColor,
-                    fontWeight: FontWeight.bold,
+            : downtime.description == ""
+                ? DataCell(
+                    TextButton(
+                      onPressed: () {
+                        _displayTextInputDialog(context, downtime);
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                        child: Text(
+                          "Update",
+                          style: TextStyle(
+                            fontSize: 20.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : DataCell(
+                    Text(
+                      " ",
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
-              ),
       ],
     );
   }
