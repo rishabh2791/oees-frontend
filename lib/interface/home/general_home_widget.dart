@@ -803,6 +803,15 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Widget getOtherDeviceData() {
     List<Widget> thisWidgets = [];
+    thisWidgets.add(
+      const Text(
+        "Weights",
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 30.0,
+        ),
+      ),
+    );
     var lineID = selectedLine.text;
     otherDeviceDataByLine.forEach((key, value) {
       value.sort(((a, b) => b.createdAt.compareTo(a.createdAt)));
@@ -820,15 +829,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 weightsByLineID[lineID]!.add(value[i].value);
               }
             }
-            thisWidgets.add(
-              const Text(
-                "Weights",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 30.0,
-                ),
-              ),
-            );
             last = min(5, weightsByLineID[lineID]!.length);
             for (int i = 0; i < last; i++) {
               thisWidgets.add(Text(

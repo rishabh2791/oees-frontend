@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
-import 'package:oees/domain/entity/downtime_Preset.dart';
+import 'package:oees/domain/entity/downtime_preset.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/lists/downtime_preset_list.dart';
@@ -10,7 +10,8 @@ class DowntimePresetListWidget extends StatefulWidget {
   const DowntimePresetListWidget({Key? key}) : super(key: key);
 
   @override
-  State<DowntimePresetListWidget> createState() => _DowntimePresetListWidgetState();
+  State<DowntimePresetListWidget> createState() =>
+      _DowntimePresetListWidgetState();
 }
 
 class _DowntimePresetListWidgetState extends State<DowntimePresetListWidget> {
@@ -52,7 +53,8 @@ class _DowntimePresetListWidgetState extends State<DowntimePresetListWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -63,7 +65,9 @@ class _DowntimePresetListWidgetState extends State<DowntimePresetListWidget> {
                     Text(
                       "Create Preset Downtime",
                       style: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         fontSize: 40.0,
                         fontWeight: FontWeight.bold,
                       ),
@@ -76,7 +80,9 @@ class _DowntimePresetListWidgetState extends State<DowntimePresetListWidget> {
                         ? Text(
                             "No Presets Found",
                             style: TextStyle(
-                              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                              color: isDarkTheme.value
+                                  ? foregroundColor
+                                  : backgroundColor,
                               fontSize: 30.0,
                             ),
                           )

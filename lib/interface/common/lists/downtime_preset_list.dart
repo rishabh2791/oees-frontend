@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oees/domain/entity/downtime_Preset.dart';
+import 'package:oees/domain/entity/downtime_preset.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
@@ -48,9 +48,11 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
         break;
       case 2:
         if (ascending) {
-          widget.presets.sort((a, b) => a.defaultPeriod.compareTo(b.defaultPeriod));
+          widget.presets
+              .sort((a, b) => a.defaultPeriod.compareTo(b.defaultPeriod));
         } else {
-          widget.presets.sort((a, b) => b.defaultPeriod.compareTo(a.defaultPeriod));
+          widget.presets
+              .sort((a, b) => b.defaultPeriod.compareTo(a.defaultPeriod));
         }
         break;
       default:
@@ -64,18 +66,25 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.presets.length <= 25 ? 156 + widget.presets.length * 56 : 156 + 25 * 56,
+          height: widget.presets.length <= 25
+              ? 156 + widget.presets.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
                       caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -83,7 +92,9 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -95,7 +106,9 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                               "Downtime Type",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -113,7 +126,9 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                               "Description",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -131,7 +146,9 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                               "Default Time",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -146,7 +163,9 @@ class _DowntimePresetListState extends State<DowntimePresetList> {
                           ),
                         ],
                         source: _DataSource(context, widget.presets),
-                        rowsPerPage: widget.presets.length > 25 ? 25 : widget.presets.length,
+                        rowsPerPage: widget.presets.length > 25
+                            ? 25
+                            : widget.presets.length,
                       )
                     ],
                   ),
