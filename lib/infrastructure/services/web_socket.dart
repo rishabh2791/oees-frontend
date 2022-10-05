@@ -22,20 +22,22 @@ class WebSocketUtility extends ChangeNotifier {
 
   initCommunication(String url) async {
     try {
-      if (kIsWeb) {
-        webWebSocketChannel = WebSocketChannel.connect(Uri.parse(url));
-        _isConnected = true;
-        webWebSocketChannel.stream.listen((event) {
-          listenToWebSocket(event);
-        });
-      } else {
-        await WebSocket.connect(url).then((value) {
-          if (value.readyState == 1) {
-            _isConnected = true;
-            webSocketChannel = value;
-            value.listen(listenToWebSocket);
-          }
-        });
+      if (!_isConnected) {
+        if (kIsWeb) {
+          webWebSocketChannel = WebSocketChannel.connect(Uri.parse(url));
+          _isConnected = true;
+          webWebSocketChannel.stream.listen((event) {
+            listenToWebSocket(event);
+          });
+        } else {
+          await WebSocket.connect(url).then((value) {
+            if (value.readyState == 1) {
+              _isConnected = true;
+              webSocketChannel = value;
+              value.listen(listenToWebSocket);
+            }
+          });
+        }
       }
     } catch (ex) {
       FLog.debug(text: ex.toString());
@@ -57,10 +59,12 @@ class WebSocketUtility extends ChangeNotifier {
       if (kIsWeb) {
         if (_isConnected) {
           await webWebSocketChannel.sink.close();
+          _isConnected = false;
         }
       } else {
         if (_isConnected) {
           await webSocketChannel.close();
+          _isConnected = false;
         }
       }
       listeners = ObserverList<Function>();

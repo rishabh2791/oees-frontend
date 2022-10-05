@@ -27,7 +27,11 @@ class Downtime {
 
   @override
   String toString() {
-    return line.name + " - " + startTime.toLocal().toString() + " - " + endTime.toLocal().toString();
+    return line.name +
+        " - " +
+        startTime.toLocal().toString() +
+        " - " +
+        endTime.toLocal().toString();
   }
 
   Map<String, dynamic> toJSON() {

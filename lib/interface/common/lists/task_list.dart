@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/domain/entity/task.dart';
@@ -5,7 +7,9 @@ import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
+import 'package:oees/interface/common/super_widget/user_action_button.dart';
 import 'package:oees/interface/task/task_details_widget.dart';
+import 'package:oees/interface/task/task_update_widget.dart';
 
 class TaskList extends StatefulWidget {
   final List<Task> tasks;
@@ -58,9 +62,11 @@ class _TaskListState extends State<TaskList> {
         break;
       case 3:
         if (ascending) {
-          widget.tasks.sort((a, b) => a.job.sku.description.compareTo(b.job.sku.description));
+          widget.tasks.sort(
+              (a, b) => a.job.sku.description.compareTo(b.job.sku.description));
         } else {
-          widget.tasks.sort((a, b) => b.job.sku.description.compareTo(a.job.sku.description));
+          widget.tasks.sort(
+              (a, b) => b.job.sku.description.compareTo(a.job.sku.description));
         }
         break;
       case 4:
@@ -95,18 +101,25 @@ class _TaskListState extends State<TaskList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.tasks.length <= 25 ? 156 + widget.tasks.length * 56 : 156 + 25 * 56,
+          height: widget.tasks.length <= 25
+              ? 156 + widget.tasks.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
                       caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -114,7 +127,9 @@ class _TaskListState extends State<TaskList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -126,7 +141,9 @@ class _TaskListState extends State<TaskList> {
                               "Line",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -144,7 +161,9 @@ class _TaskListState extends State<TaskList> {
                               "Job Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -162,7 +181,9 @@ class _TaskListState extends State<TaskList> {
                               "Material Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -180,7 +201,9 @@ class _TaskListState extends State<TaskList> {
                               "Material Description",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -198,7 +221,9 @@ class _TaskListState extends State<TaskList> {
                               "Plan (Units)",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -216,7 +241,9 @@ class _TaskListState extends State<TaskList> {
                               "Start Time",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -234,7 +261,9 @@ class _TaskListState extends State<TaskList> {
                               "End Time",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -247,9 +276,51 @@ class _TaskListState extends State<TaskList> {
                               onSortColum(columnIndex, ascending);
                             },
                           ),
+                          getAccessCode("tasks", "create") == "1"
+                              ? DataColumn(
+                                  label: Text(
+                                    "Update",
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: isDarkTheme.value
+                                          ? foregroundColor
+                                          : backgroundColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  onSort: (columnIndex, ascending) {
+                                    setState(() {
+                                      sort = !sort;
+                                      sortingColumnIndex = columnIndex;
+                                    });
+                                    onSortColum(columnIndex, ascending);
+                                  },
+                                )
+                              : DataColumn(
+                                  label: Text(
+                                    " ",
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: isDarkTheme.value
+                                          ? foregroundColor
+                                          : backgroundColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  onSort: (columnIndex, ascending) {
+                                    setState(() {
+                                      sort = !sort;
+                                      sortingColumnIndex = columnIndex;
+                                    });
+                                    onSortColum(columnIndex, ascending);
+                                  },
+                                ),
                         ],
                         source: _DataSource(context, widget.tasks),
-                        rowsPerPage: widget.tasks.length > 25 ? 25 : widget.tasks.length,
+                        rowsPerPage:
+                            widget.tasks.length > 25 ? 25 : widget.tasks.length,
                       )
                     ],
                   ),
@@ -278,6 +349,29 @@ class _DataSource extends DataTableSource {
 
   final BuildContext context;
   List<Task> _tasks;
+
+  Future<void> _displayTextInputDialog(BuildContext context, Task task) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: 10.0,
+            sigmaY: 10.0,
+          ),
+          child: Container(
+            color: Colors.white.withOpacity(0.6),
+            child: Padding(
+              padding: const EdgeInsets.all(30.0),
+              child: TaskUpdateWidget(
+                task: task,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   DataRow getRow(int index) {
@@ -343,7 +437,9 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.job.plan.toStringAsFixed(0).replaceAllMapped(reg, (Match match) => '${match[1]},'),
+            task.job.plan
+                .toStringAsFixed(0)
+                .replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -353,7 +449,11 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds > 0
+            task.startTime
+                        .difference(
+                            DateTime.parse("1900-01-01T00:00:00Z").toLocal())
+                        .inSeconds >
+                    0
                 ? task.startTime.toLocal().toString().split(".")[0]
                 : "",
             style: TextStyle(
@@ -365,7 +465,11 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
+            task.endTime
+                        .difference(
+                            DateTime.parse("2099-12-31T23:59:59Z").toLocal())
+                        .inSeconds <
+                    0
                 ? task.endTime.toLocal().toString().split(".")[0]
                 : "",
             style: TextStyle(
@@ -375,6 +479,32 @@ class _DataSource extends DataTableSource {
             ),
           ),
         ),
+        getAccessCode("tasks", "create") == "1"
+            ? DataCell(
+                MaterialButton(
+                  onPressed: () {
+                    _displayTextInputDialog(context, task);
+                  },
+                  child: Text(
+                    "Update",
+                    style: TextStyle(
+                      color:
+                          isDarkTheme.value ? foregroundColor : backgroundColor,
+                    ),
+                  ),
+                ),
+              )
+            : DataCell(
+                Text(
+                  " ",
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color:
+                        isDarkTheme.value ? foregroundColor : backgroundColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
       ],
     );
   }

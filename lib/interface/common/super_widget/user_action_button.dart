@@ -76,19 +76,23 @@ class _UserActionButtonState extends State<UserActionButton> {
             message: widget.label,
             child: InkWell(
               onTap: () {
-                if (getAccessCode(widget.table, widget.accessType) == "1" || (currentUser.userRole.description == "Superuser")) {
+                if (getAccessCode(widget.table, widget.accessType) == "1" ||
+                    (currentUser.userRole.description == "Superuser")) {
                   widget.callback();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       duration: const Duration(milliseconds: 500),
-                      backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                      backgroundColor:
+                          isDarkTheme.value ? foregroundColor : backgroundColor,
                       content: Center(
                         child: Text(
                           "You are not Authorized.",
                           style: TextStyle(
                             fontSize: 30.0,
-                            color: isDarkTheme.value ? backgroundColor : foregroundColor,
+                            color: isDarkTheme.value
+                                ? backgroundColor
+                                : foregroundColor,
                           ),
                         ),
                       ),
@@ -100,13 +104,16 @@ class _UserActionButtonState extends State<UserActionButton> {
                 padding: const EdgeInsets.all(10.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                    color:
+                        isDarkTheme.value ? foregroundColor : backgroundColor,
                     borderRadius: const BorderRadius.all(
                       Radius.circular(10.0),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         spreadRadius: 1.0,
                         blurRadius: 10.0,
                       )
@@ -117,7 +124,9 @@ class _UserActionButtonState extends State<UserActionButton> {
                     children: [
                       Icon(
                         widget.icon,
-                        color: isDarkTheme.value ? backgroundColor : foregroundColor,
+                        color: isDarkTheme.value
+                            ? backgroundColor
+                            : foregroundColor,
                         size: 75.0,
                       ),
                       const VerticalDivider(
@@ -126,7 +135,9 @@ class _UserActionButtonState extends State<UserActionButton> {
                       Text(
                         widget.label,
                         style: TextStyle(
-                          color: isDarkTheme.value ? backgroundColor : foregroundColor,
+                          color: isDarkTheme.value
+                              ? backgroundColor
+                              : foregroundColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 24.0,
                         ),

@@ -144,140 +144,135 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getBackendData() async {
-    socketUtility.close();
-    await Future.wait([
-      getShifts(),
-      getLines(),
-    ]).then(
-      (value) async {
-        if (lines.isNotEmpty) {
-          lineSelectionFormField = DropdownFormField(
-            formField: "line_id",
-            controller: selectedLine,
-            dropdownItems: lines,
-            hint: "Select Line",
-          );
-          if (storage!.getString("line_id") != "") {
-            selectedLine.text = storage!.getString("line_id") ?? lines[0].id;
-          } else {
-            selectedLine.text = lines[0].id;
-          }
-          selectedLine.addListener(() async {
-            if (selectedLine.text.isNotEmpty &&
-                runningTaskBatchByLine.containsKey(selectedLine.text)) {
-              await Future.forEach([socketUtility.close()], (element) => null)
-                  .then((value) async {
-                await Future.forEach([
-                  await socketUtility.initCommunication(
-                      lineIP[selectedLine.text] ?? webSocketURL)
-                ], (element) => null).then((value) async {
-                  socketUtility.addListener(listenToWeighingScale);
-                });
-              });
-              await Future.wait([
-                getRunningBatchUnits(
-                    runningTaskBatchByLine[selectedLine.text]!),
-                getUnitsWeighed(runningTaskBatchByLine[selectedLine.text]!),
-              ]).then((value) {
-                setState(() {
-                  isLoading = false;
-                  isDataLoaded = true;
-                });
-              });
+    await Future.forEach([socketUtility.close()], (element) async {
+      await Future.wait([
+        getShifts(),
+        getLines(),
+      ]).then(
+        (value) async {
+          if (lines.isNotEmpty) {
+            lineSelectionFormField = DropdownFormField(
+              formField: "line_id",
+              controller: selectedLine,
+              dropdownItems: lines,
+              hint: "Select Line",
+            );
+            if (storage!.getString("line_id") != "") {
+              selectedLine.text = storage!.getString("line_id") ?? lines[0].id;
             } else {
-              setState(() {});
+              selectedLine.text = lines[0].id;
             }
-          });
-          await Future.forEach([
-            await socketUtility
-                .initCommunication(lineIP[selectedLine.text] ?? webSocketURL)
-          ], (element) => null).then((value) async {
-            socketUtility.addListener(listenToWeighingScale);
-          });
-          if (lines.isEmpty || shifts.isEmpty) {
-            setState(() {
-              isLoading = false;
-            });
-          } else {
-            await Future.forEach([
-              await getHours(),
-            ], (element) {})
-                .then((value) async {
-              await Future.wait([
-                getDowntimes(),
-                getTasks(),
-              ]);
-            }).then(
-              (value) async {
-                if (skuIDs.isEmpty) {
+            selectedLine.addListener(() async {
+              if (selectedLine.text.isNotEmpty &&
+                  runningTaskBatchByLine.containsKey(selectedLine.text)) {
+                await Future.wait([
+                  getRunningBatchUnits(
+                      runningTaskBatchByLine[selectedLine.text]!),
+                  getUnitsWeighed(runningTaskBatchByLine[selectedLine.text]!),
+                ]).then((value) {
                   setState(() {
                     isLoading = false;
+                    isDataLoaded = true;
                   });
-                } else {
-                  await Future.wait([
-                    getRunningTaskBatches(),
-                    getDevices(),
-                  ]).then(
-                    (value) async {
-                      if (skuSpeeds.isEmpty || deviceIDs.isEmpty) {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      } else {
-                        if (runningTaskBatchByLine
-                            .containsKey(selectedLine.text)) {
-                          await Future.wait([
-                            getDeviceData(),
-                            getRunningBatchUnits(
-                                runningTaskBatchByLine[selectedLine.text]!),
-                          ]).then((value) async {
-                            getRunEfficiency();
-                          }).then((value) async {
-                            await Future.forEach([
-                              getOtherDeviceData(),
-                              getChartsData(),
-                              await getUnitsWeighed(
+                });
+              } else {
+                setState(() {});
+              }
+            });
+            await Future.forEach([socketUtility.close()], (element) => null)
+                .then((value) async {
+              await Future.forEach([
+                await socketUtility.initCommunication(
+                    lineIP[selectedLine.text] ?? webSocketURL)
+              ], (element) => null).then((value) async {
+                socketUtility.addListener(listenToWeighingScale);
+              });
+            });
+            if (lines.isEmpty || shifts.isEmpty) {
+              setState(() {
+                isLoading = false;
+              });
+            } else {
+              await Future.forEach([
+                await getHours(),
+              ], (element) {})
+                  .then((value) async {
+                await Future.wait([
+                  getDowntimes(),
+                  getTasks(),
+                ]);
+              }).then(
+                (value) async {
+                  if (skuIDs.isEmpty) {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  } else {
+                    await Future.wait([
+                      getRunningTaskBatches(),
+                      getDevices(),
+                    ]).then(
+                      (value) async {
+                        if (skuSpeeds.isEmpty || deviceIDs.isEmpty) {
+                          setState(() {
+                            isLoading = false;
+                          });
+                        } else {
+                          if (runningTaskBatchByLine
+                              .containsKey(selectedLine.text)) {
+                            await Future.wait([
+                              getDeviceData(),
+                              getRunningBatchUnits(
                                   runningTaskBatchByLine[selectedLine.text]!),
-                            ], (element) => null).then((value) {
+                            ]).then((value) async {
+                              getRunEfficiency();
+                            }).then((value) async {
+                              await Future.forEach([
+                                getOtherDeviceData(),
+                                getChartsData(),
+                                await getUnitsWeighed(
+                                    runningTaskBatchByLine[selectedLine.text]!),
+                              ], (element) => null).then((value) {
+                                setState(() {
+                                  isDataLoaded = true;
+                                  isLoading = false;
+                                });
+                              });
+                            });
+                          } else {
+                            await Future.forEach(
+                              [
+                                await getDeviceData(),
+                              ],
+                              (element) {},
+                            ).then((value) async {
+                              getRunEfficiency();
+                            }).then((value) {
+                              socketUtility.initCommunication(
+                                  lineIP[selectedLine.text] ?? webSocketURL);
+                              socketUtility.addListener(listenToWeighingScale);
+                              getChartsData();
                               setState(() {
                                 isDataLoaded = true;
                                 isLoading = false;
                               });
                             });
-                          });
-                        } else {
-                          await Future.forEach(
-                            [
-                              await getDeviceData(),
-                            ],
-                            (element) {},
-                          ).then((value) async {
-                            getRunEfficiency();
-                          }).then((value) {
-                            socketUtility.initCommunication(
-                                lineIP[selectedLine.text] ?? webSocketURL);
-                            socketUtility.addListener(listenToWeighingScale);
-                            getChartsData();
-                            setState(() {
-                              isDataLoaded = true;
-                              isLoading = false;
-                            });
-                          });
+                          }
                         }
-                      }
-                    },
-                  );
-                }
-              },
-            );
+                      },
+                    );
+                  }
+                },
+              );
+            }
+          } else {
+            setState(() {
+              isLoading = false;
+            });
           }
-        } else {
-          setState(() {
-            isLoading = false;
-          });
-        }
-      },
-    );
+        },
+      );
+    });
   }
 
   Future<void> getShifts() async {
@@ -370,9 +365,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           }
           if (!lineIP.containsKey(line.id)) {
             if (line.ipAddress != "" || line.ipAddress.isNotEmpty) {
-              lineIP[line.id] = "ws://" + line.ipAddress + ":8001/";
-            } else {
-              lineIP[line.id] = webSocketURL;
+              lineIP[line.id] =
+                  "ws://" + line.ipAddress.replaceAll(" ", "") + ":8001/";
             }
           }
         }
@@ -819,7 +813,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         if (exists) {
           Device device = devicesByLine[lineID]!
               .firstWhere((element) => element.id == key.split("_")[1]);
-          if (device.deviceType.toUpperCase() == "WEIGHING SCALE") {
+          if (device.deviceType.toUpperCase() == "SCALE") {
             if (!weightsByLineID.containsKey(lineID)) {
               weightsByLineID[lineID] = [];
               for (int i = 0; i < last; i++) {
@@ -949,7 +943,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         await appStore.deviceDataApp.list(deviceDataCondition).then((value) {
           if (value.containsKey("status") &&
               value["status"] &&
-              device.deviceType.toUpperCase() == "WEIGHING SCALE") {
+              device.deviceType.toUpperCase() == "SCALE") {
             unitsWeighed = value["payload"].length;
           }
         });
@@ -1093,8 +1087,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         domainFn: (BadRateProduction downtime, _) => downtime.hour.toString(),
         measureFn: (BadRateProduction downtime, _) => downtime.production,
         data: badRateSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
       ),
       charts.Series<GoodRateProduction, String>(
         id: "Optimum Production",
@@ -1109,24 +1103,24 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         domainFn: (UnplannedDowntime downtime, _) => downtime.hour.toString(),
         measureFn: (UnplannedDowntime downtime, _) => downtime.downtime,
         data: unplannedDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
       ),
       charts.Series<PlannedDowntime, String>(
         id: "Planned Downtime",
         domainFn: (PlannedDowntime downtime, _) => downtime.hour.toString(),
         measureFn: (PlannedDowntime downtime, _) => downtime.downtime,
         data: plannedDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
       ),
       charts.Series<ControlledDowntime, String>(
         id: "Controlled Downtime",
         domainFn: (ControlledDowntime downtime, _) => downtime.hour.toString(),
         measureFn: (ControlledDowntime downtime, _) => downtime.downtime,
         data: controlledDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.black,
-        fillColorFn: (_, __) => charts.MaterialPalette.black,
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
       ),
     ];
   }
@@ -1259,7 +1253,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                           color: isDarkTheme.value
                                               ? foregroundColor
                                               : backgroundColor,
-                                          fontSize: 14.0,
+                                          fontSize: 25.0,
                                         ),
                                       ),
                                       SizedBox(
@@ -1285,7 +1279,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                             color: isDarkTheme.value
                                                 ? foregroundColor
                                                 : backgroundColor,
-                                            fontSize: 14.0,
+                                            fontSize: 25.0,
                                           ),
                                         ),
                                       ),
@@ -1305,7 +1299,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                             : "Availability: 0",
                                         style: const TextStyle(
                                           color: Colors.red,
-                                          fontSize: 14.0,
+                                          fontSize: 25.0,
                                         ),
                                       ),
                                       Text(
@@ -1318,7 +1312,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                             : "Performance: 0",
                                         style: const TextStyle(
                                           color: Colors.red,
-                                          fontSize: 14.0,
+                                          fontSize: 25.0,
                                         ),
                                       ),
                                       Text(
@@ -1330,7 +1324,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                             : "Quality: 0",
                                         style: const TextStyle(
                                           color: Colors.red,
-                                          fontSize: 14.0,
+                                          fontSize: 25.0,
                                         ),
                                       ),
                                       Text(
@@ -1341,7 +1335,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                             : "OEE: 0",
                                         style: const TextStyle(
                                           color: Colors.red,
-                                          fontSize: 14.0,
+                                          fontSize: 25.0,
                                         ),
                                       ),
                                     ],
@@ -1361,7 +1355,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                 color: isDarkTheme.value
                                                     ? foregroundColor
                                                     : backgroundColor,
-                                                fontSize: 14.0,
+                                                fontSize: 25.0,
                                               ),
                                             ),
                                             Text(
@@ -1379,7 +1373,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                 color: isDarkTheme.value
                                                     ? foregroundColor
                                                     : backgroundColor,
-                                                fontSize: 14.0,
+                                                fontSize: 25.0,
                                               ),
                                             ),
                                             getRunningTaks(selectedLine.text)
@@ -1397,7 +1391,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                       color: isDarkTheme.value
                                                           ? foregroundColor
                                                           : backgroundColor,
-                                                      fontSize: 14.0,
+                                                      fontSize: 25.0,
                                                     ),
                                                   ),
                                             getRunningTaks(selectedLine.text)
@@ -1415,7 +1409,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                       color: isDarkTheme.value
                                                           ? foregroundColor
                                                           : backgroundColor,
-                                                      fontSize: 14.0,
+                                                      fontSize: 25.0,
                                                     ),
                                                   ),
                                           ],
@@ -1451,7 +1445,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                               '${match[1]},'),
                                               style: const TextStyle(
                                                 color: Colors.red,
-                                                fontSize: 14.0,
+                                                fontSize: 25.0,
                                               ),
                                             ),
                                             Text(
@@ -1481,7 +1475,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                                     .expectedWeight))
                                                     ? Colors.green
                                                     : Colors.red,
-                                                fontSize: 14.0,
+                                                fontSize: 25.0,
                                               ),
                                             ),
                                             Text(
@@ -1492,7 +1486,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                                                 color: (unitsWeighed < 50)
                                                     ? Colors.red
                                                     : Colors.green,
-                                                fontSize: 14.0,
+                                                fontSize: 25.0,
                                               ),
                                             ),
                                           ],

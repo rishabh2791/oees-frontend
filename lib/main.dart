@@ -49,8 +49,8 @@ class _MyAppState extends State<MyApp> {
         environment[contents[0]] = contents.sublist(1).join('=');
       }
     }
-    baseURL = environment["baseURL"] ?? "http://10.19.0.70/backend/";
-    webSocketURL = environment["WEBSOCKET_URL"] ?? "ws://10.19.0.70:8001/";
+    baseURL = environment["baseURL"] ?? "http://10.19.0.71/backend/";
+    webSocketURL = environment["WEBSOCKET_URL"] ?? "ws://10.19.0.71:8001/";
     username = environment["USERNAME"] ?? "";
     password = environment["PASSWORD"] ?? "";
     setState(() {

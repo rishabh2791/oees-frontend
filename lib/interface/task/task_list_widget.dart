@@ -29,7 +29,9 @@ class _TaskListWidgetState extends State<TaskListWidget> {
   Map<String, dynamic> map = {};
   late BoolFormField onlyIncompleteFormField;
   late DropdownFormField lineFormField, shiftFormField;
-  late TextEditingController lineController, shiftController, onlyIncompleteController;
+  late TextEditingController lineController,
+      shiftController,
+      onlyIncompleteController;
   late FormFieldWidget formFieldWidget;
 
   @override
@@ -158,10 +160,14 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       filteredTasks.removeWhere((element) => element.complete);
     }
     if (lineController.text.isNotEmpty) {
-      filteredTasks = filteredTasks.where((element) => element.line.id == lineController.text).toList();
+      filteredTasks = filteredTasks
+          .where((element) => element.line.id == lineController.text)
+          .toList();
     }
     if (shiftController.text.isNotEmpty) {
-      filteredTasks = filteredTasks.where((element) => element.shift.id == shiftController.text).toList();
+      filteredTasks = filteredTasks
+          .where((element) => element.shift.id == shiftController.text)
+          .toList();
     }
     if (isFirstLoading) {
       isFirstLoading = false;
@@ -178,7 +184,8 @@ class _TaskListWidgetState extends State<TaskListWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -190,7 +197,9 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                       Text(
                         "Tasks",
                         style: TextStyle(
-                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                          color: isDarkTheme.value
+                              ? foregroundColor
+                              : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -199,14 +208,18 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                         color: Colors.transparent,
                         height: 50.0,
                       ),
-                      isDataLoaded ? formFieldWidget.render("horizontal") : Container(),
+                      isDataLoaded
+                          ? formFieldWidget.render("horizontal")
+                          : Container(),
                       isDataLoaded
                           ? filteredTasks.isNotEmpty
                               ? TaskList(tasks: filteredTasks)
                               : Text(
                                   "No Tasks Found",
                                   style: TextStyle(
-                                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                    color: isDarkTheme.value
+                                        ? foregroundColor
+                                        : backgroundColor,
                                     fontSize: 30.0,
                                     fontWeight: FontWeight.bold,
                                   ),
