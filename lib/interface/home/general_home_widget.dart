@@ -1090,14 +1090,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
         fillColorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
       ),
-      charts.Series<GoodRateProduction, String>(
-        id: "Optimum Production",
-        domainFn: (GoodRateProduction downtime, _) => downtime.hour.toString(),
-        measureFn: (GoodRateProduction downtime, _) => downtime.production,
-        data: goodRateSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-      ),
       charts.Series<UnplannedDowntime, String>(
         id: "Unplanned Downtime",
         domainFn: (UnplannedDowntime downtime, _) => downtime.hour.toString(),
@@ -1105,6 +1097,14 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         data: unplannedDowntimeSeries[selectedLine.text] ?? [],
         colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
         fillColorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+      ),
+      charts.Series<GoodRateProduction, String>(
+        id: "Optimum Production",
+        domainFn: (GoodRateProduction downtime, _) => downtime.hour.toString(),
+        measureFn: (GoodRateProduction downtime, _) => downtime.production,
+        data: goodRateSeries[selectedLine.text] ?? [],
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
       ),
       charts.Series<PlannedDowntime, String>(
         id: "Planned Downtime",

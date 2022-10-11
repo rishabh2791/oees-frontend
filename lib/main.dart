@@ -38,7 +38,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> parseStringToMap({String assetsFileName = '.env'}) async {
     final lines = await rootBundle.loadString(assetsFileName);
-    Map<String, String> environment = {};
+    Map<String, String> Environment = {};
     for (String line in lines.split('\n')) {
       line = line.trim();
       if (line.contains('=') //Set Key Value Pairs on lines separated by =
@@ -46,13 +46,13 @@ class _MyAppState extends State<MyApp> {
           !line.startsWith(RegExp(r'=|#'))) {
         //No need to add emty keys and remove comments
         List<String> contents = line.split('=');
-        environment[contents[0]] = contents.sublist(1).join('=');
+        Environment[contents[0]] = contents.sublist(1).join('=');
       }
     }
-    baseURL = environment["baseURL"] ?? "http://10.19.0.71/backend/";
-    webSocketURL = environment["WEBSOCKET_URL"] ?? "ws://10.19.0.71:8001/";
-    username = environment["USERNAME"] ?? "";
-    password = environment["PASSWORD"] ?? "";
+    baseURL = Environment["baseURL"] ?? "http://10.19.0.71/backend/";
+    webSocketURL = Environment["WEBSOCKET_URL"] ?? "ws://10.19.0.71:8001/";
+    username = Environment["USERNAME"] ?? "";
+    password = Environment["PASSWORD"] ?? "";
     setState(() {
       isLoading = false;
     });
