@@ -394,6 +394,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getDowntimes() async {
+    downtimeByLine = {};
     await Future.wait(lines.map(
       (line) async {
         Map<String, dynamic> conditions = {
@@ -452,7 +453,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         };
         await appStore.downtimeApp.list(conditions).then((response) {
           if (response.containsKey("status") && response["status"]) {
-            downtimeByLine = {};
             for (var item in response["payload"]) {
               Downtime downtime = Downtime.fromJSON(item);
               if (downtimeByLine.containsKey(line.id)) {
@@ -462,6 +462,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
               }
             }
           }
+          print(downtimeByLine);
         });
       },
     ));

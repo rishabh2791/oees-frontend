@@ -6,14 +6,16 @@ class JobRepo implements JobRepository {
   @override
   Future<Map<String, dynamic>> create(Map<String, dynamic> job) async {
     String url = "job/create/";
-    var response = await networkAPIProvider.post(url, job, TokenType.accessToken);
+    var response =
+        await networkAPIProvider.post(url, job, TokenType.accessToken);
     return response;
   }
 
   @override
   Future<Map<String, dynamic>> createMultiple(Map<String, dynamic> jobs) async {
     String url = "job/create/multi/";
-    var response = await networkAPIProvider.post(url, jobs, TokenType.accessToken);
+    var response =
+        await networkAPIProvider.post(url, jobs, TokenType.accessToken);
     return response;
   }
 
@@ -27,7 +29,8 @@ class JobRepo implements JobRepository {
   @override
   Future<Map<String, dynamic>> list(Map<String, dynamic> conditions) async {
     String url = "job/";
-    var response = await networkAPIProvider.post(url, conditions, TokenType.accessToken);
+    var response =
+        await networkAPIProvider.post(url, conditions, TokenType.accessToken);
     return response;
   }
 

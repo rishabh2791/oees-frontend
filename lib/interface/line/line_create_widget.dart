@@ -45,7 +45,9 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
   late FormFieldWidget formFieldWidget;
   late TextFormFielder codeFormWidget, nameFormWidget;
   late DropdownFormField speedTypeFormField;
-  late TextEditingController codeController, nameController, speedTypeController;
+  late TextEditingController codeController,
+      nameController,
+      speedTypeController;
   List<SpeedType> speedTypeOptions = [
     SpeedType(id: "1", type: "Low Speed"),
     SpeedType(id: "2", type: "High Speed"),
@@ -110,7 +112,8 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -122,7 +125,9 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
                       Text(
                         "Create Line",
                         style: TextStyle(
-                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                          color: isDarkTheme.value
+                              ? foregroundColor
+                              : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -140,18 +145,25 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
                               onPressed: () async {
                                 if (formFieldWidget.validate()) {
                                   map = formFieldWidget.toJSON();
-                                  map["created_by_username"] = currentUser.username;
-                                  map["updated_by_username"] = currentUser.username;
-                                  map["speed_type"] = int.parse(map["speed_type"]);
-                                  await appStore.lineApp.create(map).then((response) {
-                                    if (response.containsKey("status") && response["status"]) {
+                                  map["created_by_username"] =
+                                      currentUser.username;
+                                  map["updated_by_username"] =
+                                      currentUser.username;
+                                  map["speed_type"] =
+                                      int.parse(map["speed_type"]);
+                                  await appStore.lineApp
+                                      .create(map)
+                                      .then((response) {
+                                    if (response.containsKey("status") &&
+                                        response["status"]) {
                                       setState(() {
                                         errorMessage = "Line Created";
                                         isError = true;
                                       });
                                       navigationService.pushReplacement(
                                         CupertinoPageRoute(
-                                          builder: (BuildContext context) => const LineCreateWidget(),
+                                          builder: (BuildContext context) =>
+                                              const LineCreateWidget(),
                                         ),
                                       );
                                     } else {
@@ -177,7 +189,8 @@ class _LineCreateWidgetState extends State<LineCreateWidget> {
                               onPressed: () {
                                 navigationService.pushReplacement(
                                   CupertinoPageRoute(
-                                    builder: (BuildContext context) => const LineCreateWidget(),
+                                    builder: (BuildContext context) =>
+                                        const LineCreateWidget(),
                                   ),
                                 );
                               },
