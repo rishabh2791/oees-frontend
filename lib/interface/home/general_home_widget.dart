@@ -379,10 +379,12 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Future<void> getHours() async {
     shiftHours = {};
+
     DateTime hourStart = shiftStartTime;
     DateTime hourEnd = shiftStartTime.add(const Duration(hours: 1));
     int hour = 1;
-    while (hourStart.difference(shiftEndTime).inSeconds < 0) {
+    while (hourStart.difference(shiftEndTime).inSeconds < 0 &&
+        hourStart.difference(DateTime.now()).inSeconds < 0) {
       shiftHours[hour] = {
         "start_time": hourStart.toLocal().toString(),
         "end_time": hourEnd.toLocal().toString(),
@@ -462,7 +464,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
               }
             }
           }
-          print(downtimeByLine);
         });
       },
     ));
@@ -661,6 +662,11 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   getRunEfficiency() {
+    actualProduction = {};
+    theoreticalProduction = {};
+    controlledDowntimes = {};
+    plannedDowntimes = {};
+    unplannedDowntimes = {};
     for (var lineID in lineIDs) {
       double lineTotalTime = 0,
           lineTotalControlledDowntime = 0,
