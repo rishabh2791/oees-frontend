@@ -17,6 +17,7 @@ import 'package:oees/domain/entity/user_role_access.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/web_socket.dart';
 import 'package:oees/infrastructure/variables.dart';
+import 'package:oees/interface/common/form_fields/double_field.dart';
 import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/hourly_series/bad.dart';
 import 'package:oees/interface/common/hourly_series/controlled.dart';
@@ -197,12 +198,11 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 await getHours(),
               ], (element) {})
                   .then((value) async {
-                await Future.wait([
-                  getDowntimes(),
-                  getTasks(),
-                ]);
-              }).then(
-                (value) async {
+                await Future.forEach([
+                  await getDowntimes(),
+                  await getTasks(),
+                ], (element) {})
+                    .then((value) async {
                   if (skuIDs.isEmpty) {
                     setState(() {
                       isLoading = false;
@@ -262,8 +262,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                       },
                     );
                   }
-                },
-              );
+                });
+              });
             }
           } else {
             setState(() {
@@ -809,6 +809,9 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Widget getOtherDeviceData() {
+    double minWeight = getRunningTaks(selectedLine.text) is String
+        ? 0
+        : getRunningTaks(selectedLine.text).minWeight;
     List<Widget> thisWidgets = [];
     thisWidgets.add(
       const Text(
@@ -842,8 +845,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 weightsByLineID[selectedLine.text]![i].toStringAsFixed(1),
                 style: TextStyle(
                   fontSize: 30.0,
-                  color: weightsByLineID[selectedLine.text]![i] <
-                          getRunningTaks(selectedLine.text).minWeight
+                  color: weightsByLineID[selectedLine.text]![i] < minWeight
                       ? Colors.red
                       : Colors.green,
                 ),
@@ -868,10 +870,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                   value[i].value.toStringAsFixed(1),
                   style: TextStyle(
                     fontSize: 30.0,
-                    color: value[i].value <
-                            getRunningTaks(selectedLine.text).minWeight
-                        ? Colors.red
-                        : Colors.green,
+                    color:
+                        value[i].value < minWeight ? Colors.red : Colors.green,
                   ),
                 ));
               }
