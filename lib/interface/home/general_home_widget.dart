@@ -247,10 +247,14 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                               (element) {},
                             ).then((value) async {
                               getRunEfficiency();
-                            }).then((value) {
-                              socketUtility.initCommunication(
-                                  lineIP[selectedLine.text] ?? webSocketURL);
-                              socketUtility.addListener(listenToWeighingScale);
+                            }).then((value) async {
+                              await Future.forEach([
+                                await socketUtility.initCommunication(
+                                    lineIP[selectedLine.text] ?? webSocketURL)
+                              ], (element) => null).then((value) async {
+                                socketUtility
+                                    .addListener(listenToWeighingScale);
+                              });
                               getChartsData();
                               setState(() {
                                 isDataLoaded = true;
@@ -1091,7 +1095,14 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     return [
       charts.Series<BadRateProduction, String>(
         id: "Production Loss",
-        domainFn: (BadRateProduction downtime, _) => downtime.hour.toString(),
+        domainFn: (BadRateProduction downtime, _) =>
+            shiftHours[downtime.hour]!["start_time"]!
+                .split(" ")[1]
+                .substring(0, 5) +
+            "\n" +
+            shiftHours[downtime.hour]!["end_time"]!
+                .split(" ")[1]
+                .substring(0, 5),
         measureFn: (BadRateProduction downtime, _) => downtime.production,
         data: badRateSeries[selectedLine.text] ?? [],
         colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
@@ -1099,7 +1110,14 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       ),
       charts.Series<UnplannedDowntime, String>(
         id: "Unplanned Downtime",
-        domainFn: (UnplannedDowntime downtime, _) => downtime.hour.toString(),
+        domainFn: (UnplannedDowntime downtime, _) =>
+            shiftHours[downtime.hour]!["start_time"]!
+                .split(" ")[1]
+                .substring(0, 5) +
+            "\n" +
+            shiftHours[downtime.hour]!["end_time"]!
+                .split(" ")[1]
+                .substring(0, 5),
         measureFn: (UnplannedDowntime downtime, _) => downtime.downtime,
         data: unplannedDowntimeSeries[selectedLine.text] ?? [],
         colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
@@ -1107,7 +1125,14 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       ),
       charts.Series<GoodRateProduction, String>(
         id: "Optimum Production",
-        domainFn: (GoodRateProduction downtime, _) => downtime.hour.toString(),
+        domainFn: (GoodRateProduction downtime, _) =>
+            shiftHours[downtime.hour]!["start_time"]!
+                .split(" ")[1]
+                .substring(0, 5) +
+            "\n" +
+            shiftHours[downtime.hour]!["end_time"]!
+                .split(" ")[1]
+                .substring(0, 5),
         measureFn: (GoodRateProduction downtime, _) => downtime.production,
         data: goodRateSeries[selectedLine.text] ?? [],
         colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
@@ -1115,7 +1140,14 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       ),
       charts.Series<PlannedDowntime, String>(
         id: "Planned Downtime",
-        domainFn: (PlannedDowntime downtime, _) => downtime.hour.toString(),
+        domainFn: (PlannedDowntime downtime, _) =>
+            shiftHours[downtime.hour]!["start_time"]!
+                .split(" ")[1]
+                .substring(0, 5) +
+            "\n" +
+            shiftHours[downtime.hour]!["end_time"]!
+                .split(" ")[1]
+                .substring(0, 5),
         measureFn: (PlannedDowntime downtime, _) => downtime.downtime,
         data: plannedDowntimeSeries[selectedLine.text] ?? [],
         colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
@@ -1123,7 +1155,14 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       ),
       charts.Series<ControlledDowntime, String>(
         id: "Controlled Downtime",
-        domainFn: (ControlledDowntime downtime, _) => downtime.hour.toString(),
+        domainFn: (ControlledDowntime downtime, _) =>
+            shiftHours[downtime.hour]!["start_time"]!
+                .split(" ")[1]
+                .substring(0, 5) +
+            "\n" +
+            shiftHours[downtime.hour]!["end_time"]!
+                .split(" ")[1]
+                .substring(0, 5),
         measureFn: (ControlledDowntime downtime, _) => downtime.downtime,
         data: controlledDowntimeSeries[selectedLine.text] ?? [],
         colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,

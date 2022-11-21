@@ -102,7 +102,8 @@ class _TaskListWidgetState extends State<TaskListWidget> {
             Task task = Task.fromJSON(item);
             tasks.add(task);
           }
-          filteredTasks = tasks;
+          filteredTasks = List.from(tasks);
+          filteredTasks.removeWhere((element) => element.complete);
           filteredTasks.sort((a, b) => a.line.name.compareTo(b.line.name));
           setState(() {
             isDataLoaded = true;
@@ -145,6 +146,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       formField: "only_complete",
       selectedController: onlyIncompleteController,
     );
+    onlyIncompleteController.text = "1";
     formFieldWidget = FormFieldWidget(
       formFields: [
         lineFormField,
@@ -155,7 +157,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
   }
 
   void filterTasks() {
-    filteredTasks = tasks;
+    filteredTasks = List.from(tasks);
     if (onlyIncompleteController.text == "1") {
       filteredTasks.removeWhere((element) => element.complete);
     }

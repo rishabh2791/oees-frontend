@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/device.dart';
@@ -5,11 +8,13 @@ import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/domain/entity/task.dart';
 import 'package:oees/domain/entity/task_batch.dart';
 import 'package:oees/infrastructure/constants.dart';
+import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/lists/downtime.dart';
 import 'package:oees/interface/common/lists/task_batches.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
+import 'package:oees/interface/task/task_list_widget.dart';
 
 class TaskDetailsWidget extends StatefulWidget {
   final Task task;
@@ -23,6 +28,7 @@ class TaskDetailsWidget extends StatefulWidget {
 }
 
 class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
+  late Timer timer;
   bool isLoading = true;
   double taskUnits = 0;
   List<Downtime> downtimes = [];
@@ -34,6 +40,9 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
   @override
   void initState() {
     getTaskDetails();
+    timer = Timer.periodic(const Duration(seconds: 120), (timer) {
+      getTaskDetails();
+    });
     batchController = TextEditingController();
     batchSizeController = TextEditingController();
     super.initState();
@@ -54,6 +63,11 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
 
   void getTaskDetails() async {
     taskBatches = [];
+    if (!isLoading) {
+      setState(() {
+        isLoading = true;
+      });
+    }
     DateTime taskEndTime = DateTime.parse("1900-01-01T00:00:00Z").toLocal();
     DateTime taskStartTime = DateTime.parse("2099-12-31T23:59:59Z").toLocal();
     await appStore.taskBatchApp.list(widget.task.id).then((response) async {
@@ -278,15 +292,39 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Job Details",
-                          style: TextStyle(
-                            fontSize: 40.0,
-                            color: isDarkTheme.value
-                                ? foregroundColor
-                                : backgroundColor,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: InkWell(
+                                onTap: () {
+                                  navigationService.pushReplacement(
+                                    CupertinoPageRoute(
+                                      builder: (BuildContext context) =>
+                                          const TaskListWidget(),
+                                    ),
+                                  );
+                                },
+                                child: Icon(
+                                  Icons.arrow_back,
+                                  color: isDarkTheme.value
+                                      ? foregroundColor
+                                      : backgroundColor,
+                                  size: 40.0,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              "Task Details",
+                              style: TextStyle(
+                                fontSize: 40.0,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                         const Divider(
                           height: 20.0,

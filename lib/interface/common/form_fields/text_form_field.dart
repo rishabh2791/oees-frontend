@@ -8,7 +8,7 @@ class TextFormFielder implements FormFielder {
   final bool obscureText;
   final TextEditingController controller;
   final String label;
-  final bool disabled;
+  bool disabled;
   final bool isRequired;
   final int minSize;
   final int maxSize;
@@ -52,12 +52,20 @@ class TextFormFielder implements FormFielder {
       return false;
     }
     if (maxSize != 0 && controller.text.length > maxSize) {
-      errorMessage += "\u2022 " + label + " can not be more than " + maxSize.toString() + " long.\n";
+      errorMessage += "\u2022 " +
+          label +
+          " can not be more than " +
+          maxSize.toString() +
+          " long.\n";
       isValid = false;
       return false;
     }
     if (minSize != 0 && controller.text.length < minSize) {
-      errorMessage += "\u2022 " + label + " can not be less than " + minSize.toString() + " long.\n";
+      errorMessage += "\u2022 " +
+          label +
+          " can not be less than " +
+          minSize.toString() +
+          " long.\n";
       isValid = false;
       return false;
     }

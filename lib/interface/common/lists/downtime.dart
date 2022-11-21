@@ -30,6 +30,7 @@ class _DowntimeListState extends State<DowntimeList> {
 
   @override
   void initState() {
+    widget.downtimes.sort(((a, b) => a.description.compareTo(b.description)));
     super.initState();
   }
 

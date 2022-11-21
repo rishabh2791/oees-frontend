@@ -35,7 +35,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
   String downtimeErrorMsg = "";
   List<DowntimePreset> presetDowntimes = [];
   Map<String, dynamic> map = {};
-  int totalDowntime = 0;
+  int totalDowntime = 0, allocatedDowntime = 0;
   List<TextEditingController> descriptionControllers = [],
       startDateControllers = [],
       startTimeControllers = [],
@@ -79,7 +79,10 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
       now.minute,
       0,
     );
-    totalDowntime = widget.downtime.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inMinutes < 0
+    totalDowntime = widget.downtime.endTime
+                .difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal())
+                .inMinutes <
+            0
         ? downtimeEndTime.difference(downtimeStartTime).inMinutes
         : nowTime.difference(widget.downtime.startTime).inMinutes;
     initData();
@@ -115,12 +118,16 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
         .then((value) {
       initForm();
       descriptionControllers[0].text = widget.downtime.description;
-      startDateControllers[0].text = widget.downtime.startTime.toLocal().toString().substring(0, 10);
+      startDateControllers[0].text =
+          widget.downtime.startTime.toLocal().toString().substring(0, 10);
       var startTime = widget.downtime.startTime;
       var endTime = widget.downtime.endTime;
-      startTimeControllers[0].text = TimeOfDay(hour: startTime.hour, minute: startTime.minute).toString();
-      endDateControllers[0].text = widget.downtime.endTime.toLocal().toString().substring(0, 10);
-      endTimeControllers[0].text = TimeOfDay(hour: endTime.hour, minute: endTime.minute).toString();
+      startTimeControllers[0].text =
+          TimeOfDay(hour: startTime.hour, minute: startTime.minute).toString();
+      endDateControllers[0].text =
+          widget.downtime.endTime.toLocal().toString().substring(0, 10);
+      endTimeControllers[0].text =
+          TimeOfDay(hour: endTime.hour, minute: endTime.minute).toString();
       plannedControllers[0].text = widget.downtime.planned.toString();
       controlledControllers[0].text = widget.downtime.controlled.toString();
       setState(() {
@@ -162,6 +169,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
       minSize: 5,
       maxSize: 100,
       isRequired: true,
+      disabled: true,
     );
     descriptionFormFields.add(descriptionFormField);
     DateFormField startDateFormField = DateFormField(
@@ -210,36 +218,64 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
     if (mainFormWidgets.isNotEmpty) {
       int length = mainFormWidgets.length;
       startDateController.text = endDateControllers[length - 1].text;
-      endDateController.text = widget.downtime.endTime.toString().substring(0, 10);
+      endDateController.text =
+          widget.downtime.endTime.toString().substring(0, 10);
       startTimeController.text = endTimeControllers[length - 1].text;
-      endTimeController.text = TimeOfDay(hour: downtimeEndTime.hour, minute: downtimeEndTime.minute).toString();
+      endTimeController.text =
+          TimeOfDay(hour: downtimeEndTime.hour, minute: downtimeEndTime.minute)
+              .toString();
     }
     plannedFormFields.add(plannedFormField);
     presetController.addListener(() {
-      var presetDowntime = presetDowntimes.where((element) => element.id == presetController.text);
+      var presetDowntime = presetDowntimes
+          .where((element) => element.id == presetController.text);
+      if (presetDowntime.first.toString() == "Other") {
+        descriptionFormField.disabled = false;
+        controlledFormField.isEnabled = true;
+        plannedFormField.isEnabled = true;
+      } else {
+        descriptionFormField.disabled = true;
+        controlledFormField.isEnabled = false;
+        plannedFormField.isEnabled = false;
+      }
       if (presetDowntime.isNotEmpty) {
         period = presetDowntime.single.defaultPeriod;
         descriptionController.text = presetDowntime.single.description;
         if (mainFormWidgets.length > 1) {
-          startDateController.text = endDateControllers[endDateControllers.length - 2].text.toString().substring(0, 10);
-          startTimeController.text = endTimeControllers[endTimeControllers.length - 2].text.toString();
+          startDateController.text =
+              endDateControllers[endDateControllers.length - 2]
+                  .text
+                  .toString()
+                  .substring(0, 10);
+          startTimeController.text =
+              endTimeControllers[endTimeControllers.length - 2].text.toString();
         } else {
-          startDateController.text = widget.downtime.startTime.toString().substring(0, 10);
-          startTimeController.text = TimeOfDay(hour: widget.downtime.startTime.hour, minute: widget.downtime.startTime.minute).toString();
+          startDateController.text =
+              widget.downtime.startTime.toString().substring(0, 10);
+          startTimeController.text = TimeOfDay(
+                  hour: widget.downtime.startTime.hour,
+                  minute: widget.downtime.startTime.minute)
+              .toString();
         }
         if (period > 0) {
           var startDate = startDateController.text;
           var time = ((startTimeController.text).split("(")[1]).split(")")[0];
           int hours = int.parse(time.split(":")[0].toString());
           int minutes = int.parse(time.split(":")[1].toString());
-          var startDateTime = DateTime(int.parse(startDate.split("-")[0].toString()), int.parse(startDate.split("-")[1].toString()),
-              int.parse(startDate.split("-")[2].toString()), hours, minutes);
+          var startDateTime = DateTime(
+              int.parse(startDate.split("-")[0].toString()),
+              int.parse(startDate.split("-")[1].toString()),
+              int.parse(startDate.split("-")[2].toString()),
+              hours,
+              minutes);
           var endDateTime = startDateTime.add(Duration(seconds: period * 60));
           if (endDateTime.difference(widget.downtime.endTime).inSeconds > 0) {
             endDateTime = widget.downtime.endTime;
           }
           endDateController.text = endDateTime.toString().substring(0, 10);
-          endTimeController.text = TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute).toString();
+          endTimeController.text =
+              TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute)
+                  .toString();
           endTimeFormField.enabled = false;
           endDateFormField.enabled = false;
           controlledFormField.isEnabled = false;
@@ -250,23 +286,42 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
             ? changeState("0", "1", controlledController, plannedController)
             : presetDowntime.single.type == "Planned"
                 ? changeState("1", "0", controlledController, plannedController)
-                : changeState("0", "0", controlledController, plannedController);
+                : changeState(
+                    "0", "0", controlledController, plannedController);
       }
     });
     startTimeController.addListener(() {
-      if (period != 0 && period * 60 < widget.downtime.endTime.difference(widget.downtime.startTime).inSeconds) {
+      if (period != 0 &&
+          period * 60 <
+              widget.downtime.endTime
+                  .difference(widget.downtime.startTime)
+                  .inSeconds) {
         var startDate = startDateController.text;
         var time = ((startTimeController.text).split("(")[1]).split(")")[0];
         int hours = int.parse(time.split(":")[0].toString());
         int minutes = int.parse(time.split(":")[1].toString());
-        var startDateTime = DateTime(int.parse(startDate.split("-")[0].toString()), int.parse(startDate.split("-")[1].toString()),
-            int.parse(startDate.split("-")[2].toString()), hours, minutes);
+        var startDateTime = DateTime(
+            int.parse(startDate.split("-")[0].toString()),
+            int.parse(startDate.split("-")[1].toString()),
+            int.parse(startDate.split("-")[2].toString()),
+            hours,
+            minutes);
         var endDateTime = startDateTime.add(Duration(seconds: period * 60));
         endDateController.text = endDateTime.toString().substring(0, 10);
-        endTimeController.text = TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute).toString();
+        endTimeController.text =
+            TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute)
+                .toString();
         endTimeFormField.enabled = false;
         endDateFormField.enabled = false;
       }
+    });
+    descriptionController.addListener(() {
+      allocatedDowntime = getAllocatedDowntime();
+      setState(() {});
+    });
+    endTimeController.addListener(() {
+      allocatedDowntime = getAllocatedDowntime();
+      setState(() {});
     });
     FormFieldWidget mainFormWidget = FormFieldWidget(
       formFields: [
@@ -284,9 +339,42 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
     mainFormWidgets.add(mainFormWidget);
   }
 
-  void changeState(String planned, String controlled, TextEditingController controlledController, TextEditingController plannedController) {
+  void changeState(
+      String planned,
+      String controlled,
+      TextEditingController controlledController,
+      TextEditingController plannedController) {
     controlledController.text = controlled;
     plannedController.text = planned;
+  }
+
+  int getAllocatedDowntime() {
+    int totalAllocatedDowntime = 0;
+    var firstStartDate = startDateControllers[0].text;
+    var lastEndDate = (endDateControllers.last).text;
+    var firstStartTime = startTimeControllers[0].text;
+    var lastEndTime = (endTimeControllers.last).text;
+    var startTime = ((firstStartTime).split("(")[1]).split(")")[0];
+    int firstStartHours = int.parse(startTime.split(":")[0].toString());
+    int firstStartMinutes = int.parse(startTime.split(":")[1].toString());
+    var firstStartDateTime = DateTime(
+        int.parse(firstStartDate.split("-")[0].toString()),
+        int.parse(firstStartDate.split("-")[1].toString()),
+        int.parse(firstStartDate.split("-")[2].toString()),
+        firstStartHours,
+        firstStartMinutes);
+    var endTime = ((lastEndTime).split("(")[1]).split(")")[0];
+    int lastEndHours = int.parse(endTime.split(":")[0].toString());
+    int lastEndMinutes = int.parse(endTime.split(":")[1].toString());
+    var lastEndDateTime = DateTime(
+        int.parse(lastEndDate.split("-")[0].toString()),
+        int.parse(lastEndDate.split("-")[1].toString()),
+        int.parse(lastEndDate.split("-")[2].toString()),
+        lastEndHours,
+        lastEndMinutes);
+    totalAllocatedDowntime =
+        lastEndDateTime.difference(firstStartDateTime).inMinutes;
+    return totalAllocatedDowntime;
   }
 
   List<Widget> renderForm() {
@@ -303,13 +391,37 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
         color: Colors.transparent,
         height: 50.0,
       ),
-      Text(
-        "Total Downtime: " + totalDowntime.toString().replaceAllMapped(reg, (Match match) => '${match[1]},') + " min",
-        style: TextStyle(
-          color: isDarkTheme.value ? foregroundColor : backgroundColor,
-          fontSize: 40.0,
-          fontWeight: FontWeight.bold,
-        ),
+      Row(
+        children: [
+          Text(
+            "Total Downtime: " +
+                totalDowntime
+                    .toString()
+                    .replaceAllMapped(reg, (Match match) => '${match[1]},') +
+                " min",
+            style: TextStyle(
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontSize: 40.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const VerticalDivider(
+            width: 50,
+            color: Colors.transparent,
+          ),
+          Text(
+            "Total Allocated Downtime: " +
+                allocatedDowntime
+                    .toString()
+                    .replaceAllMapped(reg, (Match match) => '${match[1]},') +
+                " min",
+            style: TextStyle(
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontSize: 40.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
       const Divider(
         color: Colors.transparent,
@@ -337,8 +449,10 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                 var firstStartTime = startTimeControllers[0].text;
                 var lastEndTime = (endTimeControllers.last).text;
                 var startTime = ((firstStartTime).split("(")[1]).split(")")[0];
-                int firstStartHours = int.parse(startTime.split(":")[0].toString());
-                int firstStartMinutes = int.parse(startTime.split(":")[1].toString());
+                int firstStartHours =
+                    int.parse(startTime.split(":")[0].toString());
+                int firstStartMinutes =
+                    int.parse(startTime.split(":")[1].toString());
                 var firstStartDateTime = DateTime(
                     int.parse(firstStartDate.split("-")[0].toString()),
                     int.parse(firstStartDate.split("-")[1].toString()),
@@ -347,10 +461,16 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                     firstStartMinutes);
                 var endTime = ((lastEndTime).split("(")[1]).split(")")[0];
                 int lastEndHours = int.parse(endTime.split(":")[0].toString());
-                int lastEndMinutes = int.parse(endTime.split(":")[1].toString());
-                var lastEndDateTime = DateTime(int.parse(lastEndDate.split("-")[0].toString()), int.parse(lastEndDate.split("-")[1].toString()),
-                    int.parse(lastEndDate.split("-")[2].toString()), lastEndHours, lastEndMinutes);
-                totalAllocatedDowntime = lastEndDateTime.difference(firstStartDateTime).inMinutes;
+                int lastEndMinutes =
+                    int.parse(endTime.split(":")[1].toString());
+                var lastEndDateTime = DateTime(
+                    int.parse(lastEndDate.split("-")[0].toString()),
+                    int.parse(lastEndDate.split("-")[1].toString()),
+                    int.parse(lastEndDate.split("-")[2].toString()),
+                    lastEndHours,
+                    lastEndMinutes);
+                totalAllocatedDowntime =
+                    lastEndDateTime.difference(firstStartDateTime).inMinutes;
                 if (totalDowntime != totalAllocatedDowntime) {
                   setState(() {
                     isDowntimeError = true;
@@ -358,17 +478,23 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                   });
                   widget.notifyParent();
                 }
-                if (downtimeStartTime.difference(firstStartDateTime).inSeconds != 0) {
+                if (downtimeStartTime
+                        .difference(firstStartDateTime)
+                        .inSeconds !=
+                    0) {
                   setState(() {
                     isDowntimeError = true;
-                    downtimeErrorMsg = "First Downtime Start Time does not match with Downtime Start Time.";
+                    downtimeErrorMsg =
+                        "First Downtime Start Time does not match with Downtime Start Time.";
                   });
                   widget.notifyParent();
                 }
-                if (downtimeEndTime.difference(lastEndDateTime).inSeconds != 0) {
+                if (downtimeEndTime.difference(lastEndDateTime).inSeconds !=
+                    0) {
                   setState(() {
                     isDowntimeError = true;
-                    downtimeErrorMsg = "Last Downtime End Time does not match with Downtime End Time.";
+                    downtimeErrorMsg =
+                        "Last Downtime End Time does not match with Downtime End Time.";
                   });
                   widget.notifyParent();
                 }
@@ -377,16 +503,20 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                   int lastIndex = mainFormWidgets.length - 1;
                   int creationErrors = 0;
                   var updateFormWidget = mainFormWidgets[lastIndex];
-                  var createFormWidgets = mainFormWidgets.getRange(0, lastIndex);
-                  await Future.forEach(createFormWidgets, (FormFieldWidget downtimeForm) async {
+                  var createFormWidgets =
+                      mainFormWidgets.getRange(0, lastIndex);
+                  await Future.forEach(createFormWidgets,
+                      (FormFieldWidget downtimeForm) async {
                     if (downtimeForm.validate()) {
                       map = downtimeForm.toJSON();
                       map["created_by_username"] = currentUser.username;
                       map["updated_by_username"] = currentUser.username;
                       map["planned"] = map["planned"] == "1" ? true : false;
-                      map["controlled"] = map["controlled"] == "1" ? true : false;
+                      map["controlled"] =
+                          map["controlled"] == "1" ? true : false;
                       DateTime startDate = DateTime.parse(map["start_date"]);
-                      String startTime = ((map["start_time"].split("(")[1]).split(")")[0]);
+                      String startTime =
+                          ((map["start_time"].split("(")[1]).split(")")[0]);
                       map["start_time"] = DateTime(
                             startDate.year,
                             startDate.month,
@@ -397,14 +527,19 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                           "Z";
                       if (map.containsKey("end_date")) {
                         DateTime endDate = DateTime.parse(map["end_date"]);
-                        String endTime = ((map["end_time"].split("(")[1]).split(")")[0]);
+                        String endTime =
+                            ((map["end_time"].split("(")[1]).split(")")[0]);
                         map["end_time"] = DateTime(
                               endDate.year,
                               endDate.month,
                               endDate.day,
                               int.parse(endTime.split(":")[0].toString()),
                               int.parse(endTime.split(":")[1].toString()),
-                            ).toUtc().toIso8601String().toString().split(".")[0] +
+                            )
+                                .toUtc()
+                                .toIso8601String()
+                                .toString()
+                                .split(".")[0] +
                             "Z";
                       }
 
@@ -412,7 +547,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       map.remove("start_date");
                       map.remove("end_date");
                       await appStore.downtimeApp.create(map).then((response) {
-                        if (response.containsKey("status") && response["status"]) {
+                        if (response.containsKey("status") &&
+                            response["status"]) {
                         } else {
                           creationErrors += 1;
                         }
@@ -429,9 +565,11 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       var map = updateFormWidget.toJSON();
                       map["updated_by_username"] = currentUser.username;
                       map["planned"] = map["planned"] == "1" ? true : false;
-                      map["controlled"] = map["controlled"] == "1" ? true : false;
+                      map["controlled"] =
+                          map["controlled"] == "1" ? true : false;
                       DateTime startDate = DateTime.parse(map["start_date"]);
-                      String startTime = ((map["start_time"].split("(")[1]).split(")")[0]);
+                      String startTime =
+                          ((map["start_time"].split("(")[1]).split(")")[0]);
                       map["start_time"] = DateTime(
                             startDate.year,
                             startDate.month,
@@ -441,7 +579,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                           ).toUtc().toIso8601String().toString().split(".")[0] +
                           "Z";
                       DateTime endDate = DateTime.parse(map["end_date"]);
-                      String endTime = ((map["end_time"].split("(")[1]).split(")")[0]);
+                      String endTime =
+                          ((map["end_time"].split("(")[1]).split(")")[0]);
                       map["end_time"] = DateTime(
                             endDate.year,
                             endDate.month,
@@ -460,11 +599,15 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                         });
                         widget.notifyParent();
                       } else {
-                        await appStore.downtimeApp.update(widget.downtime.id, map).then((response) async {
-                          if (response.containsKey("status") && response["status"]) {
+                        await appStore.downtimeApp
+                            .update(widget.downtime.id, map)
+                            .then((response) async {
+                          if (response.containsKey("status") &&
+                              response["status"]) {
                             setState(() {
                               updatingDowntime = true;
-                              widget.downtime.description = descriptionControllers.last.text;
+                              widget.downtime.description =
+                                  descriptionControllers.last.text;
                             });
                             widget.notifyParent();
                             setState(() {
@@ -491,7 +634,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                     } else {
                       setState(() {
                         isError = true;
-                        errorMessage = "Downtime Data Contains error, please correct and try again.";
+                        errorMessage =
+                            "Downtime Data Contains error, please correct and try again.";
                       });
                       widget.notifyParent();
                     }
@@ -542,9 +686,14 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                 var lastEndTime = (endTimeControllers.last).text;
                 var endTime = ((lastEndTime).split("(")[1]).split(")")[0];
                 int lastEndHours = int.parse(endTime.split(":")[0].toString());
-                int lastEndMinutes = int.parse(endTime.split(":")[1].toString());
-                var lastEndDateTime = DateTime(int.parse(lastEndDate.split("-")[0].toString()), int.parse(lastEndDate.split("-")[1].toString()),
-                    int.parse(lastEndDate.split("-")[2].toString()), lastEndHours, lastEndMinutes);
+                int lastEndMinutes =
+                    int.parse(endTime.split(":")[1].toString());
+                var lastEndDateTime = DateTime(
+                    int.parse(lastEndDate.split("-")[0].toString()),
+                    int.parse(lastEndDate.split("-")[1].toString()),
+                    int.parse(lastEndDate.split("-")[2].toString()),
+                    lastEndHours,
+                    lastEndMinutes);
                 if (lastEndDateTime != downtimeEndTime) {
                   initForm();
                 }
@@ -576,12 +725,14 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
             : Scaffold(
-                backgroundColor: isDarkTheme.value ? backgroundColor : foregroundColor,
+                backgroundColor:
+                    isDarkTheme.value ? backgroundColor : foregroundColor,
                 body: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -624,10 +775,12 @@ class DowntimeErrorDisplayWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<DowntimeErrorDisplayWidget> createState() => _DowntimeErrorDisplayWidgetState();
+  State<DowntimeErrorDisplayWidget> createState() =>
+      _DowntimeErrorDisplayWidgetState();
 }
 
-class _DowntimeErrorDisplayWidgetState extends State<DowntimeErrorDisplayWidget> {
+class _DowntimeErrorDisplayWidgetState
+    extends State<DowntimeErrorDisplayWidget> {
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
