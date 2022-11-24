@@ -13,6 +13,7 @@ import 'package:oees/interface/common/ui_elements/check_button.dart';
 import 'package:oees/interface/common/ui_elements/clear_button.dart';
 import 'package:oees/interface/home/home_widget.dart';
 import 'package:oees/interface/middlewares/refresh_token.dart';
+import 'package:oees/interface/task/task_list_widget.dart';
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({Key? key}) : super(key: key);
@@ -98,11 +99,20 @@ class _LoginWidgetState extends State<LoginWidget> {
                 if (value.containsKey("status") && value["status"]) {
                   User user = User.fromJSON(value["payload"]);
                   currentUser = user;
-                  navigationService.pushReplacement(
-                    CupertinoPageRoute(
-                      builder: (BuildContext context) => const HomeWidget(),
-                    ),
-                  );
+                  if (currentUser.userRole.description == "Line Manager") {
+                    navigationService.pushReplacement(
+                      CupertinoPageRoute(
+                        builder: (BuildContext context) =>
+                            const TaskListWidget(),
+                      ),
+                    );
+                  } else {
+                    navigationService.pushReplacement(
+                      CupertinoPageRoute(
+                        builder: (BuildContext context) => const HomeWidget(),
+                      ),
+                    );
+                  }
                 } else {
                   setState(() {
                     errorMessage = "User Profile Not Found.";

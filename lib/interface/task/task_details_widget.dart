@@ -217,7 +217,13 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
           Downtime downtime = Downtime.fromJSON(item);
-          downtimes.add(downtime);
+          if (currentUser.userRole.description == "Line Manager") {
+            if (downtime.description == "" || downtime.description.isEmpty) {
+              downtimes.add(downtime);
+            }
+          } else {
+            downtimes.add(downtime);
+          }
         }
       }
     });
@@ -612,10 +618,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                 return AlertDialog(
                                                   title: const Text(
                                                       'Enter Batch Details'),
-                                                  content: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
+                                                  content: Wrap(
                                                     children: [
                                                       TextField(
                                                         onChanged: (value) {},
@@ -988,37 +991,9 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                           height: 50.0,
                           color: Colors.transparent,
                         ),
-                        Row(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              children: [
-                                taskBatches.isNotEmpty
-                                    ? Text(
-                                        "Batches Run",
-                                        style: TextStyle(
-                                          fontSize: 40.0,
-                                          color: isDarkTheme.value
-                                              ? foregroundColor
-                                              : backgroundColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : Container(),
-                                taskBatches.isNotEmpty
-                                    ? SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width /
-                                                    2 -
-                                                20,
-                                        child: TaskBatchesList(
-                                          taskBatches: taskBatches,
-                                          batchUnits: taskBatchDeviceData,
-                                        ),
-                                      )
-                                    : Container(),
-                              ],
-                            ),
                             Column(
                               children: [
                                 downtimes.isNotEmpty
@@ -1035,13 +1010,33 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                     : Container(),
                                 downtimes.isNotEmpty
                                     ? SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width /
-                                                    2 -
-                                                20,
                                         child: DowntimeList(
                                           downtimes: downtimes,
                                           notifyParent: refresh,
+                                        ),
+                                      )
+                                    : Container(),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                taskBatches.isNotEmpty
+                                    ? Text(
+                                        "Batches Run",
+                                        style: TextStyle(
+                                          fontSize: 40.0,
+                                          color: isDarkTheme.value
+                                              ? foregroundColor
+                                              : backgroundColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : Container(),
+                                taskBatches.isNotEmpty
+                                    ? SizedBox(
+                                        child: TaskBatchesList(
+                                          taskBatches: taskBatches,
+                                          batchUnits: taskBatchDeviceData,
                                         ),
                                       )
                                     : Container(),

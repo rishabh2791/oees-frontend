@@ -5,6 +5,7 @@ import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/domain/entity/downtime_preset.dart';
 import 'package:oees/infrastructure/constants.dart';
+import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/form_fields/bool_form_field.dart';
 import 'package:oees/interface/common/form_fields/date_form_field.dart';
@@ -379,19 +380,36 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
 
   List<Widget> renderForm() {
     List<Widget> widgets = [
-      Text(
-        "Update Downtime",
-        style: TextStyle(
-          color: isDarkTheme.value ? foregroundColor : backgroundColor,
-          fontSize: 40.0,
-          fontWeight: FontWeight.bold,
-        ),
+      Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Icon(
+                Icons.arrow_back,
+                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                size: 40.0,
+              ),
+            ),
+          ),
+          Text(
+            "Update Downtime",
+            style: TextStyle(
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontSize: 40.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
       const Divider(
         color: Colors.transparent,
         height: 50.0,
       ),
-      Row(
+      Wrap(
         children: [
           Text(
             "Total Downtime: " +

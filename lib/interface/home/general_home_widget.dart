@@ -765,8 +765,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           totalPeriodTime =
               totalPeriodTime - (endTime.difference(DateTime.now()).inSeconds);
         }
-        if (!(task.endTime.difference(startTime).inSeconds < 0) ||
-            !(task.startTime.difference(endTime).inSeconds > 0)) {
+        if (!((task.endTime.difference(startTime).inSeconds < 0) ||
+            (task.startTime.difference(endTime).inSeconds > 0))) {
           int totalControlledDowntime =
               getTotalDowntime(startTime, endTime, lineID, "Controlled");
           int totalPlannedDowntime =

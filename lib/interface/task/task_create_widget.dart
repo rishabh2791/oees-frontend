@@ -238,13 +238,7 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                         errorMessage = "Tasks Created";
                                         isError = true;
                                       });
-                                      fileFormField.clear();
-                                      navigationService.pushReplacement(
-                                        CupertinoPageRoute(
-                                          builder: (BuildContext context) =>
-                                              const TaskCreateWidget(),
-                                        ),
-                                      );
+                                      formFieldWidget.clear();
                                     } else {
                                       if (response.containsKey("status")) {
                                         String message = response["message"]
