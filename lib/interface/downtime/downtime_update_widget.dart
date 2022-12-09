@@ -5,7 +5,6 @@ import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/domain/entity/downtime_preset.dart';
 import 'package:oees/infrastructure/constants.dart';
-import 'package:oees/infrastructure/services/navigation_service.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/form_fields/bool_form_field.dart';
 import 'package:oees/interface/common/form_fields/date_form_field.dart';

@@ -17,7 +17,6 @@ import 'package:oees/domain/entity/user_role_access.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/services/web_socket.dart';
 import 'package:oees/infrastructure/variables.dart';
-import 'package:oees/interface/common/form_fields/double_field.dart';
 import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/hourly_series/bad.dart';
 import 'package:oees/interface/common/hourly_series/controlled.dart';
@@ -383,7 +382,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Future<void> getHours() async {
     shiftHours = {};
-
     DateTime hourStart = shiftStartTime;
     DateTime hourEnd = shiftStartTime.add(const Duration(hours: 1));
     int hour = 1;
