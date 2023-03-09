@@ -31,13 +31,18 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
   late Map<String, dynamic> map;
   late FormFieldWidget formFieldWidget;
   late TextFormFielder codeFormWidget, descriptionFormWidget;
-  late IntFormFielder caseLotFormWidget, lowRunSpeedFormWidget, highRunSpeedFormWidget;
-  late DoubleFormFielder minWeightFormWidget, expectedWeightFormWidget;
+  late IntFormFielder caseLotFormWidget,
+      lowRunSpeedFormWidget,
+      highRunSpeedFormWidget;
+  late DoubleFormFielder minWeightFormWidget,
+      maxWeightFormWidget,
+      expectedWeightFormWidget;
   late FilePickerResult? file;
   late TextEditingController codeController,
       descriptionController,
       caseLotController,
       minWeightController,
+      maxWeightController,
       expectedWeightController,
       lowRunSpeedController,
       highRunSpeedController,
@@ -70,6 +75,7 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
     descriptionController = TextEditingController();
     caseLotController = TextEditingController();
     minWeightController = TextEditingController();
+    maxWeightController = TextEditingController();
     expectedWeightController = TextEditingController();
     lowRunSpeedController = TextEditingController();
     highRunSpeedController = TextEditingController();
@@ -98,6 +104,13 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
       controller: minWeightController,
       formField: "min_weight",
       label: "Minimum Weight",
+      isRequired: true,
+      min: 1,
+    );
+    maxWeightFormWidget = DoubleFormFielder(
+      controller: maxWeightController,
+      formField: "max_weight",
+      label: "Maximum Weight",
       isRequired: true,
       min: 1,
     );
@@ -146,7 +159,8 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -158,7 +172,9 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                       Text(
                         "Create SKU",
                         style: TextStyle(
-                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                          color: isDarkTheme.value
+                              ? foregroundColor
+                              : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -176,17 +192,23 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                               onPressed: () async {
                                 if (formFieldWidget.validate()) {
                                   map = formFieldWidget.toJSON();
-                                  map["created_by_username"] = currentUser.username;
-                                  map["updated_by_username"] = currentUser.username;
-                                  await appStore.skuApp.create(map).then((response) {
-                                    if (response.containsKey("status") && response["status"]) {
+                                  map["created_by_username"] =
+                                      currentUser.username;
+                                  map["updated_by_username"] =
+                                      currentUser.username;
+                                  await appStore.skuApp
+                                      .create(map)
+                                      .then((response) {
+                                    if (response.containsKey("status") &&
+                                        response["status"]) {
                                       setState(() {
                                         errorMessage = "SKU Created";
                                         isError = true;
                                       });
                                       navigationService.pushReplacement(
                                         CupertinoPageRoute(
-                                          builder: (BuildContext context) => const SKUCreateWidget(),
+                                          builder: (BuildContext context) =>
+                                              const SKUCreateWidget(),
                                         ),
                                       );
                                     } else {
@@ -212,7 +234,8 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                               onPressed: () {
                                 navigationService.pushReplacement(
                                   CupertinoPageRoute(
-                                    builder: (BuildContext context) => const SKUCreateWidget(),
+                                    builder: (BuildContext context) =>
+                                        const SKUCreateWidget(),
                                   ),
                                 );
                               },
@@ -231,7 +254,9 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                       Text(
                         "Create Multiple SKU",
                         style: TextStyle(
-                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                          color: isDarkTheme.value
+                              ? foregroundColor
+                              : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -261,10 +286,14 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                                   // ignore: prefer_typing_uninitialized_variables
                                   var csvData;
                                   if (foundation.kIsWeb) {
-                                    final bytes = utf8.decode(file!.files.single.bytes!);
-                                    csvData = const CsvToListConverter().convert(bytes);
+                                    final bytes =
+                                        utf8.decode(file!.files.single.bytes!);
+                                    csvData = const CsvToListConverter()
+                                        .convert(bytes);
                                   } else {
-                                    final csvFile = File(file!.files.single.path.toString()).openRead();
+                                    final csvFile =
+                                        File(file!.files.single.path.toString())
+                                            .openRead();
                                     csvData = await csvFile
                                         .transform(utf8.decoder)
                                         .transform(
@@ -279,23 +308,38 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                                     Map<String, dynamic> sku = {
                                       "code": line[0].toString(),
                                       "description": line[1],
-                                      "min_weight": double.parse(line[2].toString()),
-                                      "expected_weight": double.parse(line[3].toString()),
-                                      "low_run_speed": int.parse(line[4].toString()),
-                                      "high_run_speed": int.parse(line[5].toString()),
-                                      "created_by_username": currentUser.username,
-                                      "updated_by_username": currentUser.username,
+                                      "min_weight":
+                                          double.parse(line[2].toString()),
+                                      "max_weight":
+                                          double.parse(line[3].toString()),
+                                      "expected_weight":
+                                          double.parse(line[4].toString()),
+                                      "low_run_speed":
+                                          int.parse(line[5].toString()),
+                                      "high_run_speed":
+                                          int.parse(line[6].toString()),
+                                      "created_by_username":
+                                          currentUser.username,
+                                      "updated_by_username":
+                                          currentUser.username,
                                     };
                                     skus.add(sku);
                                   });
-                                  await appStore.skuApp.createMultiple(skus).then((response) {
-                                    if (response.containsKey("status") && response["status"]) {
+                                  await appStore.skuApp
+                                      .createMultiple(skus)
+                                      .then((response) {
+                                    if (response.containsKey("status") &&
+                                        response["status"]) {
                                       setState(() {
                                         isError = true;
                                         errorMessage = "SKUs created: " +
-                                            response["payload"]["models"].length.toString() +
+                                            response["payload"]["models"]
+                                                .length
+                                                .toString() +
                                             ". Found Errors in: " +
-                                            response["payload"]["errors"].length.toString();
+                                            response["payload"]["errors"]
+                                                .length
+                                                .toString();
                                       });
                                     } else {
                                       if (response.containsKey("status")) {
@@ -305,7 +349,8 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                                         });
                                       } else {
                                         setState(() {
-                                          errorMessage = "Unbale to Create SKUs.";
+                                          errorMessage =
+                                              "Unbale to Create SKUs.";
                                           isError = true;
                                         });
                                       }
@@ -328,7 +373,8 @@ class _SKUCreateWidgetState extends State<SKUCreateWidget> {
                               onPressed: () {
                                 navigationService.pushReplacement(
                                   CupertinoPageRoute(
-                                    builder: (BuildContext context) => const SKUCreateWidget(),
+                                    builder: (BuildContext context) =>
+                                        const SKUCreateWidget(),
                                   ),
                                 );
                               },

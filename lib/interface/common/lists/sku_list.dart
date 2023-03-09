@@ -48,30 +48,39 @@ class _SKUListState extends State<SKUList> {
         break;
       case 2:
         if (ascending) {
-          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+          widget.skus.sort((a, b) => a.minWeight.compareTo(b.minWeight));
         } else {
-          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+          widget.skus.sort((a, b) => b.minWeight.compareTo(a.minWeight));
         }
         break;
       case 3:
         if (ascending) {
-          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+          widget.skus.sort((a, b) => a.maxWeight.compareTo(b.maxWeight));
         } else {
-          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+          widget.skus.sort((a, b) => b.maxWeight.compareTo(a.maxWeight));
         }
         break;
       case 4:
         if (ascending) {
-          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+          widget.skus
+              .sort((a, b) => a.expectedWeight.compareTo(b.expectedWeight));
         } else {
-          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+          widget.skus
+              .sort((a, b) => b.expectedWeight.compareTo(a.expectedWeight));
         }
         break;
       case 5:
         if (ascending) {
-          widget.skus.sort((a, b) => a.description.compareTo(b.description));
+          widget.skus.sort((a, b) => a.lowRunSpeed.compareTo(b.lowRunSpeed));
         } else {
-          widget.skus.sort((a, b) => b.description.compareTo(a.description));
+          widget.skus.sort((a, b) => b.lowRunSpeed.compareTo(a.lowRunSpeed));
+        }
+        break;
+      case 6:
+        if (ascending) {
+          widget.skus.sort((a, b) => a.highRunSpeed.compareTo(b.highRunSpeed));
+        } else {
+          widget.skus.sort((a, b) => b.highRunSpeed.compareTo(a.highRunSpeed));
         }
         break;
       default:
@@ -85,18 +94,25 @@ class _SKUListState extends State<SKUList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.skus.length <= 25 ? 156 + widget.skus.length * 56 : 156 + 25 * 56,
+          height: widget.skus.length <= 25
+              ? 156 + widget.skus.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
                       caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -104,7 +120,9 @@ class _SKUListState extends State<SKUList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -116,7 +134,9 @@ class _SKUListState extends State<SKUList> {
                               "Material Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -134,7 +154,9 @@ class _SKUListState extends State<SKUList> {
                               "Material Description",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -152,7 +174,29 @@ class _SKUListState extends State<SKUList> {
                               "Min Weight",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            onSort: (columnIndex, ascending) {
+                              setState(() {
+                                sort = !sort;
+                                sortingColumnIndex = columnIndex;
+                              });
+                              onSortColum(columnIndex, ascending);
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              "Max Weight",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -170,7 +214,9 @@ class _SKUListState extends State<SKUList> {
                               "Expected Weight",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -188,7 +234,9 @@ class _SKUListState extends State<SKUList> {
                               "Low Run Speed",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -206,7 +254,9 @@ class _SKUListState extends State<SKUList> {
                               "High Run Speed",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -221,7 +271,8 @@ class _SKUListState extends State<SKUList> {
                           ),
                         ],
                         source: _DataSource(context, widget.skus),
-                        rowsPerPage: widget.skus.length > 25 ? 25 : widget.skus.length,
+                        rowsPerPage:
+                            widget.skus.length > 25 ? 25 : widget.skus.length,
                       )
                     ],
                   ),
@@ -283,6 +334,16 @@ class _DataSource extends DataTableSource {
         DataCell(
           Text(
             sku.minWeight.toStringAsFixed(2),
+            style: TextStyle(
+              fontSize: 16.0,
+              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            sku.maxWeight.toStringAsFixed(2),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,

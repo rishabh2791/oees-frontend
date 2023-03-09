@@ -6,6 +6,7 @@ class SKU {
   final String description;
   final int caseLot;
   final double minWeight;
+  final double maxWeight;
   final double expectedWeight;
   final int lowRunSpeed;
   final int highRunSpeed;
@@ -21,6 +22,7 @@ class SKU {
     required this.createdBy,
     required this.id,
     required this.minWeight,
+    required this.maxWeight,
     required this.expectedWeight,
     required this.lowRunSpeed,
     required this.highRunSpeed,
@@ -42,6 +44,7 @@ class SKU {
       "created_by": createdBy.toJSON(),
       "id": id,
       "min_weight": minWeight,
+      "max_weight": maxWeight,
       "expected_weight": expectedWeight,
       "low_run_speed": lowRunSpeed,
       "high_run_speed": highRunSpeed,
@@ -59,6 +62,7 @@ class SKU {
       createdBy: User.fromJSON(jsonObject["created_by"]),
       id: jsonObject["id"],
       minWeight: double.parse(jsonObject["min_weight"].toString()),
+      maxWeight: double.parse(jsonObject["max_weight"].toString()),
       expectedWeight: double.parse(jsonObject["expected_weight"].toString()),
       lowRunSpeed: int.parse(jsonObject["low_run_speed"].toString()),
       highRunSpeed: int.parse(jsonObject["high_run_speed"].toString()),
