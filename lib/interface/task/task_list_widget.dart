@@ -8,6 +8,7 @@ import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/form_fields/bool_form_field.dart';
 import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
+import 'package:oees/interface/common/form_fields/text_form_field.dart';
 import 'package:oees/interface/common/lists/task_list.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
 
@@ -29,9 +30,12 @@ class _TaskListWidgetState extends State<TaskListWidget> {
   Map<String, dynamic> map = {};
   late BoolFormField onlyIncompleteFormField;
   late DropdownFormField lineFormField, shiftFormField;
+  late TextFormFielder jobFormField, materialFormField;
   late TextEditingController lineController,
       shiftController,
-      onlyIncompleteController;
+      onlyIncompleteController,
+      jobController,
+      materialController;
   late FormFieldWidget formFieldWidget;
 
   @override
@@ -39,9 +43,13 @@ class _TaskListWidgetState extends State<TaskListWidget> {
     lineController = TextEditingController();
     shiftController = TextEditingController();
     onlyIncompleteController = TextEditingController();
+    jobController = TextEditingController();
+    materialController = TextEditingController();
     lineController.addListener(filterTasks);
     shiftController.addListener(filterTasks);
     onlyIncompleteController.addListener(filterTasks);
+    jobController.addListener(filterJobs);
+    materialController.addListener(filterMaterials);
     getData();
     super.initState();
   }
@@ -146,14 +154,43 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       formField: "only_complete",
       selectedController: onlyIncompleteController,
     );
+    jobFormField = TextFormFielder(
+      controller: jobController,
+      formField: "Job Number",
+      label: "Job Number",
+    );
+    materialFormField = TextFormFielder(
+      controller: materialController,
+      formField: "Material",
+      label: "Material",
+    );
     onlyIncompleteController.text = "1";
     formFieldWidget = FormFieldWidget(
       formFields: [
         lineFormField,
         shiftFormField,
         onlyIncompleteFormField,
+        jobFormField,
+        materialFormField,
       ],
     );
+  }
+
+  void filterJobs() {
+    filterTasks();
+    filteredTasks = filteredTasks
+        .where((element) => element.job.code.contains(jobController.text))
+        .toList();
+    setState(() {});
+  }
+
+  void filterMaterials() {
+    filterTasks();
+    filteredTasks = filteredTasks
+        .where(
+            (element) => element.job.sku.code.contains(materialController.text))
+        .toList();
+    setState(() {});
   }
 
   void filterTasks() {

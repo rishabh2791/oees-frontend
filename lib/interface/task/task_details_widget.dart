@@ -654,17 +654,12 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                         child: Text('OK'),
                                                       ),
                                                       onPressed: () async {
-                                                        String batchNo =
-                                                            batchController
-                                                                .text;
-                                                        double batchSize =
-                                                            double.parse(
-                                                                batchSizeController
-                                                                    .text
-                                                                    .toString());
                                                         String errors = "";
-                                                        if (batchNo.isEmpty ||
-                                                            batchNo == "") {
+                                                        if (batchController
+                                                                .text.isEmpty ||
+                                                            batchController
+                                                                    .text ==
+                                                                "") {
                                                           errors +=
                                                               "Batch Number Missing\n";
                                                         }
@@ -674,17 +669,23 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                                     .text ==
                                                                 "") {
                                                           errors +=
-                                                              "Batch SIze Missing\n";
+                                                              "Batch Size Missing\n";
                                                         }
                                                         if (errors.isNotEmpty) {
                                                           setState(() {
-                                                            Navigator.pop(
-                                                                context);
                                                             isError = true;
                                                             errorMessage =
                                                                 errors;
                                                           });
                                                         } else {
+                                                          String batchNo =
+                                                              batchController
+                                                                  .text;
+                                                          double batchSize =
+                                                              double.parse(
+                                                                  batchSizeController
+                                                                      .text
+                                                                      .toString());
                                                           DateTime now =
                                                               DateTime.now()
                                                                   .toUtc();
