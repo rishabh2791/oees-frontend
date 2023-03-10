@@ -28,6 +28,11 @@ class TaskApp implements TaskAppInterface {
   Future<Map<String, dynamic>> update(String id, Map<String, dynamic> task) async {
     return taskRepository.update(id, task);
   }
+
+  @override
+  Future<Map<String, dynamic>> delete(String id) async {
+    return taskRepository.delete(id);
+  }
 }
 
 abstract class TaskAppInterface {
@@ -36,4 +41,5 @@ abstract class TaskAppInterface {
   Future<Map<String, dynamic>> getTask(String id);
   Future<Map<String, dynamic>> list(Map<String, dynamic> conditions);
   Future<Map<String, dynamic>> update(String id, Map<String, dynamic> task);
+  Future<Map<String, dynamic>> delete(String id);
 }

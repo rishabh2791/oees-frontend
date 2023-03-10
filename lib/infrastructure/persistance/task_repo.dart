@@ -37,4 +37,11 @@ class TaskRepo implements TaskRepository {
     var response = await networkAPIProvider.patch(url, sku, TokenType.accessToken);
     return response;
   }
+
+  @override
+  Future<Map<String, dynamic>> delete(String id) async {
+    String url = "task/delete/" + id + "/";
+    var response = await networkAPIProvider.get(url, TokenType.accessToken);
+    return response;
+  }
 }
