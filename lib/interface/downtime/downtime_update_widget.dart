@@ -616,30 +616,37 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                         });
                         widget.notifyParent();
                       } else {
+                        setState(() {
+                          isLoading = true;
+                        });
                         await appStore.downtimeApp
                             .update(widget.downtime.id, map)
                             .then((response) async {
                           if (response.containsKey("status") &&
                               response["status"]) {
                             setState(() {
+                              isLoading = false;
                               updatingDowntime = true;
                               widget.downtime.description =
                                   descriptionControllers.last.text;
                             });
                             widget.notifyParent();
                             setState(() {
+                              isLoading = false;
                               updatingDowntime = false;
                             });
                             Navigator.of(context).pop();
                           } else {
                             if (response.containsKey("status")) {
                               setState(() {
+                                isLoading = false;
                                 errorMessage = response["message"];
                                 isError = true;
                               });
                               widget.notifyParent();
                             } else {
                               setState(() {
+                                isLoading = false;
                                 errorMessage = "Unable to create downtime.";
                                 isError = true;
                               });

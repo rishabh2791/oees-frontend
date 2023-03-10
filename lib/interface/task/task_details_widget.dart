@@ -678,6 +678,12 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                                 errors;
                                                           });
                                                         } else {
+                                                          setState(() {
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop();
+                                                            isLoading = true;
+                                                          });
                                                           String batchNo =
                                                               batchController
                                                                   .text;
@@ -778,10 +784,14 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                                       .batchNumber
                                                                       .compareTo(
                                                                           b.batchNumber)));
-                                                                  setState(
-                                                                      () {});
+                                                                  setState(() {
+                                                                    isLoading =
+                                                                        false;
+                                                                  });
                                                                 } else {
                                                                   setState(() {
+                                                                    isLoading =
+                                                                        false;
                                                                     isError =
                                                                         true;
                                                                     errorMessage =
@@ -791,6 +801,8 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                               });
                                                             } else {
                                                               setState(() {
+                                                                isLoading =
+                                                                    false;
                                                                 isError = true;
                                                                 errorMessage =
                                                                     "Unable to start new Batch, please try later";
@@ -799,10 +811,11 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                           });
                                                         }
                                                         setState(() {
+                                                          isLoading = false;
                                                           batchController
                                                               .clear();
-                                                          Navigator.of(context)
-                                                              .pop();
+                                                          batchSizeController
+                                                              .clear();
                                                         });
                                                       },
                                                     ),
