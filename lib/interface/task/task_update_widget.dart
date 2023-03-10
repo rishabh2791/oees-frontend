@@ -195,6 +195,9 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
                                   child: MaterialButton(
                                     onPressed: () async {
                                       if (formFieldWidget.validate()) {
+                                        setState(() {
+                                          isLoading = true;
+                                        });
                                         map = formFieldWidget.toJSON();
                                         map["updated_by_username"] =
                                             currentUser.username;
@@ -207,6 +210,7 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
                                           if (response.containsKey("status") &&
                                               response["status"]) {
                                             setState(() {
+                                              isLoading = false;
                                               errorMessage = "Tasks Updated";
                                               isError = true;
                                             });
@@ -223,12 +227,14 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
                                             if (response
                                                 .containsKey("status")) {
                                               setState(() {
+                                                isLoading = false;
                                                 errorMessage =
                                                     response["message"];
                                                 isError = true;
                                               });
                                             } else {
                                               setState(() {
+                                                isLoading = false;
                                                 errorMessage =
                                                     "Unbale to Update Task.";
                                                 isError = true;

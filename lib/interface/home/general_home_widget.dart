@@ -1103,23 +1103,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 .substring(0, 5),
         measureFn: (BadRateProduction downtime, _) => downtime.production,
         data: badRateSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
-      ),
-      charts.Series<UnplannedDowntime, String>(
-        id: "Unplanned Downtime",
-        domainFn: (UnplannedDowntime downtime, _) =>
-            shiftHours[downtime.hour]!["start_time"]!
-                .split(" ")[1]
-                .substring(0, 5) +
-            "\n" +
-            shiftHours[downtime.hour]!["end_time"]!
-                .split(" ")[1]
-                .substring(0, 5),
-        measureFn: (UnplannedDowntime downtime, _) => downtime.downtime,
-        data: unplannedDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.black,
+        fillColorFn: (_, __) => charts.MaterialPalette.black,
       ),
       charts.Series<GoodRateProduction, String>(
         id: "Optimum Production",
@@ -1136,21 +1121,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
         fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
       ),
-      charts.Series<PlannedDowntime, String>(
-        id: "Planned Downtime",
-        domainFn: (PlannedDowntime downtime, _) =>
-            shiftHours[downtime.hour]!["start_time"]!
-                .split(" ")[1]
-                .substring(0, 5) +
-            "\n" +
-            shiftHours[downtime.hour]!["end_time"]!
-                .split(" ")[1]
-                .substring(0, 5),
-        measureFn: (PlannedDowntime downtime, _) => downtime.downtime,
-        data: plannedDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-      ),
       charts.Series<ControlledDowntime, String>(
         id: "Controlled Downtime",
         domainFn: (ControlledDowntime downtime, _) =>
@@ -1163,8 +1133,38 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 .substring(0, 5),
         measureFn: (ControlledDowntime downtime, _) => downtime.downtime,
         data: controlledDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
+      ),
+      charts.Series<PlannedDowntime, String>(
+        id: "Planned Downtime",
+        domainFn: (PlannedDowntime downtime, _) =>
+            shiftHours[downtime.hour]!["start_time"]!
+                .split(" ")[1]
+                .substring(0, 5) +
+            "\n" +
+            shiftHours[downtime.hour]!["end_time"]!
+                .split(" ")[1]
+                .substring(0, 5),
+        measureFn: (PlannedDowntime downtime, _) => downtime.downtime,
+        data: plannedDowntimeSeries[selectedLine.text] ?? [],
+        colorFn: (_, __) => charts.MaterialPalette.deepOrange.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.deepOrange.shadeDefault,
+      ),
+      charts.Series<UnplannedDowntime, String>(
+        id: "Unplanned Downtime",
+        domainFn: (UnplannedDowntime downtime, _) =>
+            shiftHours[downtime.hour]!["start_time"]!
+                .split(" ")[1]
+                .substring(0, 5) +
+            "\n" +
+            shiftHours[downtime.hour]!["end_time"]!
+                .split(" ")[1]
+                .substring(0, 5),
+        measureFn: (UnplannedDowntime downtime, _) => downtime.downtime,
+        data: unplannedDowntimeSeries[selectedLine.text] ?? [],
+        colorFn: (_, __) => charts.MaterialPalette.pink.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.pink.shadeDefault,
       ),
     ];
   }
