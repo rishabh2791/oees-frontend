@@ -64,22 +64,6 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
     });
   }
 
-  Future<void> getJobs() async {
-    await appStore.jobApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Job job = Job.fromJSON(item);
-          jobs.add(job);
-        }
-      } else {
-        setState(() {
-          errorMessage = "Unable to get Jobs.";
-          isError = true;
-        });
-      }
-    });
-  }
-
   Future<void> getShifts() async {
     await appStore.shiftApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
@@ -100,8 +84,7 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
     setState(() {
       isLoading = true;
     });
-    await Future.forEach([await getLines(), await getJobs(), await getShifts()],
-        (element) {
+    await Future.forEach([await getLines(), await getShifts()], (element) {
       if (errorMessage.isEmpty && errorMessage == "") {
         initForm();
         setState(() {
