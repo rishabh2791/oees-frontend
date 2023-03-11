@@ -104,7 +104,21 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       }
     }).then((value) async {
       tasks = [];
-      await appStore.taskApp.list({}).then((response) {
+      DateTime today = DateTime.now();
+      DateTime tenDaysAgo = today.subtract(const Duration(days: 10));
+      DateTime tenDaysAfter = today.add(const Duration(days: 10));
+      Map<String, dynamic> conditions = {
+        "BETWEEN": {
+          "Field": "scheduled_date",
+          "LowerValue":
+              tenDaysAgo.toUtc().toIso8601String().toString().split(".")[0] +
+                  "Z",
+          "HigherValue":
+              tenDaysAfter.toUtc().toIso8601String().toString().split(".")[0] +
+                  "Z",
+        }
+      };
+      await appStore.taskApp.list(conditions).then((response) {
         if (response.containsKey("status") && response["status"]) {
           for (var item in response["payload"]) {
             Task task = Task.fromJSON(item);
