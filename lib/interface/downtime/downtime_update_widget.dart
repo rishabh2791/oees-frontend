@@ -169,7 +169,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
       minSize: 5,
       maxSize: 100,
       isRequired: true,
-      disabled: true,
+      disabled: false,
     );
     descriptionFormFields.add(descriptionFormField);
     DateFormField startDateFormField = DateFormField(
@@ -205,7 +205,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
     );
     endTimeFormFields.add(endTimeFormField);
     BoolFormField controlledFormField = BoolFormField(
-      label: "Controller Downtime",
+      label: "Controlled Downtime",
       formField: "controlled",
       selectedController: controlledController,
     );
@@ -229,18 +229,18 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
     presetController.addListener(() {
       var presetDowntime = presetDowntimes
           .where((element) => element.id == presetController.text);
-      if (presetDowntime.first.toString() == "Other") {
-        descriptionFormField.disabled = false;
-        controlledFormField.isEnabled = true;
-        plannedFormField.isEnabled = true;
-      } else {
-        descriptionFormField.disabled = true;
-        controlledFormField.isEnabled = false;
-        plannedFormField.isEnabled = false;
-      }
+      // if (presetDowntime.first.toString() == "Other") {
+      //   descriptionFormField.disabled = false;
+      //   controlledFormField.isEnabled = true;
+      //   plannedFormField.isEnabled = true;
+      // } else {
+      //   descriptionFormField.disabled = true;
+      //   controlledFormField.isEnabled = false;
+      //   plannedFormField.isEnabled = false;
+      // }
       if (presetDowntime.isNotEmpty) {
         period = presetDowntime.single.defaultPeriod;
-        descriptionController.text = presetDowntime.single.description;
+        // descriptionController.text = presetDowntime.single.description;
         if (mainFormWidgets.length > 1) {
           startDateController.text =
               endDateControllers[endDateControllers.length - 2]
@@ -460,6 +460,9 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
             padding: const EdgeInsets.all(10.0),
             child: MaterialButton(
               onPressed: () async {
+                setState(() {
+                  isLoading = true;
+                });
                 int totalAllocatedDowntime = 0;
                 var firstStartDate = startDateControllers[0].text;
                 var lastEndDate = (endDateControllers.last).text;
@@ -490,6 +493,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                     lastEndDateTime.difference(firstStartDateTime).inMinutes;
                 if (totalDowntime != totalAllocatedDowntime) {
                   setState(() {
+                    isLoading = false;
                     isDowntimeError = true;
                     downtimeErrorMsg = "Downtime not Fully Allocated.";
                   });
@@ -500,6 +504,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                         .inSeconds !=
                     0) {
                   setState(() {
+                    isLoading = false;
                     isDowntimeError = true;
                     downtimeErrorMsg =
                         "First Downtime Start Time does not match with Downtime Start Time.";
@@ -509,6 +514,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                 if (downtimeEndTime.difference(lastEndDateTime).inSeconds !=
                     0) {
                   setState(() {
+                    isLoading = false;
                     isDowntimeError = true;
                     downtimeErrorMsg =
                         "Last Downtime End Time does not match with Downtime End Time.";
@@ -563,15 +569,32 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       map["line_id"] = widget.downtime.line.id;
                       map.remove("start_date");
                       map.remove("end_date");
-                      await appStore.downtimeApp.create(map).then((response) {
-                        if (response.containsKey("status") &&
-                            response["status"]) {
-                        } else {
-                          creationErrors += 1;
-                        }
-                      });
+
+                      if (map["preset"] == "" && map["description"] == "") {
+                        creationErrors += 1;
+                      } else {
+                        map["description"] = map["description"].length == 0
+                            ? presetDowntimes
+                                .firstWhere(
+                                    (element) => element.id == map["preset"])
+                                .description
+                            : presetDowntimes
+                                    .firstWhere((element) =>
+                                        element.id == map["preset"])
+                                    .description +
+                                " - " +
+                                map["description"];
+                        await appStore.downtimeApp.create(map).then((response) {
+                          if (response.containsKey("status") &&
+                              response["status"]) {
+                          } else {
+                            creationErrors += 1;
+                          }
+                        });
+                      }
                     } else {
                       setState(() {
+                        isLoading = false;
                         creationErrors += 1;
                         isError = true;
                       });
@@ -611,14 +634,24 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       map.remove("end_date");
                       if (map["preset"] == "" && map["description"] == "") {
                         setState(() {
+                          isLoading = false;
                           isError = true;
                           errorMessage = "Downtime Description Missing";
                         });
                         widget.notifyParent();
                       } else {
-                        setState(() {
-                          isLoading = true;
-                        });
+                        map["description"] = map["description"].length == 0
+                            ? presetDowntimes
+                                .firstWhere(
+                                    (element) => element.id == map["preset"])
+                                .description
+                            : presetDowntimes
+                                    .firstWhere((element) =>
+                                        element.id == map["preset"])
+                                    .description +
+                                " - " +
+                                map["description"];
+                        print(map);
                         await appStore.downtimeApp
                             .update(widget.downtime.id, map)
                             .then((response) async {
@@ -629,6 +662,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                               updatingDowntime = true;
                               widget.downtime.description =
                                   descriptionControllers.last.text;
+                              widget.downtime.planned = map["planned"];
+                              widget.downtime.controlled = map["controlled"];
                             });
                             widget.notifyParent();
                             setState(() {
@@ -657,6 +692,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       }
                     } else {
                       setState(() {
+                        isLoading = false;
                         isError = true;
                         errorMessage =
                             "Downtime Data Contains error, please correct and try again.";
@@ -776,6 +812,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                             errorMessage: downtimeErrorMsg,
                             callback: () {
                               setState(() {
+                                isLoading = false;
                                 isDowntimeError = false;
                                 downtimeErrorMsg = "";
                               });

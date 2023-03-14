@@ -62,16 +62,20 @@ class _DeviceListState extends State<DeviceList> {
         break;
       case 4:
         if (ascending) {
-          widget.devices.sort((a, b) => a.id.toString().compareTo(b.id.toString()));
+          widget.devices
+              .sort((a, b) => a.id.toString().compareTo(b.id.toString()));
         } else {
-          widget.devices.sort((a, b) => b.id.toString().compareTo(a.id.toString()));
+          widget.devices
+              .sort((a, b) => b.id.toString().compareTo(a.id.toString()));
         }
         break;
       case 5:
         if (ascending) {
-          widget.devices.sort((a, b) => a.useForOEE.toString().compareTo(b.useForOEE.toString()));
+          widget.devices.sort((a, b) =>
+              a.useForOEE.toString().compareTo(b.useForOEE.toString()));
         } else {
-          widget.devices.sort((a, b) => b.useForOEE.toString().compareTo(a.useForOEE.toString()));
+          widget.devices.sort((a, b) =>
+              b.useForOEE.toString().compareTo(a.useForOEE.toString()));
         }
         break;
       default:
@@ -85,18 +89,25 @@ class _DeviceListState extends State<DeviceList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.devices.length <= 25 ? 156 + widget.devices.length * 56 : 156 + 25 * 56,
+          height: widget.devices.length <= 25
+              ? 156 + widget.devices.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
-                      caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                      bodySmall: TextStyle(
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -104,7 +115,9 @@ class _DeviceListState extends State<DeviceList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -116,7 +129,9 @@ class _DeviceListState extends State<DeviceList> {
                               "Device Type",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -134,7 +149,9 @@ class _DeviceListState extends State<DeviceList> {
                               "Line",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -152,7 +169,9 @@ class _DeviceListState extends State<DeviceList> {
                               "Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -170,7 +189,9 @@ class _DeviceListState extends State<DeviceList> {
                               "Description",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -188,7 +209,9 @@ class _DeviceListState extends State<DeviceList> {
                               "Device ID",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -206,7 +229,9 @@ class _DeviceListState extends State<DeviceList> {
                               "Used for OEE",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -221,7 +246,9 @@ class _DeviceListState extends State<DeviceList> {
                           ),
                         ],
                         source: _DataSource(context, widget.devices),
-                        rowsPerPage: widget.devices.length > 25 ? 25 : widget.devices.length,
+                        rowsPerPage: widget.devices.length > 25
+                            ? 25
+                            : widget.devices.length,
                       )
                     ],
                   ),

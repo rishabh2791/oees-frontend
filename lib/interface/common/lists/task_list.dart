@@ -67,9 +67,11 @@ class _TaskListState extends State<TaskList> {
         break;
       case 3:
         if (ascending) {
-          widget.tasks.sort((a, b) => a.job.sku.description.compareTo(b.job.sku.description));
+          widget.tasks.sort(
+              (a, b) => a.job.sku.description.compareTo(b.job.sku.description));
         } else {
-          widget.tasks.sort((a, b) => b.job.sku.description.compareTo(a.job.sku.description));
+          widget.tasks.sort(
+              (a, b) => b.job.sku.description.compareTo(a.job.sku.description));
         }
         break;
       case 4:
@@ -112,19 +114,25 @@ class _TaskListState extends State<TaskList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.tasks.length <= 25 ? 156 + widget.tasks.length * 56 : 156 + 25 * 56,
+          height: widget.tasks.length <= 25
+              ? 156 + widget.tasks.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor:
-                        isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
-                      caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                      bodySmall: TextStyle(
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -132,7 +140,9 @@ class _TaskListState extends State<TaskList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -144,7 +154,9 @@ class _TaskListState extends State<TaskList> {
                               "Line",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -162,7 +174,9 @@ class _TaskListState extends State<TaskList> {
                               "Job Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -180,7 +194,9 @@ class _TaskListState extends State<TaskList> {
                               "Material Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -198,7 +214,9 @@ class _TaskListState extends State<TaskList> {
                               "Material Description",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -216,7 +234,9 @@ class _TaskListState extends State<TaskList> {
                               "Plan (Units)",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -234,7 +254,9 @@ class _TaskListState extends State<TaskList> {
                               "Start Time",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -252,7 +274,9 @@ class _TaskListState extends State<TaskList> {
                               "End Time",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -270,7 +294,9 @@ class _TaskListState extends State<TaskList> {
                               " ",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -288,7 +314,9 @@ class _TaskListState extends State<TaskList> {
                               " ",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -303,7 +331,8 @@ class _TaskListState extends State<TaskList> {
                           ),
                         ],
                         source: _DataSource(context, widget.tasks, refresh),
-                        rowsPerPage: widget.tasks.length > 25 ? 25 : widget.tasks.length,
+                        rowsPerPage:
+                            widget.tasks.length > 25 ? 25 : widget.tasks.length,
                       )
                     ],
                   ),
@@ -463,7 +492,9 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.job.plan.toStringAsFixed(0).replaceAllMapped(reg, (Match match) => '${match[1]},'),
+            task.job.plan
+                .toStringAsFixed(0)
+                .replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -473,7 +504,11 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds > 0
+            task.startTime
+                        .difference(
+                            DateTime.parse("1900-01-01T00:00:00Z").toLocal())
+                        .inSeconds >
+                    0
                 ? task.startTime.toLocal().toString().split(".")[0]
                 : "",
             style: TextStyle(
@@ -485,7 +520,11 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            task.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
+            task.endTime
+                        .difference(
+                            DateTime.parse("2099-12-31T23:59:59Z").toLocal())
+                        .inSeconds <
+                    0
                 ? task.endTime.toLocal().toString().split(".")[0]
                 : "",
             style: TextStyle(
@@ -499,7 +538,11 @@ class _DataSource extends DataTableSource {
             ? DataCell(
                 MaterialButton(
                   onPressed: () async {
-                    if (task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds <= 0) {
+                    if (task.startTime
+                            .difference(DateTime.parse("1900-01-01T00:00:00Z")
+                                .toLocal())
+                            .inSeconds <=
+                        0) {
                       _displayTextInputDialog(context, task);
                     } else {
                       _displayError(context, "Started Task Cannot Be Updated.");
@@ -513,7 +556,8 @@ class _DataSource extends DataTableSource {
                   " ",
                   style: TextStyle(
                     fontSize: 16.0,
-                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                    color:
+                        isDarkTheme.value ? foregroundColor : backgroundColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -522,9 +566,16 @@ class _DataSource extends DataTableSource {
             ? DataCell(
                 MaterialButton(
                   onPressed: () async {
-                    if (task.startTime.difference(DateTime.parse("1900-01-01T00:00:00Z").toLocal()).inSeconds <= 0) {
-                      await appStore.taskApp.delete(task.id).then((response) async {
-                        if (response.containsKey("status") && response["status"]) {
+                    if (task.startTime
+                            .difference(DateTime.parse("1900-01-01T00:00:00Z")
+                                .toLocal())
+                            .inSeconds <=
+                        0) {
+                      await appStore.taskApp
+                          .delete(task.id)
+                          .then((response) async {
+                        if (response.containsKey("status") &&
+                            response["status"]) {
                           _callback(task.id);
                         }
                       });
@@ -540,7 +591,8 @@ class _DataSource extends DataTableSource {
                   " ",
                   style: TextStyle(
                     fontSize: 16.0,
-                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                    color:
+                        isDarkTheme.value ? foregroundColor : backgroundColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

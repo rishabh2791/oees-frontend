@@ -36,9 +36,11 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
     switch (columnIndex) {
       case 0:
         if (ascending) {
-          widget.taskBatches.sort((a, b) => a.batchNumber.compareTo(b.batchNumber));
+          widget.taskBatches
+              .sort((a, b) => a.batchNumber.compareTo(b.batchNumber));
         } else {
-          widget.taskBatches.sort((a, b) => b.batchNumber.compareTo(a.batchNumber));
+          widget.taskBatches
+              .sort((a, b) => b.batchNumber.compareTo(a.batchNumber));
         }
         break;
       case 1:
@@ -66,18 +68,25 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.taskBatches.length <= 25 ? 156 + widget.taskBatches.length * 56 : 156 + 25 * 56,
+          height: widget.taskBatches.length <= 25
+              ? 156 + widget.taskBatches.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
-                      caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                      bodySmall: TextStyle(
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -85,7 +94,9 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -97,7 +108,9 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                               "Batch#",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -115,7 +128,9 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                               "Batch Size (KG)",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -133,7 +148,9 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                               "Start Time",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -151,7 +168,9 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                               "End Time",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -169,15 +188,20 @@ class _TaskBatchesListState extends State<TaskBatchesList> {
                               "Production",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
                           ),
                         ],
-                        source: _DataSource(context, widget.taskBatches, widget.batchUnits),
-                        rowsPerPage: widget.taskBatches.length > 25 ? 25 : widget.taskBatches.length,
+                        source: _DataSource(
+                            context, widget.taskBatches, widget.batchUnits),
+                        rowsPerPage: widget.taskBatches.length > 25
+                            ? 25
+                            : widget.taskBatches.length,
                       )
                     ],
                   ),
@@ -230,7 +254,9 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            taskBatch.batchSize.toStringAsFixed(1).replaceAllMapped(reg, (Match match) => '${match[1]},'),
+            taskBatch.batchSize
+                .toStringAsFixed(1)
+                .replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -240,7 +266,12 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            taskBatch.startTime.toLocal().toString().toString().split(".")[0].substring(0, 16),
+            taskBatch.startTime
+                .toLocal()
+                .toString()
+                .toString()
+                .split(".")[0]
+                .substring(0, 16),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,
@@ -250,8 +281,16 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            taskBatch.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds < 0
-                ? taskBatch.endTime.toLocal().toString().split(".")[0].substring(0, 16)
+            taskBatch.endTime
+                        .difference(
+                            DateTime.parse("2099-12-31T23:59:59Z").toLocal())
+                        .inSeconds <
+                    0
+                ? taskBatch.endTime
+                    .toLocal()
+                    .toString()
+                    .split(".")[0]
+                    .substring(0, 16)
                 : "",
             style: TextStyle(
               fontSize: 16.0,

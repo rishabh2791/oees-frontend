@@ -24,7 +24,6 @@ class DowntimeListWidget extends StatefulWidget {
 class _DowntimeListWidgetState extends State<DowntimeListWidget> {
   bool isLoading = true;
   bool isDataLoaded = false;
-  List<Job> jobs = [];
   List<Downtime> taskDowntimes = [];
   late TextEditingController jobCodeController;
   late TextFormFielder jobCodeFormField;
@@ -32,33 +31,13 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
 
   @override
   void initState() {
-    getJobs();
+    initForm();
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> getJobs() async {
-    await appStore.jobApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Job job = Job.fromJSON(item);
-          jobs.add(job);
-        }
-      } else {
-        setState(() {
-          errorMessage = "Unable to get Jobs.";
-          isError = true;
-        });
-      }
-      initForm();
-      setState(() {
-        isLoading = false;
-      });
-    });
   }
 
   void initForm() {
@@ -71,6 +50,9 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
     formFieldWidget = FormFieldWidget(
       formFields: [jobCodeFormField],
     );
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -152,112 +134,137 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                 padding: const EdgeInsets.all(10.0),
                                 child: MaterialButton(
                                   onPressed: () async {
-                                    String jobID = jobs
-                                        .firstWhere((element) =>
-                                            element.code ==
-                                            jobCodeController.text)
-                                        .id;
                                     Map<String, dynamic> conditions = {
                                       "EQUALS": {
-                                        "Field": "job_id",
-                                        "Value": jobID,
+                                        "Field": "code",
+                                        "Value": jobCodeController.text,
                                       }
                                     };
+                                    String jobID = "";
                                     setState(() {
                                       isLoading = true;
                                     });
-                                    await appStore.taskApp
+                                    await appStore.jobApp
                                         .list(conditions)
                                         .then((response) async {
                                       if (response.containsKey("status") &&
                                           response["status"]) {
-                                        Task task = Task.fromJSON(
-                                            response["payload"][0]);
-                                        Map<String, dynamic>
-                                            downtimeConditions = {
-                                          "AND": [
-                                            {
-                                              "EQUALS": {
-                                                "Field": "line_id",
-                                                "Value": task.line.id,
-                                              },
-                                            },
-                                            {
-                                              "OR": [
+                                        for (var item in response["payload"]) {
+                                          Job thisJob = Job.fromJSON(item);
+                                          jobID = thisJob.id;
+                                        }
+                                        Map<String, dynamic> conditions = {
+                                          "EQUALS": {
+                                            "Field": "job_id",
+                                            "Value": jobID,
+                                          }
+                                        };
+                                        await appStore.taskApp
+                                            .list(conditions)
+                                            .then((response) async {
+                                          if (response.containsKey("status") &&
+                                              response["status"]) {
+                                            Task task = Task.fromJSON(
+                                                response["payload"][0]);
+                                            Map<String, dynamic>
+                                                downtimeConditions = {
+                                              "AND": [
                                                 {
-                                                  "BETWEEN": {
-                                                    "Field": "start_time",
-                                                    "LowerValue": task.startTime
-                                                            .toUtc()
-                                                            .toIso8601String()
-                                                            .toString()
-                                                            .split(".")[0] +
-                                                        "Z",
-                                                    "HigherValue": task.endTime
-                                                            .toUtc()
-                                                            .toIso8601String()
-                                                            .toString()
-                                                            .split(".")[0] +
-                                                        "Z",
-                                                  }
-                                                },
-                                                {
-                                                  "BETWEEN": {
-                                                    "Field": "end_time",
-                                                    "LowerValue": task.startTime
-                                                            .toUtc()
-                                                            .toIso8601String()
-                                                            .toString()
-                                                            .split(".")[0] +
-                                                        "Z",
-                                                    "HigherValue": task.endTime
-                                                            .toUtc()
-                                                            .toIso8601String()
-                                                            .toString()
-                                                            .split(".")[0] +
-                                                        "Z",
-                                                  }
-                                                },
-                                                {
-                                                  "IS": {
-                                                    "Field": "end_time",
-                                                    "Value": "NULL",
+                                                  "EQUALS": {
+                                                    "Field": "line_id",
+                                                    "Value": task.line.id,
                                                   },
                                                 },
-                                              ],
-                                            },
-                                          ]
-                                        };
-                                        await appStore.downtimeApp
-                                            .list(downtimeConditions)
-                                            .then((value) {
-                                          if (value.containsKey("status") &&
-                                              value["status"]) {
-                                            for (var item in value["payload"]) {
-                                              Downtime downtime =
-                                                  Downtime.fromJSON(item);
-                                              taskDowntimes.add(downtime);
-                                            }
-                                            setState(() {
-                                              isDataLoaded = true;
+                                                {
+                                                  "OR": [
+                                                    {
+                                                      "BETWEEN": {
+                                                        "Field": "start_time",
+                                                        "LowerValue": task
+                                                                .startTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
+                                                        "HigherValue": task
+                                                                .endTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
+                                                      }
+                                                    },
+                                                    {
+                                                      "BETWEEN": {
+                                                        "Field": "end_time",
+                                                        "LowerValue": task
+                                                                .startTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
+                                                        "HigherValue": task
+                                                                .endTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
+                                                      }
+                                                    },
+                                                    {
+                                                      "IS": {
+                                                        "Field": "end_time",
+                                                        "Value": "NULL",
+                                                      },
+                                                    },
+                                                  ],
+                                                },
+                                              ]
+                                            };
+                                            await appStore.downtimeApp
+                                                .list(downtimeConditions)
+                                                .then((value) {
+                                              if (value.containsKey("status") &&
+                                                  value["status"]) {
+                                                for (var item
+                                                    in value["payload"]) {
+                                                  Downtime downtime =
+                                                      Downtime.fromJSON(item);
+                                                  taskDowntimes.add(downtime);
+                                                }
+                                                setState(() {
+                                                  isDataLoaded = true;
+                                                });
+                                              } else {
+                                                setState(() {
+                                                  errorMessage =
+                                                      "No Downtimes Found.";
+                                                  isError = true;
+                                                });
+                                              }
                                             });
                                           } else {
                                             setState(() {
-                                              errorMessage =
-                                                  "No Downtimes Found.";
+                                              errorMessage = "Task Not Found.";
                                               isError = true;
                                             });
                                           }
+                                          setState(() {
+                                            isLoading = false;
+                                          });
                                         });
                                       } else {
                                         setState(() {
-                                          errorMessage = "Task Not Found.";
+                                          isLoading = false;
                                           isError = true;
+                                          errorMessage =
+                                              "Unable to Get Downtime Details";
                                         });
                                       }
-                                      setState(() {
-                                        isLoading = false;
-                                      });
                                     });
                                   },
                                   color: foregroundColor,

@@ -72,18 +72,25 @@ class _LineListState extends State<LineList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.lines.length <= 25 ? 156 + widget.lines.length * 56 : 156 + 25 * 56,
+          height: widget.lines.length <= 25
+              ? 156 + widget.lines.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
-                      caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                      bodySmall: TextStyle(
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -91,7 +98,9 @@ class _LineListState extends State<LineList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -103,7 +112,9 @@ class _LineListState extends State<LineList> {
                               "Line Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -121,7 +132,9 @@ class _LineListState extends State<LineList> {
                               "Line Name",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -139,7 +152,9 @@ class _LineListState extends State<LineList> {
                               "IP Address",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -157,7 +172,9 @@ class _LineListState extends State<LineList> {
                               "Speed Type",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -172,7 +189,8 @@ class _LineListState extends State<LineList> {
                           ),
                         ],
                         source: _DataSource(context, widget.lines),
-                        rowsPerPage: widget.lines.length > 25 ? 25 : widget.lines.length,
+                        rowsPerPage:
+                            widget.lines.length > 25 ? 25 : widget.lines.length,
                       )
                     ],
                   ),
@@ -220,10 +238,13 @@ class _DataSource extends DataTableSource {
                 var ipAddress = ipAddressController.text;
                 if (ipAddress == "" || ipAddress.isEmpty) {
                 } else {
-                  Map<String, dynamic> update = {"ip_address": ipAddressController.text};
+                  Map<String, dynamic> update = {
+                    "ip_address": ipAddressController.text
+                  };
                   await appStore.lineApp.update(line.id, update).then(
                     (response) async {
-                      if (response.containsKey("status") && response["status"]) {
+                      if (response.containsKey("status") &&
+                          response["status"]) {
                         line.ipAddress = ipAddressController.text;
                         await storage!.setString("line_id", line.id);
                       } else {
@@ -291,7 +312,8 @@ class _DataSource extends DataTableSource {
                   "Assign",
                   style: TextStyle(
                     fontSize: 16.0,
-                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                    color:
+                        isDarkTheme.value ? foregroundColor : backgroundColor,
                     fontWeight: FontWeight.normal,
                   ),
                 )
@@ -299,7 +321,8 @@ class _DataSource extends DataTableSource {
                   line.ipAddress,
                   style: TextStyle(
                     fontSize: 16.0,
-                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                    color:
+                        isDarkTheme.value ? foregroundColor : backgroundColor,
                     fontWeight: FontWeight.normal,
                   ),
                 ),

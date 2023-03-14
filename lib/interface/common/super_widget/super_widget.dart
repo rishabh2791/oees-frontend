@@ -25,7 +25,8 @@ class SuperWidget extends StatefulWidget {
   State<SuperWidget> createState() => _SuperWidgetState();
 }
 
-class _SuperWidgetState extends State<SuperWidget> with SingleTickerProviderStateMixin {
+class _SuperWidgetState extends State<SuperWidget>
+    with SingleTickerProviderStateMixin {
   late Animation<double> scaleAnimation;
   late Animation<Offset> slideAnimation;
   late Animation<BorderRadius> borderRadiusAnimation;
@@ -35,17 +36,16 @@ class _SuperWidgetState extends State<SuperWidget> with SingleTickerProviderStat
   @override
   void initState() {
     scrollController = ScrollController();
-    animationController = AnimationController(vsync: this, duration: widget.animationDuration);
-    borderRadiusAnimation =
-        Tween<BorderRadius>(begin: const BorderRadius.all(Radius.circular(0.0)), end: const BorderRadius.all(Radius.circular(40.0)))
+    animationController =
+        AnimationController(vsync: this, duration: widget.animationDuration);
+    borderRadiusAnimation = Tween<BorderRadius>(
+            begin: const BorderRadius.all(Radius.circular(0.0)),
+            end: const BorderRadius.all(Radius.circular(40.0)))
+        .animate(animationController);
+    slideAnimation =
+        Tween<Offset>(begin: const Offset(-1, 0), end: const Offset(0, 0))
             .animate(animationController);
-    slideAnimation = Tween<Offset>(begin: const Offset(-1, 0), end: const Offset(0, 0)).animate(animationController);
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -86,8 +86,11 @@ class _SuperWidgetState extends State<SuperWidget> with SingleTickerProviderStat
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(20.0, 9.0, 20.0, 9.0),
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20.0)),
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         boxShadow: [
                           BoxShadow(
                             offset: const Offset(0, 0),
@@ -104,8 +107,12 @@ class _SuperWidgetState extends State<SuperWidget> with SingleTickerProviderStat
                         ],
                       ),
                       child: Icon(
-                        isDarkTheme.value ? Icons.nightlight : Icons.nightlight_outlined,
-                        color: isDarkTheme.value ? backgroundColor : foregroundColor,
+                        isDarkTheme.value
+                            ? Icons.nightlight
+                            : Icons.nightlight_outlined,
+                        color: isDarkTheme.value
+                            ? backgroundColor
+                            : foregroundColor,
                       ),
                     ),
                   ),
@@ -126,10 +133,14 @@ class _SuperWidgetState extends State<SuperWidget> with SingleTickerProviderStat
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.fromLTRB(20.0, 6.0, 20.0, 10.0),
+                            padding: const EdgeInsets.fromLTRB(
+                                20.0, 6.0, 20.0, 10.0),
                             decoration: BoxDecoration(
-                              borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-                              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(20.0)),
+                              color: isDarkTheme.value
+                                  ? foregroundColor
+                                  : backgroundColor,
                               boxShadow: [
                                 BoxShadow(
                                   offset: const Offset(0, 0),
@@ -148,7 +159,9 @@ class _SuperWidgetState extends State<SuperWidget> with SingleTickerProviderStat
                             child: Text(
                               "Menu",
                               style: TextStyle(
-                                color: isDarkTheme.value ? backgroundColor : foregroundColor,
+                                color: isDarkTheme.value
+                                    ? backgroundColor
+                                    : foregroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20.0,
                               ),

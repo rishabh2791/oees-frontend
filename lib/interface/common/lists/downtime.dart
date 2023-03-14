@@ -161,7 +161,7 @@ class _DowntimeListState extends State<DowntimeList> {
                         ? foregroundColor.withOpacity(0.25)
                         : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
-                      caption: TextStyle(
+                      bodySmall: TextStyle(
                         color: isDarkTheme.value
                             ? foregroundColor
                             : backgroundColor,

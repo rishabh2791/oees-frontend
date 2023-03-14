@@ -40,7 +40,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
   @override
   void initState() {
     getTaskDetails();
-    timer = Timer.periodic(const Duration(seconds: 120), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 60), (timer) {
       getTaskDetails();
     });
     batchController = TextEditingController();
@@ -50,6 +50,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
 
   @override
   void dispose() {
+    timer.cancel();
     super.dispose();
   }
 

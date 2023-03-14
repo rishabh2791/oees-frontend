@@ -55,9 +55,11 @@ class _UserListState extends State<UserList> {
         break;
       case 3:
         if (ascending) {
-          widget.users.sort((a, b) => a.userRole.description.compareTo(b.userRole.description));
+          widget.users.sort((a, b) =>
+              a.userRole.description.compareTo(b.userRole.description));
         } else {
-          widget.users.sort((a, b) => b.userRole.description.compareTo(a.userRole.description));
+          widget.users.sort((a, b) =>
+              b.userRole.description.compareTo(a.userRole.description));
         }
         break;
       default:
@@ -70,18 +72,25 @@ class _UserListState extends State<UserList> {
       builder: (context, sizeInfo) {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-          height: widget.users.length <= 25 ? 156 + widget.users.length * 56 : 156 + 25 * 56,
+          height: widget.users.length <= 25
+              ? 156 + widget.users.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
-                      caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                      bodySmall: TextStyle(
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -89,7 +98,9 @@ class _UserListState extends State<UserList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -101,7 +112,9 @@ class _UserListState extends State<UserList> {
                               "Username",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -119,7 +132,9 @@ class _UserListState extends State<UserList> {
                               "First Name",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -137,7 +152,9 @@ class _UserListState extends State<UserList> {
                               "Last Name",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -155,7 +172,9 @@ class _UserListState extends State<UserList> {
                               "User Role",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -170,7 +189,8 @@ class _UserListState extends State<UserList> {
                           ),
                         ],
                         source: _DataSource(context, widget.users),
-                        rowsPerPage: widget.users.length > 25 ? 25 : widget.users.length,
+                        rowsPerPage:
+                            widget.users.length > 25 ? 25 : widget.users.length,
                       )
                     ],
                   ),

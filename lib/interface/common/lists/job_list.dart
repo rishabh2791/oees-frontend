@@ -48,9 +48,11 @@ class _JobListState extends State<JobList> {
         break;
       case 2:
         if (ascending) {
-          widget.jobs.sort((a, b) => a.sku.description.compareTo(b.sku.description));
+          widget.jobs
+              .sort((a, b) => a.sku.description.compareTo(b.sku.description));
         } else {
-          widget.jobs.sort((a, b) => b.sku.description.compareTo(a.sku.description));
+          widget.jobs
+              .sort((a, b) => b.sku.description.compareTo(a.sku.description));
         }
         break;
       case 3:
@@ -71,18 +73,25 @@ class _JobListState extends State<JobList> {
         return Container(
           padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
           width: sizeInfo.screenSize.width,
-          height: widget.jobs.length <= 25 ? 156 + widget.jobs.length * 56 : 156 + 25 * 56,
+          height: widget.jobs.length <= 25
+              ? 156 + widget.jobs.length * 56
+              : 156 + 25 * 56,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardColor: isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value ? foregroundColor.withOpacity(0.25) : backgroundColor.withOpacity(0.25),
+                    cardColor:
+                        isDarkTheme.value ? backgroundColor : foregroundColor,
+                    dividerColor: isDarkTheme.value
+                        ? foregroundColor.withOpacity(0.25)
+                        : backgroundColor.withOpacity(0.25),
                     textTheme: TextTheme(
-                      caption: TextStyle(
-                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                      bodySmall: TextStyle(
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                       ),
                     ),
                   ),
@@ -90,7 +99,9 @@ class _JobListState extends State<JobList> {
                     controller: scrollController,
                     children: [
                       PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                        arrowHeadColor: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
                         showCheckboxColumn: false,
                         showFirstLastButtons: true,
                         sortAscending: sort,
@@ -102,7 +113,9 @@ class _JobListState extends State<JobList> {
                               "Job Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -120,7 +133,9 @@ class _JobListState extends State<JobList> {
                               "SKU Code",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -138,7 +153,9 @@ class _JobListState extends State<JobList> {
                               "SKU Description",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -156,7 +173,9 @@ class _JobListState extends State<JobList> {
                               "Plan",
                               style: TextStyle(
                                 fontSize: 20.0,
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -171,7 +190,8 @@ class _JobListState extends State<JobList> {
                           ),
                         ],
                         source: _DataSource(context, widget.jobs),
-                        rowsPerPage: widget.jobs.length > 25 ? 25 : widget.jobs.length,
+                        rowsPerPage:
+                            widget.jobs.length > 25 ? 25 : widget.jobs.length,
                       )
                     ],
                   ),
@@ -242,7 +262,9 @@ class _DataSource extends DataTableSource {
         ),
         DataCell(
           Text(
-            job.plan.toStringAsFixed(0).replaceAllMapped(reg, (Match match) => '${match[1]},'),
+            job.plan
+                .toStringAsFixed(0)
+                .replaceAllMapped(reg, (Match match) => '${match[1]},'),
             style: TextStyle(
               fontSize: 16.0,
               color: isDarkTheme.value ? foregroundColor : backgroundColor,

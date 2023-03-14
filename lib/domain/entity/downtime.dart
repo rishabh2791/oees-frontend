@@ -4,8 +4,8 @@ import 'package:oees/domain/entity/user.dart';
 class Downtime {
   final String id;
   final Line line;
-  final bool planned;
-  final bool controlled;
+  bool planned;
+  bool controlled;
   String description;
   final DateTime startTime;
   final DateTime endTime;
@@ -13,17 +13,18 @@ class Downtime {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  Downtime(
-      {required this.controlled,
-      required this.createdAt,
-      required this.description,
-      required this.endTime,
-      required this.id,
-      required this.line,
-      required this.planned,
-      required this.startTime,
-      required this.updatedAt,
-      required this.updatedBy});
+  Downtime({
+    this.controlled = false,
+    required this.createdAt,
+    required this.description,
+    required this.endTime,
+    required this.id,
+    required this.line,
+    this.planned = false,
+    required this.startTime,
+    required this.updatedAt,
+    required this.updatedBy,
+  });
 
   @override
   String toString() {

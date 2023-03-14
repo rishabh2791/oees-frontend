@@ -82,7 +82,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     getUserAuthorizations();
     selectedLine = TextEditingController();
     getBackendData();
-    timer = Timer.periodic(const Duration(seconds: 120), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 60), (timer) {
       getBackendData();
     });
     if (storage!.getString("line_id") != "") {
@@ -366,6 +366,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           if (!lineIDs.contains(line.id)) {
             lineIDs.add(line.id);
           }
+          lines.sort((a, b) => a.name.compareTo(b.name));
           if (!lineIP.containsKey(line.id)) {
             if (line.ipAddress != "" || line.ipAddress.isNotEmpty) {
               lineIP[line.id] =
@@ -889,21 +890,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getUnitsWeighed(TaskBatch runningTaskBatch) async {
-    // unitsWeighed = 0;
-    // var lineID = selectedLine.text;
-    // otherDeviceDataByLine.forEach((key, value) {
-    //   if (key.split("_")[0] == lineID) {
-    //     if (deviceDataByLine.containsKey(lineID)) {
-    //       var exists = devicesByLine[lineID]!.any((element) => element.id == key.split("_")[1]);
-    //       if (exists) {
-    //         Device device = devicesByLine[lineID]!.firstWhere((element) => element.id == key.split("_")[1]);
-    //         if (device.deviceType.toUpperCase() == "WEIGHING SCALE") {
-    //           unitsWeighed = value.length;
-    //         }
-    //       }
-    //     }
-    //   }
-    // });
     var lineID = selectedLine.text;
     Map<String, dynamic> deviceCondition = {
       "AND": [
@@ -1103,8 +1089,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 .substring(0, 5),
         measureFn: (BadRateProduction downtime, _) => downtime.production,
         data: badRateSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.black,
-        fillColorFn: (_, __) => charts.MaterialPalette.black,
+        colorFn: (_, __) => charts.MaterialPalette.gray.shade300,
+        fillColorFn: (_, __) => charts.MaterialPalette.gray.shade300,
       ),
       charts.Series<GoodRateProduction, String>(
         id: "Optimum Production",
@@ -1133,8 +1119,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 .substring(0, 5),
         measureFn: (ControlledDowntime downtime, _) => downtime.downtime,
         data: controlledDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
       ),
       charts.Series<PlannedDowntime, String>(
         id: "Planned Downtime",
@@ -1148,8 +1134,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 .substring(0, 5),
         measureFn: (PlannedDowntime downtime, _) => downtime.downtime,
         data: plannedDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.deepOrange.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.deepOrange.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
       ),
       charts.Series<UnplannedDowntime, String>(
         id: "Unplanned Downtime",
@@ -1163,8 +1149,8 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 .substring(0, 5),
         measureFn: (UnplannedDowntime downtime, _) => downtime.downtime,
         data: unplannedDowntimeSeries[selectedLine.text] ?? [],
-        colorFn: (_, __) => charts.MaterialPalette.pink.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.pink.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
       ),
     ];
   }
