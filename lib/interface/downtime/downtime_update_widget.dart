@@ -117,6 +117,11 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
     ], (element) {})
         .then((value) {
       initForm();
+      if (widget.downtime.preset.isNotEmpty) {
+        presetControllers[0].text = presetDowntimes
+            .firstWhere((element) => element.id == widget.downtime.preset)
+            .description;
+      }
       descriptionControllers[0].text = widget.downtime.description;
       startDateControllers[0].text =
           widget.downtime.startTime.toLocal().toString().substring(0, 10);
@@ -229,18 +234,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
     presetController.addListener(() {
       var presetDowntime = presetDowntimes
           .where((element) => element.id == presetController.text);
-      // if (presetDowntime.first.toString() == "Other") {
-      //   descriptionFormField.disabled = false;
-      //   controlledFormField.isEnabled = true;
-      //   plannedFormField.isEnabled = true;
-      // } else {
-      //   descriptionFormField.disabled = true;
-      //   controlledFormField.isEnabled = false;
-      //   plannedFormField.isEnabled = false;
-      // }
       if (presetDowntime.isNotEmpty) {
         period = presetDowntime.single.defaultPeriod;
-        // descriptionController.text = presetDowntime.single.description;
         if (mainFormWidgets.length > 1) {
           startDateController.text =
               endDateControllers[endDateControllers.length - 2]
@@ -289,6 +284,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                 : changeState(
                     "0", "0", controlledController, plannedController);
       }
+      allocatedDowntime = getAllocatedDowntime();
+      setState(() {});
     });
     startTimeController.addListener(() {
       if (period != 0 &&
@@ -522,33 +519,94 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                   widget.notifyParent();
                 }
                 if (!isDowntimeError) {
-                  for (var i = 0; i < mainFormWidgets.length - 1; i++) {}
                   int lastIndex = mainFormWidgets.length - 1;
-                  int creationErrors = 0;
+                  String creationErrors = "";
                   var updateFormWidget = mainFormWidgets[lastIndex];
                   var createFormWidgets =
                       mainFormWidgets.getRange(0, lastIndex);
-                  await Future.forEach(createFormWidgets,
-                      (FormFieldWidget downtimeForm) async {
-                    if (downtimeForm.validate()) {
-                      map = downtimeForm.toJSON();
-                      map["created_by_username"] = currentUser.username;
-                      map["updated_by_username"] = currentUser.username;
-                      map["planned"] = map["planned"] == "1" ? true : false;
-                      map["controlled"] =
-                          map["controlled"] == "1" ? true : false;
-                      DateTime startDate = DateTime.parse(map["start_date"]);
-                      String startTime =
-                          ((map["start_time"].split("(")[1]).split(")")[0]);
-                      map["start_time"] = DateTime(
-                            startDate.year,
-                            startDate.month,
-                            startDate.day,
-                            int.parse(startTime.split(":")[0].toString()),
-                            int.parse(startTime.split(":")[1].toString()),
+                  List<Map<String, dynamic>> downtimesToCreate = [];
+                  for (FormFieldWidget downtimeForm in createFormWidgets) {
+                    map = downtimeForm.toJSON();
+                    map["created_by_username"] = currentUser.username;
+                    map["updated_by_username"] = currentUser.username;
+                    map["planned"] = map["planned"] == "1" ? true : false;
+                    map["controlled"] = map["controlled"] == "1" ? true : false;
+                    DateTime startDate = DateTime.parse(map["start_date"]);
+                    String startTime =
+                        ((map["start_time"].split("(")[1]).split(")")[0]);
+                    map["start_time"] = DateTime(
+                          startDate.year,
+                          startDate.month,
+                          startDate.day,
+                          int.parse(startTime.split(":")[0].toString()),
+                          int.parse(startTime.split(":")[1].toString()),
+                        ).toUtc().toIso8601String().toString().split(".")[0] +
+                        "Z";
+                    if (map.containsKey("end_date")) {
+                      DateTime endDate = DateTime.parse(map["end_date"]);
+                      String endTime =
+                          ((map["end_time"].split("(")[1]).split(")")[0]);
+                      map["end_time"] = DateTime(
+                            endDate.year,
+                            endDate.month,
+                            endDate.day,
+                            int.parse(endTime.split(":")[0].toString()),
+                            int.parse(endTime.split(":")[1].toString()),
                           ).toUtc().toIso8601String().toString().split(".")[0] +
                           "Z";
-                      if (map.containsKey("end_date")) {
+                    }
+
+                    map["line_id"] = widget.downtime.line.id;
+                    map.remove("start_date");
+                    map.remove("end_date");
+                    if (map["preset"].isEmpty && map["description"].isEmpty) {
+                      creationErrors +=
+                          "Downtime Description or Preset Not Set.\n";
+                    } else {
+                      downtimesToCreate.add(map);
+                    }
+                  }
+
+                  List<Downtime> createdDowntimes = [];
+                  if (creationErrors.isEmpty) {
+                    await Future.forEach(downtimesToCreate,
+                        (Map<String, dynamic> map) async {
+                      await appStore.downtimeApp.create(map).then((response) {
+                        if (response.containsKey("status") &&
+                            response["status"]) {
+                          Downtime createdDowntime =
+                              Downtime.fromJSON(response["payload"]);
+                          createdDowntimes.add(createdDowntime);
+                        } else {
+                          if (response.containsKey("status")) {
+                            creationErrors += response["message"];
+                          } else {
+                            creationErrors += "Unable to Create Downtime";
+                          }
+                        }
+                      });
+                    }).then((value) async {
+                      if (creationErrors.isEmpty) {
+                        var map = updateFormWidget.toJSON();
+                        map["updated_by_username"] = currentUser.username;
+                        map["planned"] = map["planned"] == "1" ? true : false;
+                        map["controlled"] =
+                            map["controlled"] == "1" ? true : false;
+                        DateTime startDate = DateTime.parse(map["start_date"]);
+                        String startTime =
+                            ((map["start_time"].split("(")[1]).split(")")[0]);
+                        map["start_time"] = DateTime(
+                              startDate.year,
+                              startDate.month,
+                              startDate.day,
+                              int.parse(startTime.split(":")[0].toString()),
+                              int.parse(startTime.split(":")[1].toString()),
+                            )
+                                .toUtc()
+                                .toIso8601String()
+                                .toString()
+                                .split(".")[0] +
+                            "Z";
                         DateTime endDate = DateTime.parse(map["end_date"]);
                         String endTime =
                             ((map["end_time"].split("(")[1]).split(")")[0]);
@@ -564,94 +622,6 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                                 .toString()
                                 .split(".")[0] +
                             "Z";
-                      }
-
-                      map["line_id"] = widget.downtime.line.id;
-                      map.remove("start_date");
-                      map.remove("end_date");
-
-                      if (map["preset"] == "" && map["description"] == "") {
-                        creationErrors += 1;
-                      } else {
-                        map["description"] = map["description"].length == 0
-                            ? presetDowntimes
-                                .firstWhere(
-                                    (element) => element.id == map["preset"])
-                                .description
-                            : presetDowntimes
-                                    .firstWhere((element) =>
-                                        element.id == map["preset"])
-                                    .description +
-                                " - " +
-                                map["description"];
-                        await appStore.downtimeApp.create(map).then((response) {
-                          if (response.containsKey("status") &&
-                              response["status"]) {
-                          } else {
-                            creationErrors += 1;
-                          }
-                        });
-                      }
-                    } else {
-                      setState(() {
-                        isLoading = false;
-                        creationErrors += 1;
-                        isError = true;
-                      });
-                      widget.notifyParent();
-                    }
-                  }).then((value) async {
-                    if (creationErrors == 0) {
-                      var map = updateFormWidget.toJSON();
-                      map["updated_by_username"] = currentUser.username;
-                      map["planned"] = map["planned"] == "1" ? true : false;
-                      map["controlled"] =
-                          map["controlled"] == "1" ? true : false;
-                      DateTime startDate = DateTime.parse(map["start_date"]);
-                      String startTime =
-                          ((map["start_time"].split("(")[1]).split(")")[0]);
-                      map["start_time"] = DateTime(
-                            startDate.year,
-                            startDate.month,
-                            startDate.day,
-                            int.parse(startTime.split(":")[0].toString()),
-                            int.parse(startTime.split(":")[1].toString()),
-                          ).toUtc().toIso8601String().toString().split(".")[0] +
-                          "Z";
-                      DateTime endDate = DateTime.parse(map["end_date"]);
-                      String endTime =
-                          ((map["end_time"].split("(")[1]).split(")")[0]);
-                      map["end_time"] = DateTime(
-                            endDate.year,
-                            endDate.month,
-                            endDate.day,
-                            int.parse(endTime.split(":")[0].toString()),
-                            int.parse(endTime.split(":")[1].toString()),
-                          ).toUtc().toIso8601String().toString().split(".")[0] +
-                          "Z";
-
-                      map.remove("start_date");
-                      map.remove("end_date");
-                      if (map["preset"] == "" && map["description"] == "") {
-                        setState(() {
-                          isLoading = false;
-                          isError = true;
-                          errorMessage = "Downtime Description Missing";
-                        });
-                        widget.notifyParent();
-                      } else {
-                        map["description"] = map["description"].length == 0
-                            ? presetDowntimes
-                                .firstWhere(
-                                    (element) => element.id == map["preset"])
-                                .description
-                            : presetDowntimes
-                                    .firstWhere((element) =>
-                                        element.id == map["preset"])
-                                    .description +
-                                " - " +
-                                map["description"];
-                        print(map);
                         await appStore.downtimeApp
                             .update(widget.downtime.id, map)
                             .then((response) async {
@@ -661,11 +631,33 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                               isLoading = false;
                               updatingDowntime = true;
                               widget.downtime.description =
-                                  descriptionControllers.last.text;
+                                  presetControllers.last.text.isEmpty
+                                      ? descriptionControllers.last.text
+                                      : descriptionControllers.last.text.isEmpty
+                                          ? presetDowntimes
+                                              .firstWhere((element) =>
+                                                  element.id ==
+                                                  presetControllers.last.text)
+                                              .description
+                                          : descriptionControllers.last.text;
+                              widget.downtime.startTime = DateTime(
+                                startDate.year,
+                                startDate.month,
+                                startDate.day,
+                                int.parse(startTime.split(":")[0].toString()),
+                                int.parse(startTime.split(":")[1].toString()),
+                              );
+                              widget.downtime.endTime = DateTime(
+                                endDate.year,
+                                endDate.month,
+                                endDate.day,
+                                int.parse(endTime.split(":")[0].toString()),
+                                int.parse(endTime.split(":")[1].toString()),
+                              );
                               widget.downtime.planned = map["planned"];
                               widget.downtime.controlled = map["controlled"];
                             });
-                            widget.notifyParent();
+                            widget.notifyParent(createdDowntimes);
                             setState(() {
                               isLoading = false;
                               updatingDowntime = false;
@@ -689,17 +681,22 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                             }
                           }
                         });
+                      } else {
+                        setState(() {
+                          isLoading = false;
+                          isError = true;
+                          errorMessage =
+                              "Downtime Data Contains error, please correct and try again.";
+                        });
+                        widget.notifyParent();
                       }
-                    } else {
-                      setState(() {
-                        isLoading = false;
-                        isError = true;
-                        errorMessage =
-                            "Downtime Data Contains error, please correct and try again.";
-                      });
-                      widget.notifyParent();
-                    }
-                  });
+                    });
+                  } else {
+                    setState(() {
+                      isError = true;
+                      errorMessage = creationErrors;
+                    });
+                  }
                 }
               },
               color: foregroundColor,

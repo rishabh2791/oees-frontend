@@ -7,8 +7,9 @@ class Downtime {
   bool planned;
   bool controlled;
   String description;
-  final DateTime startTime;
-  final DateTime endTime;
+  String preset;
+  DateTime startTime;
+  DateTime endTime;
   final User updatedBy;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,7 +17,8 @@ class Downtime {
   Downtime({
     this.controlled = false,
     required this.createdAt,
-    required this.description,
+    this.description = "",
+    this.preset = "",
     required this.endTime,
     required this.id,
     required this.line,
@@ -40,6 +42,7 @@ class Downtime {
       "controlled": controlled,
       "created_at": createdAt,
       "description": description,
+      "preset": preset,
       "end_time": endTime,
       "id": id,
       "planned": planned,
@@ -55,6 +58,7 @@ class Downtime {
       controlled: jsonObject["controlled"],
       createdAt: DateTime.parse(jsonObject["created_at"]),
       description: jsonObject["description"],
+      preset: jsonObject["preset"],
       endTime: jsonObject["end_time"].toString().toUpperCase() == "NULL"
           ? DateTime.parse("2099-12-31T23:59:59Z")
           : DateTime(

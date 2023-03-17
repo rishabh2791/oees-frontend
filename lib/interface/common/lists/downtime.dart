@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/downtime.dart';
+import 'package:oees/domain/entity/downtime_preset.dart';
 import 'package:oees/infrastructure/constants.dart';
 import 'package:oees/infrastructure/variables.dart';
 import 'package:oees/interface/common/super_widget/base_widget.dart';
@@ -10,7 +12,7 @@ import 'package:oees/interface/downtime/downtime_update_widget.dart';
 
 class DowntimeList extends StatefulWidget {
   final List<Downtime> downtimes;
-  final Function notifyParent;
+  final MyCallback notifyParent;
   final String action;
   const DowntimeList({
     Key? key,
@@ -24,12 +26,14 @@ class DowntimeList extends StatefulWidget {
 }
 
 class _DowntimeListState extends State<DowntimeList> {
-  bool sort = true, ascending = true;
+  bool sort = true, ascending = true, isLoading = true;
   int sortingColumnIndex = 0;
+  List<DowntimePreset> downtimePresets = [];
   ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
+    getPresetDowntimes();
     widget.downtimes.sort((a, b) {
       String sortParama = a.startTime.toString() + a.description;
       String sortParamb = b.startTime.toString() + b.description;
@@ -42,6 +46,26 @@ class _DowntimeListState extends State<DowntimeList> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> getPresetDowntimes() async {
+    await appStore.downtimePresetApp.list({}).then((response) {
+      if (response.containsKey("status") && response["status"]) {
+        for (var item in response["payload"]) {
+          DowntimePreset downtimePreset = DowntimePreset.fromJSON(item);
+          downtimePresets.add(downtimePreset);
+        }
+        setState(() {
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = "Unable to get Preset Downtimes.";
+          isError = true;
+        });
+      }
+    });
   }
 
   onSortColum(int columnIndex, bool ascending) {
@@ -143,168 +167,56 @@ class _DowntimeListState extends State<DowntimeList> {
   Widget listDetailsWidget() {
     return BaseWidget(
       builder: (context, sizeInfo) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-          width: sizeInfo.screenSize.width,
-          height: widget.downtimes.length <= 25
-              ? 156 + widget.downtimes.length * 56
-              : 156 + 25 * 56,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    cardColor:
-                        isDarkTheme.value ? backgroundColor : foregroundColor,
-                    dividerColor: isDarkTheme.value
-                        ? foregroundColor.withOpacity(0.25)
-                        : backgroundColor.withOpacity(0.25),
-                    textTheme: TextTheme(
-                      bodySmall: TextStyle(
-                        color: isDarkTheme.value
-                            ? foregroundColor
-                            : backgroundColor,
-                      ),
-                    ),
-                  ),
-                  child: ListView(
-                    controller: scrollController,
-                    children: [
-                      PaginatedDataTable(
-                        arrowHeadColor: isDarkTheme.value
-                            ? foregroundColor
-                            : backgroundColor,
-                        showCheckboxColumn: false,
-                        showFirstLastButtons: true,
-                        sortAscending: sort,
-                        sortColumnIndex: sortingColumnIndex,
-                        columnSpacing: 20.0,
-                        columns: [
-                          DataColumn(
-                            label: Text(
-                              "Downtime",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value
-                                    ? foregroundColor
-                                    : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
+        return isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
+                  color: isDarkTheme.value ? backgroundColor : foregroundColor,
+                ),
+              )
+            : Container(
+                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                width: sizeInfo.screenSize.width,
+                height: widget.downtimes.length <= 25
+                    ? 156 + widget.downtimes.length * 56
+                    : 156 + 25 * 56,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Theme(
+                        data: Theme.of(context).copyWith(
+                          cardColor: isDarkTheme.value
+                              ? backgroundColor
+                              : foregroundColor,
+                          dividerColor: isDarkTheme.value
+                              ? foregroundColor.withOpacity(0.25)
+                              : backgroundColor.withOpacity(0.25),
+                          textTheme: TextTheme(
+                            bodySmall: TextStyle(
+                              color: isDarkTheme.value
+                                  ? foregroundColor
+                                  : backgroundColor,
                             ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
                           ),
-                          DataColumn(
-                            label: Text(
-                              "Start Time",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value
-                                    ? foregroundColor
-                                    : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Text(
-                              "End Time",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value
-                                    ? foregroundColor
-                                    : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Text(
-                              "Type",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value
-                                    ? foregroundColor
-                                    : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
-                          DataColumn(
-                            label: Text(
-                              "Duration (Min)",
-                              style: TextStyle(
-                                fontSize: 20.0,
-                                color: isDarkTheme.value
-                                    ? foregroundColor
-                                    : backgroundColor,
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            onSort: (columnIndex, ascending) {
-                              setState(() {
-                                sort = !sort;
-                                sortingColumnIndex = columnIndex;
-                              });
-                              onSortColum(columnIndex, ascending);
-                            },
-                          ),
-                          getAccessCode("tasks", widget.action) == "1"
-                              ? DataColumn(
+                        ),
+                        child: ListView(
+                          controller: scrollController,
+                          children: [
+                            PaginatedDataTable(
+                              arrowHeadColor: isDarkTheme.value
+                                  ? foregroundColor
+                                  : backgroundColor,
+                              showCheckboxColumn: false,
+                              showFirstLastButtons: true,
+                              sortAscending: sort,
+                              sortColumnIndex: sortingColumnIndex,
+                              columnSpacing: 20.0,
+                              columns: [
+                                DataColumn(
                                   label: Text(
-                                    "Update",
-                                    style: TextStyle(
-                                      fontSize: 20.0,
-                                      color: isDarkTheme.value
-                                          ? foregroundColor
-                                          : backgroundColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                  onSort: (columnIndex, ascending) {
-                                    setState(() {
-                                      sort = !sort;
-                                      sortingColumnIndex = columnIndex;
-                                    });
-                                    onSortColum(columnIndex, ascending);
-                                  },
-                                )
-                              : DataColumn(
-                                  label: Text(
-                                    " ",
+                                    "Downtime",
                                     style: TextStyle(
                                       fontSize: 20.0,
                                       color: isDarkTheme.value
@@ -322,23 +234,148 @@ class _DowntimeListState extends State<DowntimeList> {
                                     onSortColum(columnIndex, ascending);
                                   },
                                 ),
-                        ],
-                        source: _DataSource(context, widget.downtimes,
-                            widget.notifyParent, widget.action),
-                        rowsPerPage: widget.downtimes.length > 25
-                            ? 25
-                            : widget.downtimes.length,
-                      )
-                    ],
-                  ),
+                                DataColumn(
+                                  label: Text(
+                                    "Start Time",
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: isDarkTheme.value
+                                          ? foregroundColor
+                                          : backgroundColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  onSort: (columnIndex, ascending) {
+                                    setState(() {
+                                      sort = !sort;
+                                      sortingColumnIndex = columnIndex;
+                                    });
+                                    onSortColum(columnIndex, ascending);
+                                  },
+                                ),
+                                DataColumn(
+                                  label: Text(
+                                    "End Time",
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: isDarkTheme.value
+                                          ? foregroundColor
+                                          : backgroundColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  onSort: (columnIndex, ascending) {
+                                    setState(() {
+                                      sort = !sort;
+                                      sortingColumnIndex = columnIndex;
+                                    });
+                                    onSortColum(columnIndex, ascending);
+                                  },
+                                ),
+                                DataColumn(
+                                  label: Text(
+                                    "Type",
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: isDarkTheme.value
+                                          ? foregroundColor
+                                          : backgroundColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  onSort: (columnIndex, ascending) {
+                                    setState(() {
+                                      sort = !sort;
+                                      sortingColumnIndex = columnIndex;
+                                    });
+                                    onSortColum(columnIndex, ascending);
+                                  },
+                                ),
+                                DataColumn(
+                                  label: Text(
+                                    "Duration (Min)",
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: isDarkTheme.value
+                                          ? foregroundColor
+                                          : backgroundColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  onSort: (columnIndex, ascending) {
+                                    setState(() {
+                                      sort = !sort;
+                                      sortingColumnIndex = columnIndex;
+                                    });
+                                    onSortColum(columnIndex, ascending);
+                                  },
+                                ),
+                                getAccessCode("tasks", widget.action) == "1"
+                                    ? DataColumn(
+                                        label: Text(
+                                          "Update",
+                                          style: TextStyle(
+                                            fontSize: 20.0,
+                                            color: isDarkTheme.value
+                                                ? foregroundColor
+                                                : backgroundColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                        onSort: (columnIndex, ascending) {
+                                          setState(() {
+                                            sort = !sort;
+                                            sortingColumnIndex = columnIndex;
+                                          });
+                                          onSortColum(columnIndex, ascending);
+                                        },
+                                      )
+                                    : DataColumn(
+                                        label: Text(
+                                          " ",
+                                          style: TextStyle(
+                                            fontSize: 20.0,
+                                            color: isDarkTheme.value
+                                                ? foregroundColor
+                                                : backgroundColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                        onSort: (columnIndex, ascending) {
+                                          setState(() {
+                                            sort = !sort;
+                                            sortingColumnIndex = columnIndex;
+                                          });
+                                          onSortColum(columnIndex, ascending);
+                                        },
+                                      ),
+                              ],
+                              source: _DataSource(
+                                  context,
+                                  widget.downtimes,
+                                  widget.notifyParent,
+                                  widget.action,
+                                  downtimePresets),
+                              rowsPerPage: widget.downtimes.length > 25
+                                  ? 25
+                                  : widget.downtimes.length,
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40.0,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(
-                height: 40.0,
-              ),
-            ],
-          ),
-        );
+              );
       },
     );
   }
@@ -350,14 +387,17 @@ class _DowntimeListState extends State<DowntimeList> {
 }
 
 class _DataSource extends DataTableSource {
-  _DataSource(this.context, this._downtimes, this._notifyParent, this._action) {
+  _DataSource(this.context, this._downtimes, this._notifyParent, this._action,
+      this._downtimePresets) {
     _downtimes = _downtimes;
     _notifyParent = _notifyParent;
     _action = _action;
+    _downtimePresets = _downtimePresets;
   }
 
   final BuildContext context;
   List<Downtime> _downtimes;
+  List<DowntimePreset> _downtimePresets;
   Function _notifyParent;
   String _action;
   TextEditingController downtimeController = TextEditingController();
@@ -395,17 +435,48 @@ class _DataSource extends DataTableSource {
       index: index,
       cells: [
         DataCell(
-          downtime.description == ""
+          downtime.description.isEmpty && downtime.preset.isEmpty
               ? const Text(" ")
-              : Text(
-                  downtime.description,
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color:
-                        isDarkTheme.value ? foregroundColor : backgroundColor,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
+              : downtime.description.isEmpty
+                  ? Text(
+                      _downtimePresets
+                          .firstWhere(
+                              (element) => element.id == downtime.preset)
+                          .description,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: isDarkTheme.value
+                            ? foregroundColor
+                            : backgroundColor,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    )
+                  : downtime.preset.isEmpty
+                      ? Text(
+                          downtime.description,
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: isDarkTheme.value
+                                ? foregroundColor
+                                : backgroundColor,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        )
+                      : Text(
+                          _downtimePresets
+                                  .firstWhere((element) =>
+                                      element.id == downtime.preset)
+                                  .description +
+                              " - " +
+                              downtime.description,
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: isDarkTheme.value
+                                ? foregroundColor
+                                : backgroundColor,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
         ),
         DataCell(
           Text(

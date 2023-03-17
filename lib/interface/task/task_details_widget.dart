@@ -274,10 +274,12 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
     return updated;
   }
 
-  refresh() {
-    if (updatingDowntime) {
-      setState(() {});
-    }
+  refresh(List<Downtime> createdDowntimes) {
+    downtimes.addAll(createdDowntimes);
+    downtimes.sort(
+      (a, b) => b.startTime.compareTo(a.startTime),
+    );
+    setState(() {});
   }
 
   @override

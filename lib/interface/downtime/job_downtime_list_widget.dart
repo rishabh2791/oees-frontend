@@ -96,7 +96,9 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                               )
                             : DowntimeList(
                                 downtimes: taskDowntimes,
-                                notifyParent: () {
+                                notifyParent:
+                                    (List<Downtime> createdDowntimes) {
+                                  taskDowntimes.addAll(createdDowntimes);
                                   setState(() {});
                                 },
                                 action: "create",

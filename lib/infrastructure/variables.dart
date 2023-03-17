@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:oees/domain/entity/downtime.dart';
 import 'package:oees/domain/entity/user.dart';
 import 'package:oees/domain/entity/user_role_access.dart';
 import 'package:oees/interface/device/device_widget.dart';
@@ -19,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 bool isMenuCollapsed = true;
 ValueNotifier<bool> isDarkTheme = ValueNotifier<bool>(true);
+typedef MyCallback = void Function(List<Downtime> createdDowntimes);
 bool isLoggedIn = false;
 bool isError = false;
 String errorMessage = "";

@@ -60,7 +60,8 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
     });
   }
 
-  refresh() {
+  refresh(List<Downtime> createdDowntimes) {
+    downtimes.addAll(createdDowntimes);
     if (updatingDowntime) {
       setState(() {});
     }
