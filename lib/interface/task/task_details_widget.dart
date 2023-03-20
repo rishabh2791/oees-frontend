@@ -265,7 +265,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
     bool updated = true;
     for (var downtime in downtimes) {
       updated = updated &&
-          downtime.description != "" &&
+          (downtime.description != "" || downtime.preset != "") &&
           downtime.endTime
                   .difference(DateTime.parse("2099-12-31T23:59:59Z"))
                   .inSeconds <

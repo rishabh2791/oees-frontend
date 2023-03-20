@@ -563,7 +563,7 @@ class _DataSource extends DataTableSource {
                   ),
                 ),
               )
-            : downtime.description == ""
+            : (downtime.description == "" && downtime.preset == "")
                 ? DataCell(
                     TextButton(
                       onPressed: () {
