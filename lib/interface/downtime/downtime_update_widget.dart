@@ -117,11 +117,6 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
     ], (element) {})
         .then((value) {
       initForm();
-      if (widget.downtime.preset.isNotEmpty) {
-        presetControllers[0].text = presetDowntimes
-            .firstWhere((element) => element.id == widget.downtime.preset)
-            .description;
-      }
       descriptionControllers[0].text = widget.downtime.description;
       startDateControllers[0].text =
           widget.downtime.startTime.toLocal().toString().substring(0, 10);

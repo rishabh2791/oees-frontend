@@ -858,6 +858,9 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                         padding: const EdgeInsets.all(10.0),
                                         child: MaterialButton(
                                           onPressed: () async {
+                                            setState(() {
+                                              isLoading = true;
+                                            });
                                             DateTime now =
                                                 DateTime.now().toUtc();
                                             String time = now
@@ -911,9 +914,12 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                           now.toLocal();
                                                       widget.task.running =
                                                           false;
-                                                      setState(() {});
+                                                      setState(() {
+                                                        isLoading = false;
+                                                      });
                                                     } else {
                                                       setState(() {
+                                                        isLoading = false;
                                                         isError = true;
                                                         errorMessage =
                                                             "Unable to end Task, please try later.";
@@ -922,6 +928,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                                   });
                                                 } else {
                                                   setState(() {
+                                                    isLoading = false;
                                                     isError = true;
                                                     errorMessage =
                                                         "Unable to end Task, please try later.";
@@ -930,6 +937,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                               });
                                             } else {
                                               setState(() {
+                                                isLoading = false;
                                                 isError = true;
                                                 errorMessage =
                                                     "Update All Downtimes Before Ending Task";
