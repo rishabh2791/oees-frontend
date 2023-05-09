@@ -12,6 +12,7 @@ import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
 import 'package:oees/interface/common/form_fields/text_form_field.dart';
 import 'package:oees/interface/common/form_fields/time_form_field.dart';
+import 'package:oees/interface/common/super_widget/user_action_button.dart';
 import 'package:oees/interface/common/ui_elements/add_button.dart';
 import 'package:oees/interface/common/ui_elements/check_button.dart';
 import 'package:oees/interface/common/ui_elements/clear_button.dart';
@@ -320,17 +321,22 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
       allocatedDowntime = getAllocatedDowntime();
       setState(() {});
     });
-    FormFieldWidget mainFormWidget = FormFieldWidget(
-      formFields: [
-        presetFormField,
-        descriptionFormField,
-        startDateFormField,
-        startTimeFormField,
-        endDateFormField,
-        endTimeFormField,
+    List<FormFielder> formFields = [
+      presetFormField,
+      descriptionFormField,
+      startDateFormField,
+      startTimeFormField,
+      endDateFormField,
+      endTimeFormField,
+    ];
+    if (getAccessCode("tasks", "update") == "1") {
+      formFields.addAll([
         plannedFormField,
         controlledFormField,
-      ],
+      ]);
+    }
+    FormFieldWidget mainFormWidget = FormFieldWidget(
+      formFields: formFields,
       isVertical: false,
     );
     mainFormWidgets.add(mainFormWidget);
@@ -529,8 +535,21 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                     map = downtimeForm.toJSON();
                     map["created_by_username"] = currentUser.username;
                     map["updated_by_username"] = currentUser.username;
-                    map["planned"] = map["planned"] == "1" ? true : false;
-                    map["controlled"] = map["controlled"] == "1" ? true : false;
+                    if (map.containsKey("planned") ||
+                        map.containsKey("controlled")) {
+                      map["planned"] = map["planned"] == "1" ? true : false;
+                      map["controlled"] =
+                          map["controlled"] == "1" ? true : false;
+                    } else {
+                      if (map["preset"].isNotEmpty) {
+                        DowntimePreset preset = presetDowntimes.firstWhere(
+                            (element) => element.id == map["preset"]);
+                        map["controlled"] =
+                            preset.type == "Controlled" ? true : false;
+                        map["planned"] =
+                            preset.type == "Planned" ? true : false;
+                      }
+                    }
                     DateTime startDate = DateTime.parse(map["start_date"]);
                     String startTime =
                         ((map["start_time"].split("(")[1]).split(")")[0]);
@@ -566,7 +585,6 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       downtimesToCreate.add(map);
                     }
                   }
-
                   List<Downtime> createdDowntimes = [];
                   if (creationErrors.isEmpty) {
                     await Future.forEach(downtimesToCreate,
@@ -589,9 +607,21 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                       if (creationErrors.isEmpty) {
                         var map = updateFormWidget.toJSON();
                         map["updated_by_username"] = currentUser.username;
-                        map["planned"] = map["planned"] == "1" ? true : false;
-                        map["controlled"] =
-                            map["controlled"] == "1" ? true : false;
+                        if (map.containsKey("planned") ||
+                            map.containsKey("controlled")) {
+                          map["planned"] = map["planned"] == "1" ? true : false;
+                          map["controlled"] =
+                              map["controlled"] == "1" ? true : false;
+                        } else {
+                          if (map["preset"].isNotEmpty) {
+                            DowntimePreset preset = presetDowntimes.firstWhere(
+                                (element) => element.id == map["preset"]);
+                            map["controlled"] =
+                                preset.type == "Controlled" ? true : false;
+                            map["planned"] =
+                                preset.type == "Planned" ? true : false;
+                          }
+                        }
                         DateTime startDate = DateTime.parse(map["start_date"]);
                         String startTime =
                             ((map["start_time"].split("(")[1]).split(")")[0]);
