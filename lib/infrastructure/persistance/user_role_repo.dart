@@ -19,7 +19,7 @@ class UserRoleRepo implements UserRoleRepository {
 
   @override
   Future<Map<String, dynamic>> getUserRole(String id) async {
-    String url = "user_role/" + id + "/";
+    String url = "user_role/get/" + id + "/";
     var response = await networkAPIProvider.get(url, TokenType.accessToken);
     return response;
   }

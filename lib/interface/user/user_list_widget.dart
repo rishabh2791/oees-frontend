@@ -29,10 +29,10 @@ class _UserListWidgetState extends State<UserListWidget> {
   }
 
   Future<void> getUsers() async {
-    await appStore.userApp.list({}).then((response) {
+    await appStore.userApp.list({}).then((response) async {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          User user = User.fromJSON(item);
+          User user = await User.fromJSON(item);
           users.add(user);
         }
       } else {

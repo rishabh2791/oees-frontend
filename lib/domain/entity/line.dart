@@ -1,3 +1,4 @@
+import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/user.dart';
 
 class Line {
@@ -12,7 +13,7 @@ class Line {
   final DateTime updatedAt;
   bool selected = false;
 
-  Line({
+  Line._({
     required this.code,
     required this.createdAt,
     required this.createdBy,
@@ -43,18 +44,25 @@ class Line {
     };
   }
 
-  factory Line.fromJSON(Map<String, dynamic> jsonObject) {
-    Line line = Line(
-      code: jsonObject["code"],
-      createdAt: DateTime.parse(jsonObject["created_at"]),
-      createdBy: User.fromJSON(jsonObject["created_by"]),
-      id: jsonObject["id"],
-      speedType: int.parse(jsonObject["speed_type"].toString()),
-      ipAddress: jsonObject["ip_address"] ?? "",
-      name: jsonObject["name"],
-      updatedAt: DateTime.parse(jsonObject["updated_at"]),
-      updatedBy: User.fromJSON(jsonObject["updated_by"]),
-    );
+  static Future<Line> fromJSON(Map<String, dynamic> jsonObject) async {
+    late Line line;
+
+    await appStore.userApp.getUser(jsonObject["created_by_username"]).then((createdByResponse) async {
+      await appStore.userApp.getUser(jsonObject["updated_by_username"]).then((udpatedByResponse) async {
+        line = Line._(
+          code: jsonObject["code"],
+          createdAt: DateTime.parse(jsonObject["created_at"]),
+          createdBy: await User.fromJSON(createdByResponse["payload"]),
+          id: jsonObject["id"],
+          speedType: jsonObject["speed_type"],
+          ipAddress: jsonObject["ip_address"],
+          name: jsonObject["name"],
+          updatedAt: DateTime.parse(jsonObject["updated_at"]),
+          updatedBy: await User.fromJSON(udpatedByResponse["payload"]),
+        );
+      });
+    });
+
     return line;
   }
 }

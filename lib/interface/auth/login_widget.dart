@@ -95,15 +95,14 @@ class _LoginWidgetState extends State<LoginWidget> {
           isLoggedIn = true;
           await Future.forEach([await refreshAccessToken()], (element) {}).then(
             (value) async {
-              await appStore.userApp.getUser(payload["username"]).then((value) {
+              await appStore.userApp.getUser(payload["username"]).then((value) async {
                 if (value.containsKey("status") && value["status"]) {
-                  User user = User.fromJSON(value["payload"]);
+                  User user = await User.fromJSON(value["payload"]);
                   currentUser = user;
                   if (currentUser.userRole.description == "Line Manager") {
                     navigationService.pushReplacement(
                       CupertinoPageRoute(
-                        builder: (BuildContext context) =>
-                            const TaskListWidget(),
+                        builder: (BuildContext context) => const TaskListWidget(),
                       ),
                     );
                   } else {
@@ -143,8 +142,7 @@ class _LoginWidgetState extends State<LoginWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor:
-                      isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )

@@ -52,7 +52,7 @@ class _UserRoleAccessListWidgetState extends State<UserRoleAccessListWidget> {
       if (response["status"]) {
         for (var item in response["payload"]) {
           if (item["role"] != "Superuser") {
-            UserRole userRole = UserRole.fromJSON(item);
+            UserRole userRole = await UserRole.fromJSON(item);
             userRoles.add(userRole);
           }
         }

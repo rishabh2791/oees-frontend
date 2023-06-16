@@ -95,10 +95,10 @@ class _DeviceCreateWidgetState extends State<DeviceCreateWidget> {
     setState(() {
       isLoading = true;
     });
-    await appStore.lineApp.list({}).then((response) {
+    await appStore.lineApp.list({}).then((response) async {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = Line.fromJSON(item);
+          Line line = await Line.fromJSON(item);
           lines.add(line);
         }
         initForm();

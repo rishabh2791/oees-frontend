@@ -1,3 +1,4 @@
+import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/user_role.dart';
 
 class User {
@@ -14,7 +15,7 @@ class User {
   final DateTime updatedAt;
   bool selected = false;
 
-  User({
+  User._({
     required this.active,
     required this.createdAt,
     required this.email,
@@ -49,20 +50,25 @@ class User {
     };
   }
 
-  factory User.fromJSON(Map<String, dynamic> jsonObject) {
-    User user = User(
-      active: jsonObject["active"],
-      createdAt: DateTime.parse(jsonObject["created_at"]),
-      email: jsonObject["email"],
-      firstName: jsonObject["first_name"],
-      lastName: jsonObject["last_name"],
-      password: jsonObject["password"],
-      profilePic: jsonObject["profile_pic"],
-      secretKey: jsonObject["secret_key"],
-      updatedAt: DateTime.parse(jsonObject["updated_at"]),
-      userRole: UserRole.fromJSON(jsonObject["user_role"]),
-      username: jsonObject["username"],
-    );
+  static Future<User> fromJSON(Map<String, dynamic> jsonObject) async {
+    late User user;
+
+    await appStore.userRoleApp.getUserRole(jsonObject["user_role_id"]).then((response) async {
+      user = User._(
+        active: jsonObject["active"],
+        createdAt: DateTime.parse(jsonObject["created_at"]),
+        email: jsonObject["email"],
+        firstName: jsonObject["first_name"],
+        lastName: jsonObject["last_name"],
+        password: jsonObject["password"],
+        profilePic: jsonObject["profile_pic"],
+        secretKey: jsonObject["secret_key"],
+        updatedAt: DateTime.parse(jsonObject["updated_at"]),
+        userRole: await UserRole.fromJSON(response["payload"]),
+        username: jsonObject["username"],
+      );
+    });
+
     return user;
   }
 }

@@ -1,3 +1,4 @@
+import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/user.dart';
 
 class SKU {
@@ -16,7 +17,7 @@ class SKU {
   final DateTime updatedAt;
   bool selected = false;
 
-  SKU({
+  SKU._({
     required this.code,
     required this.createdAt,
     required this.createdBy,
@@ -55,22 +56,29 @@ class SKU {
     };
   }
 
-  factory SKU.fromJSON(Map<String, dynamic> jsonObject) {
-    SKU line = SKU(
-      code: jsonObject["code"],
-      createdAt: DateTime.parse(jsonObject["created_at"]),
-      createdBy: User.fromJSON(jsonObject["created_by"]),
-      id: jsonObject["id"],
-      minWeight: double.parse(jsonObject["min_weight"].toString()),
-      maxWeight: double.parse(jsonObject["max_weight"].toString()),
-      expectedWeight: double.parse(jsonObject["expected_weight"].toString()),
-      lowRunSpeed: int.parse(jsonObject["low_run_speed"].toString()),
-      highRunSpeed: int.parse(jsonObject["high_run_speed"].toString()),
-      description: jsonObject["description"],
-      caseLot: jsonObject["case_lot"],
-      updatedAt: DateTime.parse(jsonObject["updated_at"]),
-      updatedBy: User.fromJSON(jsonObject["updated_by"]),
-    );
-    return line;
+  static Future<SKU> fromJSON(Map<String, dynamic> jsonObject) async {
+    late SKU sku;
+
+    await appStore.userApp.getUser(jsonObject["created_by_username"]).then((createdByResponse) async {
+      await appStore.userApp.getUser(jsonObject["updated_by_username"]).then((udpatedByResponse) async {
+        sku = SKU._(
+          code: jsonObject["code"],
+          createdAt: DateTime.parse(jsonObject["created_at"]),
+          createdBy: await User.fromJSON(createdByResponse["payload"]),
+          id: jsonObject["id"],
+          minWeight: double.parse(jsonObject["min_weight"].toString()),
+          maxWeight: double.parse(jsonObject["max_weight"].toString()),
+          expectedWeight: double.parse(jsonObject["expected_weight"].toString()),
+          lowRunSpeed: int.parse(jsonObject["low_run_speed"].toString()),
+          highRunSpeed: int.parse(jsonObject["high_run_speed"].toString()),
+          description: jsonObject["description"],
+          caseLot: jsonObject["case_lot"],
+          updatedAt: DateTime.parse(jsonObject["updated_at"]),
+          updatedBy: await User.fromJSON(udpatedByResponse["payload"]),
+        );
+      });
+    });
+
+    return sku;
   }
 }

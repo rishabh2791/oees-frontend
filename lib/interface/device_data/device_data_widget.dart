@@ -32,9 +32,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
   late FormFieldWidget formFieldWidget;
   late DropdownFormField lineFormField;
   late DateFormField startDateFormWidget, endDataFormWidget;
-  late TextEditingController startDateController,
-      endDateController,
-      lineController;
+  late TextEditingController startDateController, endDateController, lineController;
 
   @override
   void initState() {
@@ -47,10 +45,10 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
 
   Future<void> getLines() async {
     lines = [];
-    await appStore.lineApp.list({}).then((response) {
+    await appStore.lineApp.list({}).then((response) async {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = Line.fromJSON(item);
+          Line line = await Line.fromJSON(item);
           lines.add(line);
         }
       }
@@ -119,10 +117,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                       });
                       map = formFieldWidget.toJSON();
                       map["use_for_oee"] = true;
-                      map["end_date"] = DateTime.parse(map["end_date"])
-                          .add(const Duration(days: 1))
-                          .toString()
-                          .substring(0, 10);
+                      map["end_date"] = DateTime.parse(map["end_date"]).add(const Duration(days: 1)).toString().substring(0, 10);
                       Map<String, dynamic> filters = {
                         "AND": [
                           {
@@ -139,13 +134,9 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                           },
                         ],
                       };
-                      await appStore.deviceApp
-                          .list(filters)
-                          .then((response) async {
-                        if (response.containsKey("status") &&
-                            response["status"]) {
-                          Device device =
-                              Device.fromJSON(response["payload"][0]);
+                      await appStore.deviceApp.list(filters).then((response) async {
+                        if (response.containsKey("status") && response["status"]) {
+                          Device device = await Device.fromJSON(response["payload"][0]);
                           Map<String, dynamic> conditions = {
                             "AND": [
                               {
@@ -157,34 +148,21 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                               {
                                 "BETWEEN": {
                                   "Field": "created_at",
-                                  "HigherValue": DateTime.parse(map["end_date"])
-                                      .toUtc()
-                                      .toString(),
-                                  "LowerValue":
-                                      DateTime.parse(map["start_date"])
-                                          .toUtc()
-                                          .toString(),
+                                  "HigherValue": DateTime.parse(map["end_date"]).toUtc().toString(),
+                                  "LowerValue": DateTime.parse(map["start_date"]).toUtc().toString(),
                                 }
                               },
                             ],
                           };
-                          await appStore.deviceDataApp
-                              .list(conditions)
-                              .then((value) {
-                            if (value.containsKey("status") &&
-                                value["status"]) {
+                          await appStore.deviceDataApp.list(conditions).then((value) async {
+                            if (value.containsKey("status") && value["status"]) {
                               for (var item in value["payload"]) {
-                                DeviceData deviceData =
-                                    DeviceData.fromJSON(item);
+                                DeviceData deviceData = await DeviceData.fromJSON(item);
                                 deviceDatas.add(deviceData);
                               }
-                              deviceDatas.sort(((a, b) =>
-                                  a.createdAt.compareTo(b.createdAt)));
+                              deviceDatas.sort(((a, b) => a.createdAt.compareTo(b.createdAt)));
                               for (var deviceData in deviceDatas) {
-                                spots.add(FlSpot(
-                                    deviceData.createdAt.millisecondsSinceEpoch
-                                        .toDouble(),
-                                    deviceData.value));
+                                spots.add(FlSpot(deviceData.createdAt.millisecondsSinceEpoch.toDouble(), deviceData.value));
                               }
                               setState(() {
                                 isLoading = false;
@@ -193,8 +171,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                             } else {
                               setState(() {
                                 isLoading = false;
-                                errorMessage =
-                                    "Unable to get Counter Data for Line.";
+                                errorMessage = "Unable to get Counter Data for Line.";
                                 isError = true;
                               });
                             }
@@ -225,8 +202,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                   onPressed: () {
                     navigationService.pushReplacement(
                       CupertinoPageRoute(
-                        builder: (BuildContext context) =>
-                            const DeviceDataWidget(),
+                        builder: (BuildContext context) => const DeviceDataWidget(),
                       ),
                     );
                   },
@@ -259,9 +235,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                 ),
               ),
               Text(
-                lines
-                    .firstWhere((element) => element.id == map["line_id"])
-                    .name,
+                lines.firstWhere((element) => element.id == map["line_id"]).name,
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
@@ -299,10 +273,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                 ),
               ),
               Text(
-                DateTime.parse(map["end_date"])
-                    .subtract(const Duration(days: 1))
-                    .toString()
-                    .substring(0, 10),
+                DateTime.parse(map["end_date"]).subtract(const Duration(days: 1)).toString().substring(0, 10),
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
@@ -330,9 +301,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                         dotData: FlDotData(
                           show: false,
                         ),
-                        color: isDarkTheme.value
-                            ? foregroundColor
-                            : backgroundColor,
+                        color: isDarkTheme.value ? foregroundColor : backgroundColor,
                       ),
                     ],
                     titlesData: FlTitlesData(
@@ -346,28 +315,16 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                         sideTitles: SideTitles(
                           showTitles: true,
                           reservedSize: 300,
-                          interval: (DateTime.parse(map["end_date"])
-                                      .millisecondsSinceEpoch
-                                      .toDouble() -
-                                  DateTime.parse(map["start_date"])
-                                      .millisecondsSinceEpoch
-                                      .toDouble()) /
-                              40,
+                          interval: (DateTime.parse(map["end_date"]).millisecondsSinceEpoch.toDouble() - DateTime.parse(map["start_date"]).millisecondsSinceEpoch.toDouble()) / 40,
                           getTitlesWidget: ((value, meta) {
                             return RotatedBox(
                               quarterTurns: 1,
                               child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    10.0, 0.0, 0.0, 0.0),
+                                padding: const EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
                                 child: Text(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                          value.toInt())
-                                      .toString()
-                                      .substring(0, 16),
+                                  DateTime.fromMillisecondsSinceEpoch(value.toInt()).toString().substring(0, 16),
                                   style: TextStyle(
-                                    color: isDarkTheme.value
-                                        ? foregroundColor
-                                        : backgroundColor,
+                                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 20,
                                   ),
@@ -384,9 +341,7 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
                             return Text(
                               value.toInt().toString(),
                               style: TextStyle(
-                                color: isDarkTheme.value
-                                    ? foregroundColor
-                                    : backgroundColor,
+                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
                                 fontWeight: FontWeight.bold,
                               ),
                             );
@@ -413,14 +368,12 @@ class _DeviceDataWidgetState extends State<DeviceDataWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor:
-                      isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
             : SuperWidget(
-                childWidget:
-                    isLineSelected ? displayWidget() : selectionWidget(),
+                childWidget: isLineSelected ? displayWidget() : selectionWidget(),
                 errorCallback: () {
                   setState(
                     () {

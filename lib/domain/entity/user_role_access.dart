@@ -1,3 +1,4 @@
+import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/user.dart';
 import 'package:oees/domain/entity/user_role.dart';
 
@@ -11,7 +12,7 @@ class UserRoleAccess {
   final User updatedBy;
   final DateTime updatedAt;
 
-  UserRoleAccess({
+  UserRoleAccess._({
     required this.accessCode,
     required this.createdAt,
     required this.createdBy,
@@ -40,17 +41,26 @@ class UserRoleAccess {
     };
   }
 
-  factory UserRoleAccess.fromJSON(Map<String, dynamic> jsonObject) {
-    UserRoleAccess userRoleAccess = UserRoleAccess(
-      accessCode: jsonObject["access_code"].toString(),
-      createdAt: DateTime.parse(jsonObject["created_at"]),
-      createdBy: User.fromJSON(jsonObject["created_by"]),
-      id: jsonObject["id"],
-      table: jsonObject["tablename"],
-      updatedAt: DateTime.parse(jsonObject["updated_at"]),
-      updatedBy: User.fromJSON(jsonObject["updated_by"]),
-      userRole: UserRole.fromJSON(jsonObject["user_role"]),
-    );
+  static Future<UserRoleAccess> fromJSON(Map<String, dynamic> jsonObject) async {
+    late UserRoleAccess userRoleAccess;
+
+    await appStore.userApp.getUser(jsonObject["created_by_username"]).then((createdByResponse) async {
+      await appStore.userApp.getUser(jsonObject["updated_by_username"]).then((udpatedByResponse) async {
+        await appStore.userRoleApp.getUserRole(jsonObject["user_role_id"]).then((userRoleResponse) async {
+          userRoleAccess = UserRoleAccess._(
+            accessCode: jsonObject["access_code"],
+            createdAt: DateTime.parse(jsonObject["created_at"]),
+            createdBy: await User.fromJSON(createdByResponse["payload"]),
+            id: jsonObject["id"],
+            table: jsonObject["tablename"],
+            updatedAt: DateTime.parse(jsonObject["updated_at"]),
+            updatedBy: await User.fromJSON(udpatedByResponse["payload"]),
+            userRole: await UserRole.fromJSON(userRoleResponse["payload"]),
+          );
+        });
+      });
+    });
+
     return userRoleAccess;
   }
 }

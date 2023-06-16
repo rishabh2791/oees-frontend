@@ -37,10 +37,10 @@ class _ShiftListWidgetState extends State<ShiftListWidget> {
       isLoading = true;
     });
     shifts = [];
-    await appStore.shiftApp.list({}).then((response) {
+    await appStore.shiftApp.list({}).then((response) async {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Shift shift = Shift.fromJSON(item);
+          Shift shift = await Shift.fromJSON(item);
           shifts.add(shift);
         }
         setState(() {

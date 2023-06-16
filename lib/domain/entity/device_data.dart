@@ -1,3 +1,4 @@
+import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/device.dart';
 
 class DeviceData {
@@ -7,7 +8,7 @@ class DeviceData {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  DeviceData({
+  DeviceData._({
     required this.createdAt,
     required this.device,
     required this.id,
@@ -30,14 +31,19 @@ class DeviceData {
     };
   }
 
-  factory DeviceData.fromJSON(Map<String, dynamic> jsonObject) {
-    DeviceData deviceData = DeviceData(
-      createdAt: DateTime.parse(jsonObject["created_at"]).toLocal(),
-      device: Device.fromJSON(jsonObject["device"]),
-      id: jsonObject["id"],
-      updatedAt: DateTime.parse(jsonObject["updated_at"]).toLocal(),
-      value: double.parse(jsonObject["value"].toString()),
-    );
+  static Future<DeviceData> fromJSON(Map<String, dynamic> jsonObject) async {
+    late DeviceData deviceData;
+
+    await appStore.deviceApp.getDevice(jsonObject["device_id"]).then((response) async {
+      deviceData = DeviceData._(
+        createdAt: DateTime.parse(jsonObject["created_at"]),
+        device: await Device.fromJSON(response["payload"]),
+        id: jsonObject["id"],
+        updatedAt: DateTime.parse(jsonObject["updated_at"]),
+        value: double.parse(jsonObject["value"].toString()),
+      );
+    });
+
     return deviceData;
   }
 }

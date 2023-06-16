@@ -46,10 +46,10 @@ class _DeviceListWidgetState extends State<DeviceListWidget> {
     setState(() {
       isLoading = true;
     });
-    await appStore.lineApp.list({}).then((response) {
+    await appStore.lineApp.list({}).then((response) async {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = Line.fromJSON(item);
+          Line line = await Line.fromJSON(item);
           lines.add(line);
         }
         initForm();
@@ -149,10 +149,10 @@ class _DeviceListWidgetState extends State<DeviceListWidget> {
                                         };
                                       }
                                       devices = [];
-                                      await appStore.deviceApp.list(conditions).then((response) {
+                                      await appStore.deviceApp.list(conditions).then((response) async {
                                         if (response.containsKey("status") && response["status"]) {
                                           for (var item in response["payload"]) {
-                                            Device device = Device.fromJSON(item);
+                                            Device device = await Device.fromJSON(item);
                                             devices.add(device);
                                           }
                                           setState(() {

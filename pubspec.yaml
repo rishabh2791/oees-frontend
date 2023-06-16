@@ -33,7 +33,7 @@ dependencies:
   connectivity: ^3.0.4
   http: ^0.13.3
   google_fonts: ^2.1.0
-  font_awesome_flutter: ^8.8.1
+  font_awesome_flutter: 
   shared_preferences: ^2.0.6
   csv: ^5.0.0
   charts_flutter: ^0.5.1
