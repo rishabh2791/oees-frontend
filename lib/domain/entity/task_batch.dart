@@ -1,4 +1,3 @@
-import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/task.dart';
 import 'package:oees/domain/entity/user.dart';
 
@@ -15,7 +14,7 @@ class TaskBatch {
   final User updatedBy;
   final DateTime updatedAt;
 
-  TaskBatch._({
+  TaskBatch({
     required this.batchNumber,
     required this.complete,
     required this.createdAt,
@@ -38,29 +37,20 @@ class TaskBatch {
     return <String, dynamic>{};
   }
 
-  static Future<TaskBatch> fromJSON(Map<String, dynamic> jsonObject) async {
-    late TaskBatch taskBatch;
-
-    await appStore.userApp.getUser(jsonObject["created_by_username"]).then((createdByResponse) async {
-      await appStore.userApp.getUser(jsonObject["updated_by_username"]).then((udpatedByResponse) async {
-        await appStore.taskApp.getTask(jsonObject["task_id"]).then((taskResponse) async {
-          taskBatch = TaskBatch._(
-            batchNumber: jsonObject["batch_number"],
-            batchSize: double.parse(jsonObject["batch_size"].toString()),
-            complete: jsonObject["complete"],
-            createdAt: DateTime.parse(jsonObject["created_at"]),
-            createdBy: await User.fromJSON(createdByResponse["payload"]),
-            endTime: DateTime.parse(jsonObject["end_time"] ?? "2099-12-31T23:59:59Z").toLocal(),
-            startTime: DateTime.parse(jsonObject["start_time"]),
-            task: await Task.fromJSON(taskResponse["payload"]),
-            id: jsonObject["id"],
-            updatedAt: DateTime.parse(jsonObject["updated_at"]),
-            updatedBy: await User.fromJSON(udpatedByResponse["payload"]),
-          );
-        });
-      });
-    });
-
+  factory TaskBatch.fromJSON(Map<String, dynamic> jsonObject) {
+    TaskBatch taskBatch = TaskBatch(
+      batchNumber: jsonObject["batch_number"],
+      complete: jsonObject["complete"],
+      createdAt: DateTime.parse(jsonObject["created_at"]),
+      createdBy: User.fromJSON(jsonObject["created_by"]),
+      endTime: DateTime.parse(jsonObject["end_time"] ?? "2099-12-31T23:59:59Z").toLocal(),
+      id: jsonObject["id"],
+      batchSize: double.parse(jsonObject["batch_size"].toString()),
+      startTime: DateTime.parse(jsonObject["start_time"]),
+      task: Task.fromJSON(jsonObject["task"]),
+      updatedAt: DateTime.parse(jsonObject["updated_at"]),
+      updatedBy: User.fromJSON(jsonObject["created_by"]),
+    );
     return taskBatch;
   }
 }

@@ -30,9 +30,19 @@ class _UserCreateWidgetState extends State<UserCreateWidget> {
   bool isLoadingData = true;
   late FilePickerResult? file;
   late Map<String, dynamic> map;
-  late TextEditingController usernameController, passwordController, firstNameController, lastNameController, emailController, userRoleController, profilePicController;
+  late TextEditingController usernameController,
+      passwordController,
+      firstNameController,
+      lastNameController,
+      emailController,
+      userRoleController,
+      profilePicController;
   late DropdownFormField userRoleFormField;
-  late TextFormFielder usernameFormField, firstNameFormField, lastNameFormField, emailFormField, passwordFormField;
+  late TextFormFielder usernameFormField,
+      firstNameFormField,
+      lastNameFormField,
+      emailFormField,
+      passwordFormField;
   late FileFormField profilePicFormField;
   late FormFieldWidget formFieldWidget;
 
@@ -68,7 +78,7 @@ class _UserCreateWidgetState extends State<UserCreateWidget> {
       if (response["status"]) {
         for (var item in response["payload"]) {
           if (item["description"] != "Superuser") {
-            UserRole userRole = await UserRole.fromJSON(item);
+            UserRole userRole = UserRole.fromJSON(item);
             userRoles.add(userRole);
           }
         }
@@ -170,7 +180,8 @@ class _UserCreateWidgetState extends State<UserCreateWidget> {
         return isLoadingData
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -182,7 +193,9 @@ class _UserCreateWidgetState extends State<UserCreateWidget> {
                       Text(
                         "Create User",
                         style: TextStyle(
-                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                          color: isDarkTheme.value
+                              ? foregroundColor
+                              : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -200,35 +213,48 @@ class _UserCreateWidgetState extends State<UserCreateWidget> {
                               onPressed: () async {
                                 if (formFieldWidget.validate()) {
                                   map = formFieldWidget.toJSON();
-                                  map["created_by_username"] = currentUser.username;
-                                  map["updated_by_username"] = currentUser.username;
+                                  map["created_by_username"] =
+                                      currentUser.username;
+                                  map["updated_by_username"] =
+                                      currentUser.username;
                                   if (map.containsKey("profile_pic")) {
                                     var url = baseURL + "image/upload/";
-                                    String? token = storage?.getString("access_token");
+                                    String? token =
+                                        storage?.getString("access_token");
                                     Map<String, String> headers = {
-                                      "Authorization": "accessToken " + token.toString(),
+                                      "Authorization":
+                                          "accessToken " + token.toString(),
                                       "Content-Type": "multipart/form-data",
                                     };
                                     // ignore: prefer_typing_uninitialized_variables
                                     var pic;
-                                    var request = http.MultipartRequest("POST", Uri.parse(url));
+                                    var request = http.MultipartRequest(
+                                        "POST", Uri.parse(url));
                                     if (foundation.kIsWeb) {
-                                      var _bytesData = List<int>.from(file!.files.single.bytes!);
+                                      var _bytesData = List<int>.from(
+                                          file!.files.single.bytes!);
                                       pic = http.MultipartFile.fromBytes(
                                         "file",
                                         _bytesData,
                                         filename: file!.files.single.name,
                                       );
                                     } else {
-                                      pic = await http.MultipartFile.fromPath("file", file!.files.single.path.toString());
+                                      pic = await http.MultipartFile.fromPath(
+                                          "file",
+                                          file!.files.single.path.toString());
                                     }
                                     request.headers.addAll(headers);
                                     request.files.add(pic);
                                     var response = await request.send();
-                                    await response.stream.toBytes().then((responseData) {
-                                      var responseString = String.fromCharCodes(responseData);
-                                      var responseJSON = json.decode(responseString);
-                                      map["profile_pic"] = responseJSON["payload"];
+                                    await response.stream
+                                        .toBytes()
+                                        .then((responseData) {
+                                      var responseString =
+                                          String.fromCharCodes(responseData);
+                                      var responseJSON =
+                                          json.decode(responseString);
+                                      map["profile_pic"] =
+                                          responseJSON["payload"];
                                       handleCreation(map);
                                     });
                                   } else {
@@ -253,7 +279,8 @@ class _UserCreateWidgetState extends State<UserCreateWidget> {
                               onPressed: () {
                                 navigationService.pushReplacement(
                                   CupertinoPageRoute(
-                                    builder: (BuildContext context) => const UserCreateWidget(),
+                                    builder: (BuildContext context) =>
+                                        const UserCreateWidget(),
                                   ),
                                 );
                               },

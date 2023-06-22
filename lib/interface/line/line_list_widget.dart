@@ -36,10 +36,10 @@ class _LineListWidgetState extends State<LineListWidget> {
     setState(() {
       isLoading = true;
     });
-    await appStore.lineApp.list({}).then((response) async {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = await Line.fromJSON(item);
+          Line line = Line.fromJSON(item);
           lines.add(line);
         }
         setState(() {

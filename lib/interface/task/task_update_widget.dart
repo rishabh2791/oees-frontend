@@ -49,10 +49,10 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
   }
 
   Future<void> getLines() async {
-    await appStore.lineApp.list({}).then((response) async {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = await Line.fromJSON(item);
+          Line line = Line.fromJSON(item);
           lines.add(line);
         }
       } else {
@@ -65,10 +65,10 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
   }
 
   Future<void> getShifts() async {
-    await appStore.shiftApp.list({}).then((response) async {
+    await appStore.shiftApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Shift shift = await Shift.fromJSON(item);
+          Shift shift = Shift.fromJSON(item);
           shifts.add(shift);
         }
       } else {
@@ -138,12 +138,14 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
             : Scaffold(
-                backgroundColor: isDarkTheme.value ? backgroundColor : foregroundColor,
+                backgroundColor:
+                    isDarkTheme.value ? backgroundColor : foregroundColor,
                 body: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -154,9 +156,12 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Update Task for Job Code " + widget.task.job.code,
+                              "Update Task for Job Code " +
+                                  widget.task.job.code,
                               style: TextStyle(
-                                color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                color: isDarkTheme.value
+                                    ? foregroundColor
+                                    : backgroundColor,
                                 fontSize: 40.0,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -177,10 +182,16 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
                                           isLoading = true;
                                         });
                                         map = formFieldWidget.toJSON();
-                                        map["updated_by_username"] = currentUser.username;
-                                        map["scheduled_date"] = map["scheduled_date"] + "T00:00:00.0Z";
-                                        await appStore.taskApp.update(widget.task.id, map).then((response) {
-                                          if (response.containsKey("status") && response["status"]) {
+                                        map["updated_by_username"] =
+                                            currentUser.username;
+                                        map["scheduled_date"] =
+                                            map["scheduled_date"] +
+                                                "T00:00:00.0Z";
+                                        await appStore.taskApp
+                                            .update(widget.task.id, map)
+                                            .then((response) {
+                                          if (response.containsKey("status") &&
+                                              response["status"]) {
                                             setState(() {
                                               isLoading = false;
                                               errorMessage = "Tasks Updated";
@@ -188,22 +199,27 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
                                             });
                                             navigationService.pushReplacement(
                                               CupertinoPageRoute(
-                                                builder: (BuildContext context) => TaskUpdateWidget(
+                                                builder:
+                                                    (BuildContext context) =>
+                                                        TaskUpdateWidget(
                                                   task: widget.task,
                                                 ),
                                               ),
                                             );
                                           } else {
-                                            if (response.containsKey("status")) {
+                                            if (response
+                                                .containsKey("status")) {
                                               setState(() {
                                                 isLoading = false;
-                                                errorMessage = response["message"];
+                                                errorMessage =
+                                                    response["message"];
                                                 isError = true;
                                               });
                                             } else {
                                               setState(() {
                                                 isLoading = false;
-                                                errorMessage = "Unbale to Update Task.";
+                                                errorMessage =
+                                                    "Unbale to Update Task.";
                                                 isError = true;
                                               });
                                             }
@@ -227,7 +243,8 @@ class _TaskUpdateWidgetState extends State<TaskUpdateWidget> {
                                     onPressed: () {
                                       navigationService.pushReplacement(
                                         CupertinoPageRoute(
-                                          builder: (BuildContext context) => TaskUpdateWidget(
+                                          builder: (BuildContext context) =>
+                                              TaskUpdateWidget(
                                             task: widget.task,
                                           ),
                                         ),

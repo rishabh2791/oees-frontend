@@ -25,10 +25,10 @@ class _JobListWidgetState extends State<JobListWidget> {
 
   Future<void> getJOBs() async {
     jobs = [];
-    await appStore.jobApp.list({}).then((response) async {
+    await appStore.jobApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Job job = await Job.fromJSON(item);
+          Job job = Job.fromJSON(item);
           jobs.add(job);
         }
       }

@@ -63,7 +63,8 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -75,7 +76,9 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                         Text(
                           "Task Downtimes",
                           style: TextStyle(
-                            color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                            color: isDarkTheme.value
+                                ? foregroundColor
+                                : backgroundColor,
                             fontSize: 40.0,
                             fontWeight: FontWeight.bold,
                           ),
@@ -84,14 +87,17 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                             ? Text(
                                 "No Task Downtimes",
                                 style: TextStyle(
-                                  color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                                  color: isDarkTheme.value
+                                      ? foregroundColor
+                                      : backgroundColor,
                                   fontSize: 40.0,
                                   fontWeight: FontWeight.bold,
                                 ),
                               )
                             : DowntimeList(
                                 downtimes: taskDowntimes,
-                                notifyParent: (List<Downtime> createdDowntimes) {
+                                notifyParent:
+                                    (List<Downtime> createdDowntimes) {
                                   taskDowntimes.addAll(createdDowntimes);
                                   setState(() {});
                                 },
@@ -108,7 +114,9 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                           Text(
                             "Get Task Downtimes",
                             style: TextStyle(
-                              color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                              color: isDarkTheme.value
+                                  ? foregroundColor
+                                  : backgroundColor,
                               fontSize: 40.0,
                               fontWeight: FontWeight.bold,
                             ),
@@ -138,10 +146,13 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                     setState(() {
                                       isLoading = true;
                                     });
-                                    await appStore.jobApp.list(conditions).then((response) async {
-                                      if (response.containsKey("status") && response["status"]) {
+                                    await appStore.jobApp
+                                        .list(conditions)
+                                        .then((response) async {
+                                      if (response.containsKey("status") &&
+                                          response["status"]) {
                                         for (var item in response["payload"]) {
-                                          Job thisJob = await Job.fromJSON(item);
+                                          Job thisJob = Job.fromJSON(item);
                                           jobID = thisJob.id;
                                         }
                                         Map<String, dynamic> conditions = {
@@ -150,10 +161,15 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                             "Value": jobID,
                                           }
                                         };
-                                        await appStore.taskApp.list(conditions).then((response) async {
-                                          if (response.containsKey("status") && response["status"]) {
-                                            Task task = await Task.fromJSON(response["payload"][0]);
-                                            Map<String, dynamic> downtimeConditions = {
+                                        await appStore.taskApp
+                                            .list(conditions)
+                                            .then((response) async {
+                                          if (response.containsKey("status") &&
+                                              response["status"]) {
+                                            Task task = Task.fromJSON(
+                                                response["payload"][0]);
+                                            Map<String, dynamic>
+                                                downtimeConditions = {
                                               "AND": [
                                                 {
                                                   "EQUALS": {
@@ -166,15 +182,39 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                                     {
                                                       "BETWEEN": {
                                                         "Field": "start_time",
-                                                        "LowerValue": task.startTime.toUtc().toIso8601String().toString().split(".")[0] + "Z",
-                                                        "HigherValue": task.endTime.toUtc().toIso8601String().toString().split(".")[0] + "Z",
+                                                        "LowerValue": task
+                                                                .startTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
+                                                        "HigherValue": task
+                                                                .endTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
                                                       }
                                                     },
                                                     {
                                                       "BETWEEN": {
                                                         "Field": "end_time",
-                                                        "LowerValue": task.startTime.toUtc().toIso8601String().toString().split(".")[0] + "Z",
-                                                        "HigherValue": task.endTime.toUtc().toIso8601String().toString().split(".")[0] + "Z",
+                                                        "LowerValue": task
+                                                                .startTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
+                                                        "HigherValue": task
+                                                                .endTime
+                                                                .toUtc()
+                                                                .toIso8601String()
+                                                                .toString()
+                                                                .split(".")[0] +
+                                                            "Z",
                                                       }
                                                     },
                                                     {
@@ -187,10 +227,15 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                                 },
                                               ]
                                             };
-                                            await appStore.downtimeApp.list(downtimeConditions).then((value) async {
-                                              if (value.containsKey("status") && value["status"]) {
-                                                for (var item in value["payload"]) {
-                                                  Downtime downtime = await Downtime.fromJSON(item);
+                                            await appStore.downtimeApp
+                                                .list(downtimeConditions)
+                                                .then((value) {
+                                              if (value.containsKey("status") &&
+                                                  value["status"]) {
+                                                for (var item
+                                                    in value["payload"]) {
+                                                  Downtime downtime =
+                                                      Downtime.fromJSON(item);
                                                   taskDowntimes.add(downtime);
                                                 }
                                                 setState(() {
@@ -198,7 +243,8 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                                 });
                                               } else {
                                                 setState(() {
-                                                  errorMessage = "No Downtimes Found.";
+                                                  errorMessage =
+                                                      "No Downtimes Found.";
                                                   isError = true;
                                                 });
                                               }
@@ -217,7 +263,8 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                         setState(() {
                                           isLoading = false;
                                           isError = true;
-                                          errorMessage = "Unable to Get Downtime Details";
+                                          errorMessage =
+                                              "Unable to Get Downtime Details";
                                         });
                                       }
                                     });
@@ -234,7 +281,8 @@ class _DowntimeListWidgetState extends State<DowntimeListWidget> {
                                   onPressed: () {
                                     navigationService.pushReplacement(
                                       CupertinoPageRoute(
-                                        builder: (BuildContext context) => const DowntimeListWidget(),
+                                        builder: (BuildContext context) =>
+                                            const DowntimeListWidget(),
                                       ),
                                     );
                                   },

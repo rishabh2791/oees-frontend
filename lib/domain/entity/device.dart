@@ -1,4 +1,3 @@
-import 'package:oees/application/app_store.dart';
 import 'package:oees/domain/entity/line.dart';
 import 'package:oees/domain/entity/user.dart';
 
@@ -15,7 +14,7 @@ class Device {
   final bool useForOEE;
   bool selected = false;
 
-  Device._({
+  Device({
     required this.code,
     required this.createdAt,
     required this.createdBy,
@@ -48,28 +47,19 @@ class Device {
     };
   }
 
-  static Future<Device> fromJSON(Map<String, dynamic> jsonObject) async {
-    late Device device;
-
-    await appStore.userApp.getUser(jsonObject["created_by_username"]).then((createdByResponse) async {
-      await appStore.userApp.getUser(jsonObject["updated_by_username"]).then((udpatedByResponse) async {
-        await appStore.lineApp.getLine(jsonObject["line_id"]).then((lineResponse) async {
-          device = Device._(
-            code: jsonObject["code"],
-            createdAt: DateTime.parse(jsonObject["created_at"]),
-            createdBy: await User.fromJSON(createdByResponse["payload"]),
-            description: jsonObject["description"],
-            deviceType: jsonObject["device_type"],
-            id: jsonObject["id"],
-            line: await Line.fromJSON(lineResponse["payload"]),
-            updatedAt: DateTime.parse(jsonObject["updated_at"]),
-            updatedBy: await User.fromJSON(udpatedByResponse["payload"]),
-            useForOEE: jsonObject["use_for_oee"],
-          );
-        });
-      });
-    });
-
+  factory Device.fromJSON(Map<String, dynamic> jsonObject) {
+    Device device = Device(
+      code: jsonObject["code"],
+      createdAt: DateTime.parse(jsonObject["created_at"]),
+      createdBy: User.fromJSON(jsonObject["created_by"]),
+      description: jsonObject["description"],
+      deviceType: jsonObject["device_type"],
+      id: jsonObject["id"],
+      line: Line.fromJSON(jsonObject["line"]),
+      updatedAt: DateTime.parse(jsonObject["updated_at"]),
+      updatedBy: User.fromJSON(jsonObject["updated_by"]),
+      useForOEE: jsonObject["use_for_oee"],
+    );
     return device;
   }
 }

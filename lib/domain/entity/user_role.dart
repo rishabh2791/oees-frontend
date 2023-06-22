@@ -5,7 +5,7 @@ class UserRole {
   final DateTime updatedAt;
   bool selected = false;
 
-  UserRole._({
+  UserRole({
     required this.createdAt,
     required this.description,
     required this.id,
@@ -26,14 +26,13 @@ class UserRole {
     };
   }
 
-  static Future<UserRole> fromJSON(Map<String, dynamic> jsonObject) async {
-    UserRole userRole = UserRole._(
+  factory UserRole.fromJSON(Map<String, dynamic> jsonObject) {
+    UserRole userRole = UserRole(
       createdAt: DateTime.parse(jsonObject["created_at"]),
       description: jsonObject["description"],
       id: jsonObject["id"],
       updatedAt: DateTime.parse(jsonObject["updated_at"]),
     );
-
     return userRole;
   }
 }

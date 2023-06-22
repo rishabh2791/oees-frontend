@@ -34,10 +34,10 @@ class _SKUListWidgetState extends State<SKUListWidget> {
 
   Future<void> getSKUs() async {
     skus = [];
-    await appStore.skuApp.list({}).then((response) async {
+    await appStore.skuApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          SKU sku = await SKU.fromJSON(item);
+          SKU sku = SKU.fromJSON(item);
           skus.add(sku);
         }
         setState(() {

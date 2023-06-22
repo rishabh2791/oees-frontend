@@ -30,7 +30,9 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
   late FormFieldWidget formFieldWidget;
   late DropdownFormField lineFormField;
   late DateFormField startDateFormWidget, endDataFormWidget;
-  late TextEditingController startDateController, endDateController, lineController;
+  late TextEditingController startDateController,
+      endDateController,
+      lineController;
 
   @override
   void initState() {
@@ -43,10 +45,10 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
 
   Future<void> getLines() async {
     lines = [];
-    await appStore.lineApp.list({}).then((response) async {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = await Line.fromJSON(item);
+          Line line = Line.fromJSON(item);
           lines.add(line);
         }
         lines.sort((a, b) => a.name.compareTo(b.name));
@@ -135,15 +137,39 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                               {
                                 "BETWEEN": {
                                   "Field": "start_time",
-                                  "LowerValue": DateTime.parse(map["start_date"]).toUtc().toIso8601String().toString().split(".")[0] + "Z",
-                                  "HigherValue": DateTime.parse(map["end_date"]).add(const Duration(days: 1)).toUtc().toIso8601String().toString().split(".")[0] + "Z",
+                                  "LowerValue":
+                                      DateTime.parse(map["start_date"])
+                                              .toUtc()
+                                              .toIso8601String()
+                                              .toString()
+                                              .split(".")[0] +
+                                          "Z",
+                                  "HigherValue": DateTime.parse(map["end_date"])
+                                          .add(const Duration(days: 1))
+                                          .toUtc()
+                                          .toIso8601String()
+                                          .toString()
+                                          .split(".")[0] +
+                                      "Z",
                                 }
                               },
                               {
                                 "BETWEEN": {
                                   "Field": "end_time",
-                                  "LowerValue": DateTime.parse(map["start_date"]).toUtc().toIso8601String().toString().split(".")[0] + "Z",
-                                  "HigherValue": DateTime.parse(map["end_date"]).add(const Duration(days: 1)).toUtc().toIso8601String().toString().split(".")[0] + "Z",
+                                  "LowerValue":
+                                      DateTime.parse(map["start_date"])
+                                              .toUtc()
+                                              .toIso8601String()
+                                              .toString()
+                                              .split(".")[0] +
+                                          "Z",
+                                  "HigherValue": DateTime.parse(map["end_date"])
+                                          .add(const Duration(days: 1))
+                                          .toUtc()
+                                          .toIso8601String()
+                                          .toString()
+                                          .split(".")[0] +
+                                      "Z",
                                 }
                               },
                               {
@@ -156,13 +182,14 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                           },
                         ]
                       };
-                      await appStore.downtimeApp.list(conditions).then((value) async {
+                      await appStore.downtimeApp.list(conditions).then((value) {
                         if (value.containsKey("status") && value["status"]) {
                           for (var item in value["payload"]) {
-                            Downtime downtime = await Downtime.fromJSON(item);
+                            Downtime downtime = Downtime.fromJSON(item);
                             downtimes.add(downtime);
                           }
-                          downtimes.sort(((a, b) => a.createdAt.compareTo(b.createdAt)));
+                          downtimes.sort(
+                              ((a, b) => a.createdAt.compareTo(b.createdAt)));
                           setState(() {
                             isLoading = false;
                             isLineSelected = true;
@@ -170,7 +197,8 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                         } else {
                           setState(() {
                             isLoading = false;
-                            errorMessage = "Unable to get Downtime Data for Line.";
+                            errorMessage =
+                                "Unable to get Downtime Data for Line.";
                             isError = true;
                           });
                         }
@@ -194,7 +222,8 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                   onPressed: () {
                     navigationService.pushReplacement(
                       CupertinoPageRoute(
-                        builder: (BuildContext context) => const LineDowntimeListWidget(),
+                        builder: (BuildContext context) =>
+                            const LineDowntimeListWidget(),
                       ),
                     );
                   },
@@ -248,12 +277,14 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
             : SuperWidget(
-                childWidget: isLineSelected ? displayWidget() : selectionWidget(),
+                childWidget:
+                    isLineSelected ? displayWidget() : selectionWidget(),
                 errorCallback: () {
                   setState(
                     () {

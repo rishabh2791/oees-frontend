@@ -46,10 +46,10 @@ class _JobCreateWidgetState extends State<JobCreateWidget> {
 
   Future<void> getMaterials() async {
     skus = [];
-    await appStore.skuApp.list({}).then((response) async {
+    await appStore.skuApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          SKU sku = await SKU.fromJSON(item);
+          SKU sku = SKU.fromJSON(item);
           skus.add(sku);
         }
       } else {
@@ -139,6 +139,8 @@ class _JobCreateWidgetState extends State<JobCreateWidget> {
                                   map["created_by_username"] = currentUser.username;
                                   map["updated_by_username"] = currentUser.username;
                                   map["sku"] = {};
+                                  map["sku"]["code"] = skus.firstWhere((element) => element.id == map["sku_id"]).code.toString();
+                                  map.remove("sku_id");
                                   await appStore.jobApp.create(map).then((response) {
                                     setState(() {
                                       isLoading = false;

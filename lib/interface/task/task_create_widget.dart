@@ -42,7 +42,11 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
   late DropdownFormField lineFormField, shiftFormField;
   late TextFormFielder jobCodeFormField;
   late DateFormField dateFormField;
-  late TextEditingController fileFieldControlled, jobCodeController, dateController, shiftController, lineController;
+  late TextEditingController fileFieldControlled,
+      jobCodeController,
+      dateController,
+      shiftController,
+      lineController;
 
   @override
   void initState() {
@@ -64,10 +68,10 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
   }
 
   Future<void> getLines() async {
-    await appStore.lineApp.list({}).then((response) async {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = await Line.fromJSON(item);
+          Line line = Line.fromJSON(item);
           lines.add(line);
         }
       } else {
@@ -80,10 +84,10 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
   }
 
   Future<void> getJobs() async {
-    await appStore.jobApp.list({}).then((response) async {
+    await appStore.jobApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Job job = await Job.fromJSON(item);
+          Job job = Job.fromJSON(item);
           jobs.add(job);
         }
       } else {
@@ -96,10 +100,10 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
   }
 
   Future<void> getShifts() async {
-    await appStore.shiftApp.list({}).then((response) async {
+    await appStore.shiftApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Shift shift = await Shift.fromJSON(item);
+          Shift shift = Shift.fromJSON(item);
           shifts.add(shift);
         }
       } else {
@@ -115,7 +119,8 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
     setState(() {
       isLoading = true;
     });
-    await Future.forEach([await getLines(), await getJobs(), await getShifts()], (element) {
+    await Future.forEach([await getLines(), await getJobs(), await getShifts()],
+        (element) {
       if (errorMessage.isEmpty && errorMessage == "") {
         fileFormField = FileFormField(
           fileController: fileFieldControlled,
@@ -179,7 +184,8 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor:
+                      isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -191,7 +197,9 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                       Text(
                         "Create Tasks",
                         style: TextStyle(
-                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                          color: isDarkTheme.value
+                              ? foregroundColor
+                              : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -209,16 +217,23 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                               onPressed: () async {
                                 if (formFieldWidget.validate()) {
                                   map = formFieldWidget.toJSON();
-                                  map["created_by_username"] = currentUser.username;
-                                  map["updated_by_username"] = currentUser.username;
+                                  map["created_by_username"] =
+                                      currentUser.username;
+                                  map["updated_by_username"] =
+                                      currentUser.username;
                                   String jobCode = map["job_code"];
-                                  Job job = jobs.firstWhere((element) => element.code == jobCode);
+                                  Job job = jobs.firstWhere(
+                                      (element) => element.code == jobCode);
                                   map["job_id"] = job.id;
                                   map.remove("job_code");
-                                  map["scheduled_date"] = map["scheduled_date"] + "T00:00:00.0Z";
+                                  map["scheduled_date"] =
+                                      map["scheduled_date"] + "T00:00:00.0Z";
                                   map["plan"] = job.plan;
-                                  await appStore.taskApp.create(map).then((response) {
-                                    if (response.containsKey("status") && response["status"]) {
+                                  await appStore.taskApp
+                                      .create(map)
+                                      .then((response) {
+                                    if (response.containsKey("status") &&
+                                        response["status"]) {
                                       setState(() {
                                         errorMessage = "Tasks Created";
                                         isError = true;
@@ -226,14 +241,19 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                       formFieldWidget.clear();
                                     } else {
                                       if (response.containsKey("status")) {
-                                        String message = response["message"].toString().contains("Duplicate") ? "Task Already Created." : response["message"];
+                                        String message = response["message"]
+                                                .toString()
+                                                .contains("Duplicate")
+                                            ? "Task Already Created."
+                                            : response["message"];
                                         setState(() {
                                           errorMessage = message;
                                           isError = true;
                                         });
                                       } else {
                                         setState(() {
-                                          errorMessage = "Unbale to Create Task.";
+                                          errorMessage =
+                                              "Unbale to Create Task.";
                                           isError = true;
                                         });
                                       }
@@ -257,7 +277,8 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                               onPressed: () {
                                 navigationService.pushReplacement(
                                   CupertinoPageRoute(
-                                    builder: (BuildContext context) => const TaskCreateWidget(),
+                                    builder: (BuildContext context) =>
+                                        const TaskCreateWidget(),
                                   ),
                                 );
                               },
@@ -276,7 +297,9 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                       Text(
                         "-- OR --",
                         style: TextStyle(
-                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
+                          color: isDarkTheme.value
+                              ? foregroundColor
+                              : backgroundColor,
                           fontSize: 20.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -295,20 +318,27 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                             padding: const EdgeInsets.all(10.0),
                             child: MaterialButton(
                               onPressed: () async {
-                                if (jobs.isEmpty || lines.isEmpty || shifts.isEmpty) {
+                                if (jobs.isEmpty ||
+                                    lines.isEmpty ||
+                                    shifts.isEmpty) {
                                   setState(() {
                                     isError = true;
-                                    errorMessage = "Unable to Create Tasks at this time.";
+                                    errorMessage =
+                                        "Unable to Create Tasks at this time.";
                                   });
                                 } else {
                                   List<Map<String, dynamic>> tasks = [];
                                   // ignore: prefer_typing_uninitialized_variables
                                   var csvData;
                                   if (foundation.kIsWeb) {
-                                    final bytes = utf8.decode(file!.files.single.bytes!);
-                                    csvData = const CsvToListConverter().convert(bytes);
+                                    final bytes =
+                                        utf8.decode(file!.files.single.bytes!);
+                                    csvData = const CsvToListConverter()
+                                        .convert(bytes);
                                   } else {
-                                    final csvFile = File(file!.files.single.path.toString()).openRead();
+                                    final csvFile =
+                                        File(file!.files.single.path.toString())
+                                            .openRead();
                                     csvData = await csvFile
                                         .transform(utf8.decoder)
                                         .transform(
@@ -324,30 +354,50 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                     try {
                                       scheduledDate = DateTime.parse(line[2]);
                                     } catch (e) {
-                                      String date = line[2].toString().substring(0, 2);
-                                      String month = line[2].toString().substring(3, 5);
-                                      String year = line[2].toString().substring(6, 10);
-                                      scheduledDate = DateTime(int.parse(year), int.parse(month), int.parse(date));
+                                      String date =
+                                          line[2].toString().substring(0, 2);
+                                      String month =
+                                          line[2].toString().substring(3, 5);
+                                      String year =
+                                          line[2].toString().substring(6, 10);
+                                      scheduledDate = DateTime(int.parse(year),
+                                          int.parse(month), int.parse(date));
                                     }
-                                    Job job = jobs.firstWhere((element) => element.code.toString() == line[0].toString());
-                                    String lineID = lines.firstWhere((element) => element.code == line[1]).id;
-                                    String shiftID = shifts.firstWhere((element) => element.code == line[3]).id;
+                                    Job job = jobs.firstWhere((element) =>
+                                        element.code.toString() ==
+                                        line[0].toString());
+                                    String lineID = lines
+                                        .firstWhere((element) =>
+                                            element.code == line[1])
+                                        .id;
+                                    String shiftID = shifts
+                                        .firstWhere((element) =>
+                                            element.code == line[3])
+                                        .id;
                                     Map<String, dynamic> task = {
                                       "job_id": job.id,
                                       "line_id": lineID,
-                                      "scheduled_date": scheduledDate.toString().substring(0, 10) + "T00:00:00.0Z",
+                                      "scheduled_date": scheduledDate
+                                              .toString()
+                                              .substring(0, 10) +
+                                          "T00:00:00.0Z",
                                       "shift_id": shiftID,
                                       "plan": job.plan,
-                                      "created_by_username": currentUser.username,
-                                      "updated_by_username": currentUser.username,
+                                      "created_by_username":
+                                          currentUser.username,
+                                      "updated_by_username":
+                                          currentUser.username,
                                     };
                                     tasks.add(task);
                                   });
-                                  await appStore.taskApp.createMultiple(tasks).then((response) {
+                                  await appStore.taskApp
+                                      .createMultiple(tasks)
+                                      .then((response) {
                                     setState(() {
                                       isLoading = false;
                                     });
-                                    if (response.containsKey("status") && response["status"]) {
+                                    if (response.containsKey("status") &&
+                                        response["status"]) {
                                       setState(() {
                                         errorMessage = "Tasks Created";
                                         isError = true;
@@ -361,7 +411,8 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                         });
                                       } else {
                                         setState(() {
-                                          errorMessage = "Unbale to Create Tasks.";
+                                          errorMessage =
+                                              "Unbale to Create Tasks.";
                                           isError = true;
                                         });
                                       }
@@ -381,7 +432,8 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                               onPressed: () {
                                 navigationService.pushReplacement(
                                   CupertinoPageRoute(
-                                    builder: (BuildContext context) => const TaskCreateWidget(),
+                                    builder: (BuildContext context) =>
+                                        const TaskCreateWidget(),
                                   ),
                                 );
                               },

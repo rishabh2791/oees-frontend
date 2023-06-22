@@ -30,10 +30,10 @@ class _UserRoleListWidgetState extends State<UserRoleListWidget> {
 
   Future<void> getUserRoles() async {
     userRoles = [];
-    await appStore.userRoleApp.list({}).then((response) async {
+    await appStore.userRoleApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          UserRole userRole = await UserRole.fromJSON(item);
+          UserRole userRole = UserRole.fromJSON(item);
           userRoles.add(userRole);
         }
       } else {

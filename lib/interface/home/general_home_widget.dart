@@ -114,12 +114,12 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Future<void> getUserAuthorizations() async {
     userRolePermissions = [];
-    await appStore.userRoleAccessApp.list(currentUser.userRole.id).then((response) async {
+    await appStore.userRoleAccessApp.list(currentUser.userRole.id).then((response) {
       if (response.containsKey("error")) {
       } else {
         if (response["status"]) {
           for (var item in response["payload"]) {
-            UserRoleAccess userRoleAccess = await UserRoleAccess.fromJSON(item);
+            UserRoleAccess userRoleAccess = UserRoleAccess.fromJSON(item);
             userRolePermissions.add(userRoleAccess);
           }
         }
@@ -128,7 +128,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getBackendData() async {
-    await Future.forEach([], (element) async {
+    await Future.forEach([socketUtility.close()], (element) async {
       await Future.wait([
         getShifts(),
         getLines(),
@@ -166,11 +166,9 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 socketUtility.addListener(listenToWeighingScale);
               });
             });
-            if (shifts.isEmpty) {
+            if (lines.isEmpty || shifts.isEmpty) {
               setState(() {
                 isLoading = false;
-                isError = true;
-                errorMessage = "Unable to get Shifts";
               });
             } else {
               await Future.forEach([
@@ -216,10 +214,12 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                               });
                             });
                           } else {
-                            await Future.forEach([
-                              await getDeviceData(),
-                            ], (element) {})
-                                .then((value) async {
+                            await Future.forEach(
+                              [
+                                await getDeviceData(),
+                              ],
+                              (element) {},
+                            ).then((value) async {
                               getRunEfficiency();
                             }).then((value) async {
                               await Future.forEach([await socketUtility.initCommunication(lineIP[selectedLine.text] ?? webSocketURL)], (element) => null).then((value) async {
@@ -242,8 +242,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
           } else {
             setState(() {
               isLoading = false;
-              isError = true;
-              errorMessage = "Unable to Get Lines";
             });
           }
         },
@@ -253,10 +251,10 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Future<void> getShifts() async {
     shifts = [];
-    await appStore.shiftApp.list({}).then((response) async {
+    await appStore.shiftApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Shift shift = await Shift.fromJSON(item);
+          Shift shift = Shift.fromJSON(item);
           shifts.add(shift);
           late DateTime shiftStart, shiftEnd;
           String startTime = shift.startTime;
@@ -298,10 +296,10 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
 
   Future<void> getLines() async {
     lines = [];
-    await appStore.lineApp.list({}).then((response) async {
+    await appStore.lineApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
         for (var item in response["payload"]) {
-          Line line = await Line.fromJSON(item);
+          Line line = Line.fromJSON(item);
           lines.add(line);
           if (!lineIDs.contains(line.id)) {
             lineIDs.add(line.id);
@@ -374,10 +372,10 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
             },
           ]
         };
-        await appStore.downtimeApp.list(conditions).then((response) async {
+        await appStore.downtimeApp.list(conditions).then((response) {
           if (response.containsKey("status") && response["status"]) {
             for (var item in response["payload"]) {
-              Downtime downtime = await Downtime.fromJSON(item);
+              Downtime downtime = Downtime.fromJSON(item);
               if (downtimeByLine.containsKey(line.id)) {
                 downtimeByLine[line.id]!.add(downtime);
               } else {
@@ -425,13 +423,13 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         },
       ]
     };
-    await appStore.taskApp.list(conditions).then((response) async {
+    await appStore.taskApp.list(conditions).then((response) {
       if (response.containsKey("status") && response["status"]) {
         tasksByLine = {};
         skusByLine = {};
         skuSpeeds = {};
         for (var item in response["payload"]) {
-          Task task = await Task.fromJSON(item);
+          Task task = Task.fromJSON(item);
           if (!skuSpeeds.containsKey(task.line.id + "_" + task.job.sku.id)) {
             skuSpeeds[task.line.id + "_" + task.job.sku.id] = double.parse(task.line.speedType == 1 ? task.job.sku.lowRunSpeed.toString() : task.job.sku.highRunSpeed.toString());
           }
@@ -461,10 +459,10 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       if (runningTasks) {
         var lineRunningTask = tasksByLine[key.key]!.firstWhere((task) => task.endTime.toLocal().difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds == 0);
         lineRunningTaskStartTime[lineRunningTask.line.id] = lineRunningTask.startTime;
-        await appStore.taskBatchApp.list(lineRunningTask.id).then((response) async {
+        await appStore.taskBatchApp.list(lineRunningTask.id).then((response) {
           if (response.containsKey("status") && response["status"]) {
             for (var item in response["payload"]) {
-              TaskBatch taskBatch = await TaskBatch.fromJSON(item);
+              TaskBatch taskBatch = TaskBatch.fromJSON(item);
               if (!taskBatch.complete) {
                 runningTaskBatchByLine[lineRunningTask.line.id] = taskBatch;
               }
@@ -482,11 +480,11 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         "Value": lineIDs,
       }
     };
-    await appStore.deviceApp.list(conditions).then((response) async {
+    await appStore.deviceApp.list(conditions).then((response) {
       if (response.containsKey("status") && response["status"]) {
         devicesByLine = {};
         for (var item in response["payload"]) {
-          Device device = await Device.fromJSON(item);
+          Device device = Device.fromJSON(item);
           if (devicesByLine.containsKey(device.line.id)) {
             devicesByLine[device.line.id]!.add(device);
           } else {
@@ -518,12 +516,12 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
         },
       ]
     };
-    await appStore.deviceDataApp.list(conditions).then((response) async {
+    await appStore.deviceDataApp.list(conditions).then((response) {
       if (response.containsKey("status") && response["status"]) {
         deviceDataByLine = {};
         otherDeviceDataByLine = {};
         for (var item in response["payload"]) {
-          DeviceData deviceData = await DeviceData.fromJSON(item);
+          DeviceData deviceData = DeviceData.fromJSON(item);
           if (deviceDataByLine.containsKey(deviceData.device.line.id)) {
             deviceDataByLine[deviceData.device.line.id]!.add(deviceData);
           } else {
@@ -704,7 +702,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     };
     await appStore.deviceApp.list(deviceCondition).then((response) async {
       if (response.containsKey("status") && response["status"]) {
-        Device device = await Device.fromJSON(response["payload"][0]);
+        Device device = Device.fromJSON(response["payload"][0]);
         Map<String, dynamic> deviceDataCondition = {
           "AND": [
             {
@@ -914,7 +912,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     await appStore.deviceApp.list(deviceCondition).then((response) async {
       if (response.containsKey("status") && response["status"]) {
         double counts = 0;
-        Device device = await Device.fromJSON(response["payload"][0]);
+        Device device = Device.fromJSON(response["payload"][0]);
         Map<String, dynamic> deviceDataCondition = {
           "AND": [
             {
