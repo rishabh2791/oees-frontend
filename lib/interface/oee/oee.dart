@@ -62,6 +62,7 @@ class _OEEState extends State<OEE> {
   late DropdownFormField lineFormField;
   late DateTime startTime, endTime;
   List<LineOEE> lineOEEs = [];
+  double factoryRunTime = 0, factoryControlledDowntime = 0, factoryPlannedDowntime = 0, factoryUnplannedDowntime = 0, factoryExpectedProduction = 0, factoryActualProduction = 0;
 
   @override
   void initState() {
@@ -373,11 +374,17 @@ class _OEEState extends State<OEE> {
     for (var lineID in lineIDs) {
       double lineTotalTime = 0, lineTotalControlledDowntime = 0, lineTotalPlannedDowntime = 0, lineTotalUnplannedDowntime = 0;
       lineTotalTime = (endTime.difference(startTime).inSeconds).toDouble();
+      factoryRunTime += lineTotalTime;
       lineTotalControlledDowntime = getTotalDowntime(startTime, endTime, lineID, "Controlled").toDouble();
+      factoryControlledDowntime += lineTotalControlledDowntime;
       lineTotalPlannedDowntime = getTotalDowntime(startTime, endTime, lineID, "Planned").toDouble();
+      factoryPlannedDowntime += lineTotalPlannedDowntime;
       lineTotalUnplannedDowntime = getTotalDowntime(startTime, endTime, lineID, "Unplanned").toDouble();
+      factoryUnplannedDowntime += lineTotalUnplannedDowntime;
       double linePeriodProduction = getTheoreticalTotalProduction(startTime, endTime, lineID);
+      factoryExpectedProduction += linePeriodProduction;
       double actualPeriodProduction = getActualTotalDeviceData(startTime, endTime, lineID);
+      factoryActualProduction += actualPeriodProduction;
       actualProduction[lineID] = actualPeriodProduction;
       theoreticalProduction[lineID] = linePeriodProduction;
       controlledDowntimes[lineID] = lineTotalControlledDowntime;
@@ -389,6 +396,11 @@ class _OEEState extends State<OEE> {
       lineQuality[lineID] = 1;
       lineOEE[lineID] = linePeriodProduction == 0 ? 0 : lineAvailability[lineID]! * linePerformance[lineID]! * 1;
     }
+    double factoryAvailability = (factoryRunTime - factoryControlledDowntime - factoryPlannedDowntime - factoryUnplannedDowntime) / (factoryRunTime - factoryControlledDowntime);
+    double factoryPerformance = min(1, factoryExpectedProduction == 0 ? 0 : (factoryActualProduction / factoryExpectedProduction));
+    double factoryQuality = 1;
+    double factoryOEE = factoryExpectedProduction == 0 ? 0 : factoryAvailability * factoryPerformance * factoryQuality;
+    lineOEEs.add(LineOEE(availability: factoryAvailability, lineName: "'Factory'", oee: factoryOEE, performance: factoryPerformance, quality: factoryQuality));
   }
 
   double getTheoreticalTotalProduction(DateTime startTime, DateTime endTime, String lineID) {
