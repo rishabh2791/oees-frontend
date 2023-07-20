@@ -305,21 +305,24 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
 
   int getAllocatedDowntime() {
     int totalAllocatedDowntime = 0;
-    var firstStartDate = startDateControllers[0].text;
-    var lastEndDate = (endDateControllers.last).text;
-    var firstStartTime = startTimeControllers[0].text;
-    var lastEndTime = (endTimeControllers.last).text;
-    var startTime = ((firstStartTime).split("(")[1]).split(")")[0];
-    int firstStartHours = int.parse(startTime.split(":")[0].toString());
-    int firstStartMinutes = int.parse(startTime.split(":")[1].toString());
-    var firstStartDateTime = DateTime(
-        int.parse(firstStartDate.split("-")[0].toString()), int.parse(firstStartDate.split("-")[1].toString()), int.parse(firstStartDate.split("-")[2].toString()), firstStartHours, firstStartMinutes);
-    var endTime = ((lastEndTime).split("(")[1]).split(")")[0];
-    int lastEndHours = int.parse(endTime.split(":")[0].toString());
-    int lastEndMinutes = int.parse(endTime.split(":")[1].toString());
-    var lastEndDateTime =
-        DateTime(int.parse(lastEndDate.split("-")[0].toString()), int.parse(lastEndDate.split("-")[1].toString()), int.parse(lastEndDate.split("-")[2].toString()), lastEndHours, lastEndMinutes);
-    totalAllocatedDowntime = lastEndDateTime.difference(firstStartDateTime).inMinutes;
+    for (int i = 0; i < startDateControllers.length; i++) {
+      var downtimeStartDate = startDateControllers[i].text;
+      var downtimeStartTime = startTimeControllers[i].text;
+      var downtimdEndDate = endDateControllers[i].text;
+      var downtimeEndTime = endTimeControllers[i].text;
+      var startTime = (downtimeStartTime.split("(")[1]).split(")")[0];
+      int firstStartHours = int.parse(startTime.split(":")[0].toString());
+      int firstStartMinutes = int.parse(startTime.split(":")[1].toString());
+      var startDateTime = DateTime(int.parse(downtimeStartDate.split("-")[0].toString()), int.parse(downtimeStartDate.split("-")[1].toString()), int.parse(downtimeStartDate.split("-")[2].toString()),
+          firstStartHours, firstStartMinutes);
+      var endTime = ((downtimeEndTime).split("(")[1]).split(")")[0];
+      int lastEndHours = int.parse(endTime.split(":")[0].toString());
+      int lastEndMinutes = int.parse(endTime.split(":")[1].toString());
+      var endDateTime = DateTime(
+          int.parse(downtimdEndDate.split("-")[0].toString()), int.parse(downtimdEndDate.split("-")[1].toString()), int.parse(downtimdEndDate.split("-")[2].toString()), lastEndHours, lastEndMinutes);
+      var thisDowntime = endDateTime.difference(startDateTime).inMinutes;
+      totalAllocatedDowntime += thisDowntime;
+    }
     return totalAllocatedDowntime;
   }
 
@@ -416,7 +419,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                 int lastEndMinutes = int.parse(endTime.split(":")[1].toString());
                 var lastEndDateTime = DateTime(
                     int.parse(lastEndDate.split("-")[0].toString()), int.parse(lastEndDate.split("-")[1].toString()), int.parse(lastEndDate.split("-")[2].toString()), lastEndHours, lastEndMinutes);
-                totalAllocatedDowntime = lastEndDateTime.difference(firstStartDateTime).inMinutes;
+                totalAllocatedDowntime = getAllocatedDowntime();
                 if (totalDowntime != totalAllocatedDowntime) {
                   setState(() {
                     isLoading = false;
