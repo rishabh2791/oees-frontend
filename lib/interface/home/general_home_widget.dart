@@ -76,9 +76,6 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     timer = Timer.periodic(const Duration(seconds: 60), (timer) {
       getBackendData();
     });
-    if (storage!.getString("line_id") != "") {
-      selectedLine.text = storage!.getString("line_id") ?? "";
-    }
     super.initState();
   }
 
@@ -141,10 +138,12 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
               dropdownItems: lines,
               hint: "Select Line",
             );
-            if (storage!.getString("line_id") != "") {
-              selectedLine.text = storage!.getString("line_id") ?? lines[0].id;
+            if (storage!.getString("line_id") != null) {
+              if (selectedLine.text.isEmpty) {
+                selectedLine.text = storage!.getString("line_id") ?? lines[0].id;
+              }
             } else {
-              selectedLine.text = lines[0].id;
+              selectedLine.text = (selectedLine.text.isEmpty ? lines[0].id : selectedLine.text);
             }
             selectedLine.addListener(() async {
               if (selectedLine.text.isNotEmpty && runningTaskBatchByLine.containsKey(selectedLine.text)) {
@@ -161,7 +160,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                 setState(() {});
               }
             });
-            await Future.forEach([socketUtility.close()], (element) => null).then((value) async {
+            await Future.forEach([socketUtility.close()], (element) => null).then((value) async {}).then((value) async {
               await Future.forEach([await socketUtility.initCommunication(lineIP[selectedLine.text] ?? webSocketURL)], (element) => null).then((value) async {
                 socketUtility.addListener(listenToWeighingScale);
               });
@@ -185,56 +184,54 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
                       isLoading = false;
                     });
                   } else {
-                    await Future.wait([
-                      getRunningTaskBatches(),
-                      getDevices(),
-                    ]).then(
-                      (value) async {
-                        if (skuSpeeds.isEmpty || deviceIDs.isEmpty) {
-                          setState(() {
-                            isLoading = false;
-                          });
-                        } else {
-                          if (runningTaskBatchByLine.containsKey(selectedLine.text)) {
-                            await Future.wait([
-                              getDeviceData(),
-                              getRunningBatchUnits(runningTaskBatchByLine[selectedLine.text]!),
-                            ]).then((value) async {
-                              getRunEfficiency();
-                            }).then((value) async {
-                              await Future.forEach([
-                                getOtherDeviceData(),
-                                getChartsData(),
-                                await getUnitsWeighed(runningTaskBatchByLine[selectedLine.text]!),
-                              ], (element) => null).then((value) {
-                                setState(() {
-                                  isDataLoaded = true;
-                                  isLoading = false;
-                                });
-                              });
-                            });
-                          } else {
-                            await Future.forEach(
-                              [
-                                await getDeviceData(),
-                              ],
-                              (element) {},
-                            ).then((value) async {
-                              getRunEfficiency();
-                            }).then((value) async {
-                              await Future.forEach([await socketUtility.initCommunication(lineIP[selectedLine.text] ?? webSocketURL)], (element) => null).then((value) async {
-                                socketUtility.addListener(listenToWeighingScale);
-                              });
-                              getChartsData();
+                    await Future.forEach([
+                      await getRunningTaskBatches(),
+                      await getDevices(),
+                    ], (element) => null).then((value) async {
+                      if (skuSpeeds.isEmpty || deviceIDs.isEmpty) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      } else {
+                        if (runningTaskBatchByLine.containsKey(selectedLine.text)) {
+                          await Future.wait([
+                            getDeviceData(),
+                            getRunningBatchUnits(runningTaskBatchByLine[selectedLine.text]!),
+                          ]).then((value) async {
+                            getRunEfficiency();
+                          }).then((value) async {
+                            await Future.forEach([
+                              getOtherDeviceData(),
+                              getChartsData(),
+                              await getUnitsWeighed(runningTaskBatchByLine[selectedLine.text]!),
+                            ], (element) => null).then((value) {
                               setState(() {
                                 isDataLoaded = true;
                                 isLoading = false;
                               });
                             });
-                          }
+                          });
+                        } else {
+                          await Future.forEach(
+                            [
+                              await getDeviceData(),
+                            ],
+                            (element) {},
+                          ).then((value) async {
+                            getRunEfficiency();
+                          }).then((value) async {
+                            await Future.forEach([await socketUtility.initCommunication(lineIP[selectedLine.text] ?? webSocketURL)], (element) => null).then((value) async {
+                              socketUtility.addListener(listenToWeighingScale);
+                            });
+                            getChartsData();
+                            setState(() {
+                              isDataLoaded = true;
+                              isLoading = false;
+                            });
+                          });
                         }
-                      },
-                    );
+                      }
+                    });
                   }
                 });
               });
@@ -314,7 +311,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
       }
     });
     if (lines.isNotEmpty) {
-      selectedLine.text = lines[0].id;
+      selectedLine.text = selectedLine.text.isEmpty ? lines[0].id : selectedLine.text;
     }
   }
 
@@ -892,55 +889,16 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
   }
 
   Future<void> getRunningBatchUnits(TaskBatch runningTaskBatch) async {
-    var lineID = runningTaskBatch.task.line.id;
-    Map<String, dynamic> deviceCondition = {
-      "AND": [
-        {
-          "EQUALS": {
-            "Field": "line_id",
-            "Value": lineID,
-          }
-        },
-        {
-          "EQUALS": {
-            "Field": "use_for_oee",
-            "Value": "1",
-          }
-        },
-      ],
-    };
-    await appStore.deviceApp.list(deviceCondition).then((response) async {
-      if (response.containsKey("status") && response["status"]) {
-        double counts = 0;
-        Device device = Device.fromJSON(response["payload"][0]);
-        Map<String, dynamic> deviceDataCondition = {
-          "AND": [
-            {
-              "EQUALS": {
-                "Field": "device_id",
-                "Value": device.id,
-              },
-            },
-            {
-              "GREATEREQUAL": {
-                "Field": "created_at",
-                "Value": runningTaskBatch.startTime.toUtc().toString().substring(0, 10) + "T" + runningTaskBatch.startTime.toUtc().toString().substring(11, 19) + "Z",
-              },
-            },
-          ],
-        };
-        await appStore.deviceDataApp.totalDeviceData(deviceDataCondition).then((value) {
-          if (value.containsKey("status") && value["status"]) {
-            counts += value["payload"]["value"];
-          }
-          setState(() {
-            runningTaskCount = counts;
-          });
-          setState(() {
-            isLoading = false;
-          });
-        });
+    double count = 0;
+    if (deviceDataByLine.containsKey(selectedLine.text)) {
+      for (var item in deviceDataByLine[selectedLine.text]!) {
+        if (item.createdAt.isAfter(runningTaskBatch.startTime)) {
+          count += item.value;
+        }
       }
+    }
+    setState(() {
+      runningTaskCount = count;
     });
   }
 
