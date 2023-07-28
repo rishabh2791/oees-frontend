@@ -139,9 +139,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
               hint: "Select Line",
             );
             if (storage!.getString("line_id") != null) {
-              if (selectedLine.text.isEmpty) {
-                selectedLine.text = storage!.getString("line_id") ?? lines[0].id;
-              }
+              selectedLine.text = storage!.getString("line_id") ?? lines[0].id;
             } else {
               selectedLine.text = (selectedLine.text.isEmpty ? lines[0].id : selectedLine.text);
             }
