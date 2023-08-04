@@ -454,6 +454,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                     map = downtimeForm.toJSON();
                     map["created_by_username"] = currentUser.username;
                     map["updated_by_username"] = currentUser.username;
+                    map["original_downtime_id"] = widget.downtime.id;
                     if (map.containsKey("planned") || map.containsKey("controlled")) {
                       map["planned"] = map["planned"] == "1" ? true : false;
                       map["controlled"] = map["controlled"] == "1" ? true : false;
@@ -500,6 +501,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                   if (creationErrors.isEmpty) {
                     await Future.forEach(downtimesToCreate, (Map<String, dynamic> map) async {
                       await appStore.downtimeApp.create(map).then((response) {
+                        print(response);
                         if (response.containsKey("status") && response["status"]) {
                           Downtime createdDowntime = Downtime.fromJSON(response["payload"]);
                           createdDowntimes.add(createdDowntime);
@@ -545,6 +547,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                               int.parse(endTime.split(":")[1].toString()),
                             ).toUtc().toIso8601String().toString().split(".")[0] +
                             "Z";
+                        map.remove("start_date");
+                        map.remove("end_date");
                         await appStore.downtimeApp.update(widget.downtime.id, map).then((response) async {
                           if (response.containsKey("status") && response["status"]) {
                             setState(() {

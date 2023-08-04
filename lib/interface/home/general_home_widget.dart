@@ -890,7 +890,7 @@ class _GeneralHomeWidgetState extends State<GeneralHomeWidget> {
     double count = 0;
     if (deviceDataByLine.containsKey(selectedLine.text)) {
       for (var item in deviceDataByLine[selectedLine.text]!) {
-        if (item.createdAt.isAfter(runningTaskBatch.startTime)) {
+        if (item.device.deviceType == "COUNTER" && item.createdAt.isAfter(runningTaskBatch.startTime)) {
           count += item.value;
         }
       }
