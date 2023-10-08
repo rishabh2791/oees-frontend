@@ -5,7 +5,7 @@ import 'package:oees/infrastructure/variables.dart';
 Widget checkButton() {
   return Tooltip(
     decoration: BoxDecoration(
-      color: isDarkTheme.value ? backgroundColor : foregroundColor,
+      color: isDarkTheme.value ? foregroundColor : backgroundColor,
     ),
     message: "Check",
     child: const Padding(

@@ -10,7 +10,6 @@ import 'package:oees/interface/common/form_fields/bool_form_field.dart';
 import 'package:oees/interface/common/form_fields/date_form_field.dart';
 import 'package:oees/interface/common/form_fields/dropdown_form_field.dart';
 import 'package:oees/interface/common/form_fields/form_field.dart';
-import 'package:oees/interface/common/form_fields/text_form_field.dart';
 import 'package:oees/interface/common/form_fields/time_form_field.dart';
 import 'package:oees/interface/common/super_widget/super_widget.dart';
 import 'package:oees/interface/common/ui_elements/check_button.dart';
@@ -30,26 +29,16 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
   List<Line> lines = [];
   List<DowntimePreset> presetDowntimes = [];
   Map<String, dynamic> map = {};
-  late TextEditingController lineController,
-      descriptionController,
-      startDateController,
-      startTimeController,
-      endDateController,
-      endTimeController,
-      plannedController,
-      controlledController,
-      presetController;
+  late TextEditingController lineController, startDateController, startTimeController, endDateController, endTimeController, plannedController, controlledController, presetController;
   late BoolFormField plannedFormField, controlledFormField;
   late FormFieldWidget mainFormWidget;
   late DropdownFormField lineFormField, presetFormField;
-  late TextFormFielder descriptionFormField;
   late DateFormField startDateFormField, endDateFormField;
   late TimeFormField startTimeFormField, endTimeFormField;
 
   @override
   void initState() {
     lineController = TextEditingController();
-    descriptionController = TextEditingController();
     startDateController = TextEditingController();
     endDateController = TextEditingController();
     startTimeController = TextEditingController();
@@ -123,13 +112,6 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
       dropdownItems: presetDowntimes,
       hint: "Select Preset Downtimes.",
     );
-    descriptionFormField = TextFormFielder(
-      controller: descriptionController,
-      formField: "description",
-      label: "Downtime Description",
-      minSize: 5,
-      maxSize: 100,
-    );
     startDateFormField = DateFormField(
       controller: startDateController,
       formField: "start_date",
@@ -175,7 +157,6 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
     mainFormWidget = FormFieldWidget(
       formFields: [
         lineFormField,
-        descriptionFormField,
         startDateFormField,
         startTimeFormField,
         endDateFormField,
@@ -187,15 +168,12 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
   }
 
   void autoFill() {
-    var presetDowntime =
-        presetDowntimes.where((element) => element.id == presetController.text);
+    var presetDowntime = presetDowntimes.where((element) => element.id == presetController.text);
     if (presetDowntime.isNotEmpty) {
       DateTime now = DateTime.now();
-      descriptionController.text = presetDowntime.single.description;
       period = presetDowntime.single.defaultPeriod;
       startDateController.text = now.toString().substring(0, 10);
-      startTimeController.text =
-          TimeOfDay(hour: now.hour, minute: now.minute).toString();
+      startTimeController.text = TimeOfDay(hour: now.hour, minute: now.minute).toString();
       endTimeFormField.enabled = false;
       endDateFormField.enabled = false;
       presetDowntime.single.type == "Controlled"
@@ -218,17 +196,10 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
       var time = ((startTimeController.text).split("(")[1]).split(")")[0];
       int hours = int.parse(time.split(":")[0].toString());
       int minutes = int.parse(time.split(":")[1].toString());
-      var startDateTime = DateTime(
-          int.parse(startDate.split("-")[0].toString()),
-          int.parse(startDate.split("-")[1].toString()),
-          int.parse(startDate.split("-")[2].toString()),
-          hours,
-          minutes);
+      var startDateTime = DateTime(int.parse(startDate.split("-")[0].toString()), int.parse(startDate.split("-")[1].toString()), int.parse(startDate.split("-")[2].toString()), hours, minutes);
       var endDateTime = startDateTime.add(Duration(minutes: period));
       endDateController.text = endDateTime.toString().substring(0, 10);
-      endTimeController.text =
-          TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute)
-              .toString();
+      endTimeController.text = TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute).toString();
     }
   }
 
@@ -240,8 +211,7 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor:
-                      isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -253,9 +223,7 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
                       Text(
                         "Create Downtime",
                         style: TextStyle(
-                          color: isDarkTheme.value
-                              ? foregroundColor
-                              : backgroundColor,
+                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -280,92 +248,55 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
                                     onPressed: () async {
                                       if (mainFormWidget.validate()) {
                                         map = mainFormWidget.toJSON();
-                                        map["created_by_username"] =
-                                            currentUser.username;
-                                        map["updated_by_username"] =
-                                            currentUser.username;
-                                        map["planned"] = map["planned"] == "1"
-                                            ? true
-                                            : false;
-                                        map["controlled"] =
-                                            map["controlled"] == "1"
-                                                ? true
-                                                : false;
-                                        DateTime startDate =
-                                            DateTime.parse(map["start_date"]);
-                                        String startTime =
-                                            ((map["start_time"].split("(")[1])
-                                                .split(")")[0]);
+                                        map["created_by_username"] = currentUser.username;
+                                        map["updated_by_username"] = currentUser.username;
+                                        map["planned"] = map["planned"] == "1" ? true : false;
+                                        map["controlled"] = map["controlled"] == "1" ? true : false;
+                                        DateTime startDate = DateTime.parse(map["start_date"]);
+                                        String startTime = ((map["start_time"].split("(")[1]).split(")")[0]);
                                         map["start_time"] = DateTime(
                                               startDate.year,
                                               startDate.month,
                                               startDate.day,
-                                              int.parse(startTime
-                                                  .split(":")[0]
-                                                  .toString()),
-                                              int.parse(startTime
-                                                  .split(":")[1]
-                                                  .toString()),
-                                            )
-                                                .toUtc()
-                                                .toIso8601String()
-                                                .toString()
-                                                .split(".")[0] +
+                                              int.parse(startTime.split(":")[0].toString()),
+                                              int.parse(startTime.split(":")[1].toString()),
+                                            ).toUtc().toIso8601String().toString().split(".")[0] +
                                             "Z";
                                         if (map.containsKey("end_date")) {
-                                          DateTime endDate =
-                                              DateTime.parse(map["end_date"]);
-                                          String endTime =
-                                              ((map["end_time"].split("(")[1])
-                                                  .split(")")[0]);
+                                          DateTime endDate = DateTime.parse(map["end_date"]);
+                                          String endTime = ((map["end_time"].split("(")[1]).split(")")[0]);
                                           map["end_time"] = DateTime(
                                                 endDate.year,
                                                 endDate.month,
                                                 endDate.day,
-                                                int.parse(endTime
-                                                    .split(":")[0]
-                                                    .toString()),
-                                                int.parse(endTime
-                                                    .split(":")[1]
-                                                    .toString()),
-                                              )
-                                                  .toUtc()
-                                                  .toIso8601String()
-                                                  .toString()
-                                                  .split(".")[0] +
+                                                int.parse(endTime.split(":")[0].toString()),
+                                                int.parse(endTime.split(":")[1].toString()),
+                                              ).toUtc().toIso8601String().toString().split(".")[0] +
                                               "Z";
                                         }
 
                                         map.remove("start_date");
                                         map.remove("end_date");
-                                        await appStore.downtimeApp
-                                            .create(map)
-                                            .then((response) {
-                                          if (response.containsKey("status") &&
-                                              response["status"]) {
+                                        await appStore.downtimeApp.create(map).then((response) {
+                                          if (response.containsKey("status") && response["status"]) {
                                             setState(() {
                                               errorMessage = "Downtime Created";
                                               isError = true;
                                             });
                                             navigationService.push(
                                               CupertinoPageRoute(
-                                                builder: (BuildContext
-                                                        context) =>
-                                                    const DowntimeCreateWidget(),
+                                                builder: (BuildContext context) => const DowntimeCreateWidget(),
                                               ),
                                             );
                                           } else {
-                                            if (response
-                                                .containsKey("status")) {
+                                            if (response.containsKey("status")) {
                                               setState(() {
-                                                errorMessage =
-                                                    response["message"];
+                                                errorMessage = response["message"];
                                                 isError = true;
                                               });
                                             } else {
                                               setState(() {
-                                                errorMessage =
-                                                    "Unable to create downtime.";
+                                                errorMessage = "Unable to create downtime.";
                                                 isError = true;
                                               });
                                             }
@@ -389,8 +320,7 @@ class _DowntimeCreateWidgetState extends State<DowntimeCreateWidget> {
                                     onPressed: () {
                                       navigationService.pushReplacement(
                                         CupertinoPageRoute(
-                                          builder: (BuildContext context) =>
-                                              const DowntimeCreateWidget(),
+                                          builder: (BuildContext context) => const DowntimeCreateWidget(),
                                         ),
                                       );
                                     },

@@ -148,52 +148,68 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
     downtimes = [];
     startTime = startTime.toUtc();
     endTime = endTime.toUtc();
-    Map<String, dynamic> conditions = {
-      "AND": [
-        {
-          "EQUALS": {
-            "Field": "line_id",
-            "Value": widget.task.line.id,
-          },
-        },
-        {
-          "OR": [
+
+    await appStore.taskApp.getLastTask(widget.task.line.id).then((lastTaskResponse) async {
+      if (lastTaskResponse.containsKey("status") && lastTaskResponse["status"]) {
+        Task lastTask = Task.fromJSON(lastTaskResponse["payload"]);
+        Map<String, dynamic> conditions = {
+          "AND": [
             {
-              "BETWEEN": {
-                "Field": "start_time",
-                "LowerValue": startTime.toUtc().toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
-                "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
-              }
-            },
-            {
-              "BETWEEN": {
-                "Field": "end_time",
-                "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
-                "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
-              }
-            },
-            {
-              "IS": {
-                "Field": "end_time",
-                "Value": "NULL",
+              "EQUALS": {
+                "Field": "line_id",
+                "Value": widget.task.line.id,
               },
             },
-          ],
-        },
-      ]
-    };
-    await appStore.downtimeApp.list(conditions).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Downtime downtime = Downtime.fromJSON(item);
-          if (currentUser.userRole.description == "Line Manager") {
-            if (downtime.description == "" || downtime.description.isEmpty) {
-              downtimes.add(downtime);
+            {
+              "OR": [
+                {
+                  "AND": [
+                    {
+                      "GREATEREQUAL": {
+                        "Field": "start_time",
+                        "Value": lastTask.endTime.toUtc().toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+                      }
+                    },
+                    {
+                      "BETWEEN": {
+                        "Field": "end_time",
+                        "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+                        "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
+                      }
+                    }
+                  ]
+                },
+                {
+                  "BETWEEN": {
+                    "Field": "end_time",
+                    "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+                    "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
+                  }
+                },
+                {
+                  "IS": {
+                    "Field": "end_time",
+                    "Value": "NULL",
+                  },
+                },
+              ],
+            },
+          ]
+        };
+        await appStore.downtimeApp.list(conditions).then((response) {
+          if (response.containsKey("status") && response["status"]) {
+            for (var item in response["payload"]) {
+              Downtime downtime = Downtime.fromJSON(item);
+              if (currentUser.userRole.description == "Line Manager") {
+                if (downtime.description == "" || downtime.description.isEmpty) {
+                  downtimes.add(downtime);
+                }
+              } else {
+                downtimes.add(downtime);
+              }
             }
-          } else {
-            downtimes.add(downtime);
           }
-        }
+        });
       }
     });
   }
@@ -598,14 +614,22 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                                               setState(() {
                                                 isLoading = true;
                                               });
+                                              taskBatches.sort((a, b) => b.endTime.compareTo(a.endTime));
+
+                                              TaskBatch currentBatch = taskBatches.first;
+
                                               DateTime now = DateTime.now().toUtc();
+
+                                              if (currentBatch.endTime.toUtc().difference(DateTime.parse("2099-12-31T23:59:59Z")).inSeconds != 0) {
+                                                now = currentBatch.endTime;
+                                              }
+
                                               String time = now.toString().substring(0, 10) + "T" + now.toString().substring(11, 19) + "Z";
                                               Map<String, dynamic> currentBatchUpdate = {
                                                 "end_time": time,
                                                 "complete": true,
                                                 "updated_by_username": currentUser.username,
                                               };
-                                              TaskBatch currentBatch = taskBatches.firstWhere((element) => element.endTime.difference(DateTime.parse("2099-12-31T23:59:59Z").toLocal()).inSeconds >= 0);
 
                                               if (allDowntimesUpdated()) {
                                                 await appStore.taskBatchApp.update(currentBatch.id, currentBatchUpdate).then((response) async {

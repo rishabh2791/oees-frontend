@@ -30,9 +30,7 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
   late FormFieldWidget formFieldWidget;
   late DropdownFormField lineFormField;
   late DateFormField startDateFormWidget, endDataFormWidget;
-  late TextEditingController startDateController,
-      endDateController,
-      lineController;
+  late TextEditingController startDateController, endDateController, lineController;
 
   @override
   void initState() {
@@ -62,9 +60,7 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
 
   refresh(List<Downtime> createdDowntimes) {
     downtimes.addAll(createdDowntimes);
-    if (updatingDowntime) {
-      setState(() {});
-    }
+    setState(() {});
   }
 
   void initForm() {
@@ -137,39 +133,15 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                               {
                                 "BETWEEN": {
                                   "Field": "start_time",
-                                  "LowerValue":
-                                      DateTime.parse(map["start_date"])
-                                              .toUtc()
-                                              .toIso8601String()
-                                              .toString()
-                                              .split(".")[0] +
-                                          "Z",
-                                  "HigherValue": DateTime.parse(map["end_date"])
-                                          .add(const Duration(days: 1))
-                                          .toUtc()
-                                          .toIso8601String()
-                                          .toString()
-                                          .split(".")[0] +
-                                      "Z",
+                                  "LowerValue": DateTime.parse(map["start_date"]).toUtc().toIso8601String().toString().split(".")[0] + "Z",
+                                  "HigherValue": DateTime.parse(map["end_date"]).add(const Duration(days: 1)).toUtc().toIso8601String().toString().split(".")[0] + "Z",
                                 }
                               },
                               {
                                 "BETWEEN": {
                                   "Field": "end_time",
-                                  "LowerValue":
-                                      DateTime.parse(map["start_date"])
-                                              .toUtc()
-                                              .toIso8601String()
-                                              .toString()
-                                              .split(".")[0] +
-                                          "Z",
-                                  "HigherValue": DateTime.parse(map["end_date"])
-                                          .add(const Duration(days: 1))
-                                          .toUtc()
-                                          .toIso8601String()
-                                          .toString()
-                                          .split(".")[0] +
-                                      "Z",
+                                  "LowerValue": DateTime.parse(map["start_date"]).toUtc().toIso8601String().toString().split(".")[0] + "Z",
+                                  "HigherValue": DateTime.parse(map["end_date"]).add(const Duration(days: 1)).toUtc().toIso8601String().toString().split(".")[0] + "Z",
                                 }
                               },
                               {
@@ -188,8 +160,7 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                             Downtime downtime = Downtime.fromJSON(item);
                             downtimes.add(downtime);
                           }
-                          downtimes.sort(
-                              ((a, b) => a.createdAt.compareTo(b.createdAt)));
+                          downtimes.sort(((a, b) => a.createdAt.compareTo(b.createdAt)));
                           setState(() {
                             isLoading = false;
                             isLineSelected = true;
@@ -197,8 +168,7 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                         } else {
                           setState(() {
                             isLoading = false;
-                            errorMessage =
-                                "Unable to get Downtime Data for Line.";
+                            errorMessage = "Unable to get Downtime Data for Line.";
                             isError = true;
                           });
                         }
@@ -222,8 +192,7 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
                   onPressed: () {
                     navigationService.pushReplacement(
                       CupertinoPageRoute(
-                        builder: (BuildContext context) =>
-                            const LineDowntimeListWidget(),
+                        builder: (BuildContext context) => const LineDowntimeListWidget(),
                       ),
                     );
                   },
@@ -277,14 +246,12 @@ class _LineDowntimeListWidgetState extends State<LineDowntimeListWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor:
-                      isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
             : SuperWidget(
-                childWidget:
-                    isLineSelected ? displayWidget() : selectionWidget(),
+                childWidget: isLineSelected ? displayWidget() : selectionWidget(),
                 errorCallback: () {
                   setState(
                     () {

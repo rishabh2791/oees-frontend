@@ -31,11 +31,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
   late BoolFormField onlyIncompleteFormField;
   late DropdownFormField lineFormField, shiftFormField;
   late TextFormFielder jobFormField, materialFormField;
-  late TextEditingController lineController,
-      shiftController,
-      onlyIncompleteController,
-      jobController,
-      materialController;
+  late TextEditingController lineController, shiftController, onlyIncompleteController, jobController, materialController;
   late FormFieldWidget formFieldWidget;
 
   @override
@@ -108,15 +104,31 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       DateTime tenDaysAgo = today.subtract(const Duration(days: 10));
       DateTime tenDaysAfter = today.add(const Duration(days: 10));
       Map<String, dynamic> conditions = {
-        "BETWEEN": {
-          "Field": "scheduled_date",
-          "LowerValue":
-              tenDaysAgo.toUtc().toIso8601String().toString().split(".")[0] +
-                  "Z",
-          "HigherValue":
-              tenDaysAfter.toUtc().toIso8601String().toString().split(".")[0] +
-                  "Z",
-        }
+        "OR": [
+          {
+            "BETWEEN": {
+              "Field": "scheduled_date",
+              "LowerValue": tenDaysAgo.toUtc().toIso8601String().toString().split(".")[0] + "Z",
+              "HigherValue": tenDaysAfter.toUtc().toIso8601String().toString().split(".")[0] + "Z",
+            }
+          },
+          {
+            "AND": [
+              {
+                "IS": {
+                  "Field": "start_time",
+                  "Value": "NOT NULL",
+                }
+              },
+              {
+                "IS": {
+                  "Field": "end_time",
+                  "Value": "NULL",
+                }
+              },
+            ]
+          }
+        ]
       };
       await appStore.taskApp.list(conditions).then((response) {
         if (response.containsKey("status") && response["status"]) {
@@ -192,18 +204,13 @@ class _TaskListWidgetState extends State<TaskListWidget> {
 
   void filterJobs() {
     filterTasks();
-    filteredTasks = filteredTasks
-        .where((element) => element.job.code.contains(jobController.text))
-        .toList();
+    filteredTasks = filteredTasks.where((element) => element.job.code.contains(jobController.text)).toList();
     setState(() {});
   }
 
   void filterMaterials() {
     filterTasks();
-    filteredTasks = filteredTasks
-        .where(
-            (element) => element.job.sku.code.contains(materialController.text))
-        .toList();
+    filteredTasks = filteredTasks.where((element) => element.job.sku.code.contains(materialController.text)).toList();
     setState(() {});
   }
 
@@ -213,14 +220,10 @@ class _TaskListWidgetState extends State<TaskListWidget> {
       filteredTasks.removeWhere((element) => element.complete);
     }
     if (lineController.text.isNotEmpty) {
-      filteredTasks = filteredTasks
-          .where((element) => element.line.id == lineController.text)
-          .toList();
+      filteredTasks = filteredTasks.where((element) => element.line.id == lineController.text).toList();
     }
     if (shiftController.text.isNotEmpty) {
-      filteredTasks = filteredTasks
-          .where((element) => element.shift.id == shiftController.text)
-          .toList();
+      filteredTasks = filteredTasks.where((element) => element.shift.id == shiftController.text).toList();
     }
     if (isFirstLoading) {
       isFirstLoading = false;
@@ -237,8 +240,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
         return isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  backgroundColor:
-                      isDarkTheme.value ? foregroundColor : backgroundColor,
+                  backgroundColor: isDarkTheme.value ? foregroundColor : backgroundColor,
                   color: isDarkTheme.value ? backgroundColor : foregroundColor,
                 ),
               )
@@ -250,9 +252,7 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                       Text(
                         "Tasks",
                         style: TextStyle(
-                          color: isDarkTheme.value
-                              ? foregroundColor
-                              : backgroundColor,
+                          color: isDarkTheme.value ? foregroundColor : backgroundColor,
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -261,18 +261,14 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                         color: Colors.transparent,
                         height: 50.0,
                       ),
-                      isDataLoaded
-                          ? formFieldWidget.render("horizontal")
-                          : Container(),
+                      isDataLoaded ? formFieldWidget.render("horizontal") : Container(),
                       isDataLoaded
                           ? filteredTasks.isNotEmpty
                               ? TaskList(tasks: filteredTasks)
                               : Text(
                                   "No Tasks Found",
                                   style: TextStyle(
-                                    color: isDarkTheme.value
-                                        ? foregroundColor
-                                        : backgroundColor,
+                                    color: isDarkTheme.value ? foregroundColor : backgroundColor,
                                     fontSize: 30.0,
                                     fontWeight: FontWeight.bold,
                                   ),
