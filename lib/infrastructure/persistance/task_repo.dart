@@ -25,8 +25,8 @@ class TaskRepo implements TaskRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> getLastTask(String lineID) async {
-    String url = "task/last/" + lineID + "/";
+  Future<Map<String, dynamic>> getLastTask(String lineID, String taskID) async {
+    String url = "task/last/" + lineID + "/" + taskID + "/";
     var response = await networkAPIProvider.get(url, TokenType.accessToken);
     return response;
   }

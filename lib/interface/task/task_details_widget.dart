@@ -149,7 +149,7 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
     startTime = startTime.toUtc();
     endTime = endTime.toUtc();
 
-    await appStore.taskApp.getLastTask(widget.task.line.id).then((lastTaskResponse) async {
+    await appStore.taskApp.getLastTask(widget.task.line.id, widget.task.id).then((lastTaskResponse) async {
       if (lastTaskResponse.containsKey("status") && lastTaskResponse["status"]) {
         Task lastTask = Task.fromJSON(lastTaskResponse["payload"]);
         Map<String, dynamic> conditions = {
@@ -166,15 +166,14 @@ class _TaskDetailsWidgetState extends State<TaskDetailsWidget> {
                   "AND": [
                     {
                       "GREATEREQUAL": {
-                        "Field": "start_time",
-                        "Value": lastTask.endTime.toUtc().toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
+                        "Field": "end_time",
+                        "Value": lastTask.endTime.toUtc().toString().substring(0, 10) + "T" + lastTask.endTime.toString().substring(11, 19) + "Z",
                       }
                     },
                     {
-                      "BETWEEN": {
+                      "LESSEQUAL": {
                         "Field": "end_time",
-                        "LowerValue": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
-                        "HigherValue": endTime.toString().substring(0, 10) + "T" + endTime.toString().substring(11, 19) + "Z",
+                        "Value": startTime.toString().substring(0, 10) + "T" + startTime.toString().substring(11, 19) + "Z",
                       }
                     }
                   ]

@@ -79,22 +79,6 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
     });
   }
 
-  Future<void> getJobs() async {
-    await appStore.jobApp.list({}).then((response) {
-      if (response.containsKey("status") && response["status"]) {
-        for (var item in response["payload"]) {
-          Job job = Job.fromJSON(item);
-          jobs.add(job);
-        }
-      } else {
-        setState(() {
-          errorMessage = "Unable to get Jobs.";
-          isError = true;
-        });
-      }
-    });
-  }
-
   Future<void> getShifts() async {
     await appStore.shiftApp.list({}).then((response) {
       if (response.containsKey("status") && response["status"]) {
@@ -115,7 +99,7 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
     setState(() {
       isLoading = true;
     });
-    await Future.forEach([await getLines(), await getJobs(), await getShifts()], (element) {
+    await Future.forEach([await getLines(), await getShifts()], (element) {
       if (errorMessage.isEmpty && errorMessage == "") {
         fileFormField = FileFormField(
           fileController: fileFieldControlled,
@@ -211,22 +195,44 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                   map = formFieldWidget.toJSON();
                                   map["created_by_username"] = currentUser.username;
                                   map["updated_by_username"] = currentUser.username;
-                                  String jobCode = map["job_code"];
-                                  Job job = jobs.firstWhere((element) => element.code == jobCode);
-                                  map["job_id"] = job.id;
-                                  map.remove("job_code");
-                                  map["scheduled_date"] = map["scheduled_date"] + "T00:00:00.0Z";
-                                  map["plan"] = job.plan;
-                                  await appStore.taskApp.create(map).then((response) {
-                                    if (response.containsKey("status") && response["status"]) {
-                                      setState(() {
-                                        errorMessage = "Tasks Created";
-                                        isError = true;
+                                  Map<String, dynamic> conditions = {
+                                    "EQUALS": {
+                                      "Field": "code",
+                                      "Value": map["job_code"],
+                                    }
+                                  };
+                                  await appStore.jobApp.list(conditions).then((jobResponse) async {
+                                    if (jobResponse.containsKey("status") && jobResponse["status"]) {
+                                      Job job = Job.fromJSON(jobResponse["payload"][0]);
+                                      map["job_id"] = job.id;
+                                      map.remove("job_code");
+                                      map["scheduled_date"] = map["scheduled_date"] + "T00:00:00.0Z";
+                                      map["plan"] = job.plan;
+                                      await appStore.taskApp.create(map).then((response) {
+                                        if (response.containsKey("status") && response["status"]) {
+                                          setState(() {
+                                            errorMessage = "Tasks Created";
+                                            isError = true;
+                                          });
+                                          formFieldWidget.clear();
+                                        } else {
+                                          if (response.containsKey("status")) {
+                                            String message = response["message"].toString().contains("Duplicate") ? "Task Already Created." : response["message"];
+                                            setState(() {
+                                              errorMessage = message;
+                                              isError = true;
+                                            });
+                                          } else {
+                                            setState(() {
+                                              errorMessage = "Unbale to Create Task.";
+                                              isError = true;
+                                            });
+                                          }
+                                        }
                                       });
-                                      formFieldWidget.clear();
                                     } else {
-                                      if (response.containsKey("status")) {
-                                        String message = response["message"].toString().contains("Duplicate") ? "Task Already Created." : response["message"];
+                                      if (jobResponse.containsKey("status")) {
+                                        String message = jobResponse["message"].toString();
                                         setState(() {
                                           errorMessage = message;
                                           isError = true;
@@ -295,7 +301,7 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                             padding: const EdgeInsets.all(10.0),
                             child: MaterialButton(
                               onPressed: () async {
-                                if (jobs.isEmpty || lines.isEmpty || shifts.isEmpty) {
+                                if (lines.isEmpty || shifts.isEmpty) {
                                   setState(() {
                                     isError = true;
                                     errorMessage = "Unable to Create Tasks at this time.";
@@ -316,10 +322,11 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                         )
                                         .toList();
                                   }
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-                                  csvData.forEach((line) {
+                                  // setState(() {
+                                  //   isLoading = true;
+                                  // });
+
+                                  await Future.forEach(csvData, (List<dynamic> line) async {
                                     late DateTime scheduledDate;
                                     try {
                                       scheduledDate = DateTime.parse(line[2]);
@@ -329,42 +336,60 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                       String year = line[2].toString().substring(6, 10);
                                       scheduledDate = DateTime(int.parse(year), int.parse(month), int.parse(date));
                                     }
-                                    Job job = jobs.firstWhere((element) => element.code.toString() == line[0].toString());
-                                    String lineID = lines.firstWhere((element) => element.code == line[1]).id;
-                                    String shiftID = shifts.firstWhere((element) => element.code == line[3]).id;
-                                    Map<String, dynamic> task = {
-                                      "job_id": job.id,
-                                      "line_id": lineID,
-                                      "scheduled_date": scheduledDate.toString().substring(0, 10) + "T00:00:00.0Z",
-                                      "shift_id": shiftID,
-                                      "plan": job.plan,
-                                      "created_by_username": currentUser.username,
-                                      "updated_by_username": currentUser.username,
-                                    };
-                                    tasks.add(task);
-                                  });
-                                  await appStore.taskApp.createMultiple(tasks).then((response) {
-                                    setState(() {
-                                      isLoading = false;
-                                    });
-                                    if (response.containsKey("status") && response["status"]) {
-                                      setState(() {
-                                        errorMessage = "Tasks Created";
-                                        isError = true;
-                                      });
-                                      fileFormField.clear();
-                                    } else {
-                                      if (response.containsKey("status")) {
-                                        setState(() {
-                                          errorMessage = response["message"];
-                                          isError = true;
-                                        });
-                                      } else {
-                                        setState(() {
-                                          errorMessage = "Unbale to Create Tasks.";
-                                          isError = true;
-                                        });
+                                    Map<String, dynamic> conditions = {
+                                      "EQUALS": {
+                                        "Field": "code",
+                                        "Value": line[0].toString(),
                                       }
+                                    };
+                                    await appStore.jobApp.list(conditions).then((jobResponse) {
+                                      if (jobResponse.containsKey("status") && jobResponse["status"]) {
+                                        Job job = Job.fromJSON(jobResponse["payload"][0]);
+                                        String lineID = lines.firstWhere((element) => element.code == line[1]).id;
+                                        String shiftID = shifts.firstWhere((element) => element.code == line[3]).id;
+                                        Map<String, dynamic> task = {
+                                          "job_id": job.id,
+                                          "line_id": lineID,
+                                          "scheduled_date": scheduledDate.toString().substring(0, 10) + "T00:00:00.0Z",
+                                          "shift_id": shiftID,
+                                          "plan": job.plan,
+                                          "created_by_username": currentUser.username,
+                                          "updated_by_username": currentUser.username,
+                                        };
+                                        tasks.add(task);
+                                      }
+                                    });
+                                  }).then((value) async {
+                                    if (tasks.isNotEmpty) {
+                                      await appStore.taskApp.createMultiple(tasks).then((response) {
+                                        setState(() {
+                                          isLoading = false;
+                                        });
+                                        if (response.containsKey("status") && response["status"]) {
+                                          setState(() {
+                                            errorMessage = "Tasks Created";
+                                            isError = true;
+                                          });
+                                          fileFormField.clear();
+                                        } else {
+                                          if (response.containsKey("status")) {
+                                            setState(() {
+                                              errorMessage = response["message"];
+                                              isError = true;
+                                            });
+                                          } else {
+                                            setState(() {
+                                              errorMessage = "Unbale to Create Tasks.";
+                                              isError = true;
+                                            });
+                                          }
+                                        }
+                                      });
+                                    } else {
+                                      setState(() {
+                                        isError = true;
+                                        errorMessage = "No Valid Jobs Found";
+                                      });
                                     }
                                   });
                                 }
