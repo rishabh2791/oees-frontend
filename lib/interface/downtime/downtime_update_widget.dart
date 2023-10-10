@@ -288,6 +288,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                     "controlled": toUpdate.preset.type == "Controlled" ? true : false,
                     "preset": toUpdate.preset.id,
                     "description": toUpdate.preset.description,
+                    "updated_by_username": currentUser.username,
                   };
 
                   await appStore.downtimeApp.update(widget.downtime.id, update).then((updateResponse) async {
@@ -340,6 +341,8 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                           errorMessage = "Unable to Update Downtime";
                         });
                       }
+                      widget.notifyParent(createdDowntimes);
+                      Navigator.of(context).pop();
                     }
                   });
                 }
