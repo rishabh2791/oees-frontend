@@ -322,9 +322,9 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                         )
                                         .toList();
                                   }
-                                  // setState(() {
-                                  //   isLoading = true;
-                                  // });
+                                  setState(() {
+                                    isLoading = true;
+                                  });
 
                                   await Future.forEach(csvData, (List<dynamic> line) async {
                                     late DateTime scheduledDate;
@@ -367,6 +367,7 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                         });
                                         if (response.containsKey("status") && response["status"]) {
                                           setState(() {
+                                            isLoading = false;
                                             errorMessage = "Tasks Created";
                                             isError = true;
                                           });
@@ -374,11 +375,13 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                         } else {
                                           if (response.containsKey("status")) {
                                             setState(() {
+                                              isLoading = false;
                                               errorMessage = response["message"];
                                               isError = true;
                                             });
                                           } else {
                                             setState(() {
+                                              isLoading = false;
                                               errorMessage = "Unbale to Create Tasks.";
                                               isError = true;
                                             });
@@ -387,6 +390,7 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                       });
                                     } else {
                                       setState(() {
+                                        isLoading = false;
                                         isError = true;
                                         errorMessage = "No Valid Jobs Found";
                                       });

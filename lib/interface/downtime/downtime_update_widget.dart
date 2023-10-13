@@ -268,7 +268,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
             child: MaterialButton(
               onPressed: () async {
                 setState(() {
-                  // isLoading = true;
+                  isLoading = true;
                   errorMessage = "";
                 });
                 if (totalDowntime != allocatedDowntime) {
@@ -292,6 +292,7 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                   };
 
                   await appStore.downtimeApp.update(widget.downtime.id, update).then((updateResponse) async {
+                    print(updateResponse);
                     if (updateResponse.containsKey("status") && updateResponse["status"]) {
                       widget.downtime.description = toUpdate.preset.description;
                       widget.downtime.startTime = toUpdate.startTime;
@@ -327,9 +328,18 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                               errorMessage = creationErrors;
                             });
                           }
+                          setState(() {
+                            isLoading = false;
+                          });
                           widget.notifyParent(createdDowntimes);
                           Navigator.of(context).pop();
                         });
+                      } else {
+                        setState(() {
+                          isLoading = false;
+                        });
+                        widget.notifyParent(createdDowntimes);
+                        Navigator.of(context).pop();
                       }
                     } else {
                       if (updateResponse.containsKey("status")) {
@@ -341,6 +351,9 @@ class _DowntimeUpdateWidgetState extends State<DowntimeUpdateWidget> {
                           errorMessage = "Unable to Update Downtime";
                         });
                       }
+                      setState(() {
+                        isLoading = false;
+                      });
                       widget.notifyParent(createdDowntimes);
                       Navigator.of(context).pop();
                     }
