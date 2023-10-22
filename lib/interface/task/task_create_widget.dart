@@ -326,15 +326,24 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                     isLoading = true;
                                   });
 
+                                  var errors = "";
+                                  var createdTasks = "";
+
                                   await Future.forEach(csvData, (List<dynamic> line) async {
                                     late DateTime scheduledDate;
+                                    bool thisError = false;
                                     try {
                                       scheduledDate = DateTime.parse(line[2]);
                                     } catch (e) {
-                                      String date = line[2].toString().substring(0, 2);
-                                      String month = line[2].toString().substring(3, 5);
-                                      String year = line[2].toString().substring(6, 10);
-                                      scheduledDate = DateTime(int.parse(year), int.parse(month), int.parse(date));
+                                      try {
+                                        String date = line[2].toString().substring(0, 2);
+                                        String month = line[2].toString().substring(3, 5);
+                                        String year = line[2].toString().substring(6, 10);
+                                        scheduledDate = DateTime(int.parse(year), int.parse(month), int.parse(date));
+                                      } catch (err) {
+                                        thisError = true;
+                                        errors += "Date is not in the right format on Line: " + line.toString();
+                                      }
                                     }
                                     Map<String, dynamic> conditions = {
                                       "EQUALS": {
@@ -345,30 +354,47 @@ class _TaskCreateWidgetState extends State<TaskCreateWidget> {
                                     await appStore.jobApp.list(conditions).then((jobResponse) {
                                       if (jobResponse.containsKey("status") && jobResponse["status"]) {
                                         Job job = Job.fromJSON(jobResponse["payload"][0]);
-                                        String lineID = lines.firstWhere((element) => element.code == line[1]).id;
-                                        String shiftID = shifts.firstWhere((element) => element.code == line[3]).id;
-                                        Map<String, dynamic> task = {
-                                          "job_id": job.id,
-                                          "line_id": lineID,
-                                          "scheduled_date": scheduledDate.toString().substring(0, 10) + "T00:00:00.0Z",
-                                          "shift_id": shiftID,
-                                          "plan": job.plan,
-                                          "created_by_username": currentUser.username,
-                                          "updated_by_username": currentUser.username,
-                                        };
-                                        tasks.add(task);
+                                        String lineID = "";
+                                        String shiftID = "";
+                                        try {
+                                          lineID = lines.firstWhere((element) => element.code == line[1]).id;
+                                        } catch (e) {
+                                          errors += "Invalid Line: " + line[1];
+                                        }
+
+                                        try {
+                                          shiftID = shifts.firstWhere((element) => element.code == line[3]).id;
+                                        } catch (e) {
+                                          errors += "Invalid Shift: " + line[3];
+                                        }
+
+                                        if (lineID.isNotEmpty && shiftID.isNotEmpty && !thisError) {
+                                          Map<String, dynamic> task = {
+                                            "job_id": job.id,
+                                            "line_id": lineID,
+                                            "scheduled_date": scheduledDate.toString().substring(0, 10) + "T00:00:00.0Z",
+                                            "shift_id": shiftID,
+                                            "plan": job.plan,
+                                            "created_by_username": currentUser.username,
+                                            "updated_by_username": currentUser.username,
+                                          };
+                                          tasks.add(task);
+                                          createdTasks += "Created Task for Job: " + job.code + "\n";
+                                        }
                                       }
                                     });
                                   }).then((value) async {
                                     if (tasks.isNotEmpty) {
                                       await appStore.taskApp.createMultiple(tasks).then((response) {
-                                        setState(() {
-                                          isLoading = false;
-                                        });
                                         if (response.containsKey("status") && response["status"]) {
+                                          if (errors.isNotEmpty) {
+                                            errorMessage += "Errors Found: \n" + errors;
+                                            errorMessage += "\n";
+                                          }
+                                          errorMessage += "Tasks Created: \n" + createdTasks;
+                                          errorMessage += "\n";
                                           setState(() {
                                             isLoading = false;
-                                            errorMessage = "Tasks Created";
                                             isError = true;
                                           });
                                           fileFormField.clear();
